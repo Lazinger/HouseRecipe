@@ -1,28 +1,37 @@
 # Le Carnet — site de recettes
 
 Site statique en HTML / CSS / JS pur (aucune dépendance à installer, aucun build).
+Fonctionne 100 % hors-ligne : polices auto-hébergées et service worker
+(`sw.js`) qui met le site en cache après la première visite.
 
 ## Structure
 ```
-index.html   → structure de la page
-style.css    → design (carnet de cuisine, fiches façon classeur)
-script.js    → données des recettes + logique (recherche, filtres, favoris)
+index.html     → structure de la page
+style.css      → design ("carnet lumineux épuré")
+script.js      → données des recettes + logique (recherche, filtres, favoris, photos, export/import)
+manifest.json  → manifeste PWA (nom, icône, couleurs)
+sw.js          → service worker (mise en cache pour le mode hors-ligne)
+fonts/         → Fraunces, DM Sans, Caveat en .woff2 (auto-hébergées)
+icons/         → icône de l'app (icons/icon.svg)
 ```
 
 ## Utilisation
-Ouvrez simplement `index.html` dans un navigateur, ou servez le dossier avec
-n'importe quel serveur statique (ex. `npx serve .`).
+Servez le dossier avec n'importe quel serveur statique (ex. `npx serve .`).
+Le service worker requiert `http://` ou `https://` — ouvrir `index.html`
+directement en `file://` fonctionne pour la navigation, mais sans mise en
+cache hors-ligne.
 
-Les favoris sont stockés dans `localStorage`, donc ils persistent d'une visite
-à l'autre sur le même appareil/navigateur.
+Les favoris et les recettes ajoutées sont stockés dans `localStorage` ; les
+photos de recettes sont stockées dans IndexedDB (trop volumineuses pour
+`localStorage`). Tout reste sur l'appareil — export/import JSON disponible
+dans le menu pour sauvegarder/transférer ses recettes.
 
 ## Passage en application Android
 
 Le site a été conçu pour être facilement encapsulé dans une WebView, sans
 modification majeure :
-- pas de dépendance réseau obligatoire (polices Google Fonts en ligne
-  uniquement — vous pouvez les rendre locales pour un usage 100 % hors-ligne),
-- pas de `localStorage` sensible,
+- aucune dépendance réseau (polices auto-hébergées, service worker),
+- pas de données sensibles en stockage local,
 - boutons et zones tactiles dimensionnés pour le doigt,
 - écoute de l'événement `popstate` déjà en place pour se brancher sur le
   bouton "retour" matériel Android.
@@ -48,7 +57,3 @@ Deux approches courantes pour la suite :
    (`settings.javaScriptEnabled = true`). Pour le bouton retour matériel,
    interceptez `onBackPressed()` et appelez `webView.goBack()` ou injectez
    un événement `popstate`.
-
-Pour rendre les polices disponibles hors-ligne, téléchargez les fichiers
-`.woff2` de Fraunces, Work Sans et JetBrains Mono et remplacez le lien
-Google Fonts dans `index.html` par des règles `@font-face` locales.

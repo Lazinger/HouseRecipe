@@ -1,0 +1,13 @@
+{
+  "name": "Le Carnet — recettes de cuisine",
+  "short_name": "Le Carnet",
+  "description": "Un carnet de recettes numérique : entrées, plats et desserts, avec liste de courses et favoris.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FBFAF6",
+  "theme_color": "#1F5C42",
+  "lang": "fr",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

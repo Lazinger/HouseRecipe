@@ -1,4 +1,25 @@
 /* =========================================================
+   POLICES — hébergées localement (fonts/), pour un fonctionnement
+   100% hors-ligne (pas de dépendance à Google Fonts)
+   ========================================================= */
+@font-face{
+  font-family: 'Caveat'; font-style: normal; font-weight: 600 700;
+  font-display: swap; src: url('fonts/caveat.woff2') format('woff2');
+}
+@font-face{
+  font-family: 'DM Sans'; font-style: normal; font-weight: 400 700;
+  font-display: swap; src: url('fonts/dm-sans.woff2') format('woff2');
+}
+@font-face{
+  font-family: 'Fraunces'; font-style: normal; font-weight: 500 700;
+  font-display: swap; src: url('fonts/fraunces.woff2') format('woff2');
+}
+@font-face{
+  font-family: 'Fraunces'; font-style: italic; font-weight: 600;
+  font-display: swap; src: url('fonts/fraunces-italic.woff2') format('woff2');
+}
+
+/* =========================================================
    LE CARNET — design tokens
    Carnet lumineux épuré : presque blanc, une seule couleur bijou (émeraude)
    ========================================================= */

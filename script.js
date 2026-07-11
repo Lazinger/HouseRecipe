@@ -1,8 +1,15 @@
 /* =========================================================
    LE CARNET — logique de l'application
    Pensé pour tourner tel quel dans une WebView Android
-   (aucune dépendance externe hormis les polices).
+   (aucune dépendance externe, polices incluses — fonctionne hors-ligne).
    ========================================================= */
+
+/* ---- service worker : active le mode hors-ligne ---- */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
 
 /* ---- petites icônes SVG façon croquis de carnet, réutilisées par type ---- */
 const ICONS = {
@@ -228,6 +235,15 @@ async function getPhoto(recipeId){
     const req = tx.objectStore(PHOTO_STORE).get(recipeId);
     req.onsuccess = () => resolve(req.result || null);
     req.onerror = () => reject(req.error);
+  });
+}
+async function deletePhoto(recipeId){
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PHOTO_STORE, "readwrite");
+    tx.objectStore(PHOTO_STORE).delete(recipeId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 }
 function applyCardPhoto(recipeId, iconEl){
@@ -768,6 +784,7 @@ function openDetail(id){
   const r = ALL_RECIPES.find(x => x.id === id);
   if (!r) return;
   const isFav = state.favorites.has(r.id);
+  const isCustom = customRecipes.some(cr => cr.id === r.id);
 
   detailView.className = `detail-view cat-${r.category}`;
 
@@ -784,6 +801,14 @@ function openDetail(id){
           </button>
         </div>
         <div class="detail-topbar-actions">
+          ${isCustom ? `
+          <button class="detail-fav" id="detailEditBtn" type="button" aria-label="Modifier la recette">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="detail-fav" id="detailDeleteBtn" type="button" aria-label="Supprimer la recette">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 7h14M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-9 0 1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          ` : ""}
           <button class="detail-fav" id="detailCartBtn" type="button" aria-label="Ouvrir le panier de courses">
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
@@ -837,6 +862,10 @@ function openDetail(id){
   detailScroll.querySelector("#detailFavBtn").addEventListener("click", () => toggleFavorite(r.id));
   detailScroll.querySelector("#detailCartBtn").addEventListener("click", openPanier);
   detailScroll.querySelector("#detailMenuBtn").addEventListener("click", openDrawer);
+  if (isCustom) {
+    detailScroll.querySelector("#detailEditBtn").addEventListener("click", () => goToEditRecipe(r));
+    detailScroll.querySelector("#detailDeleteBtn").addEventListener("click", () => deleteRecipe(r.id));
+  }
 
   currentOpenRecipe = r;
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
@@ -895,6 +924,27 @@ function closeDetail(){
   syncBodyScrollLock();
 }
 
+function goToEditRecipe(recipe){
+  closeDetail();
+  openAddForm(recipe);
+}
+
+function deleteRecipe(id){
+  if (!confirm("Supprimer définitivement cette recette ?")) return;
+  const ci = customRecipes.findIndex(r => r.id === id);
+  if (ci >= 0) customRecipes.splice(ci, 1);
+  const ai = ALL_RECIPES.findIndex(r => r.id === id);
+  if (ai >= 0) ALL_RECIPES.splice(ai, 1);
+  saveCustomRecipes();
+  state.favorites.delete(id);
+  saveFavorites();
+  removeRecipeFromCart(id);
+  deletePhoto(id).catch(() => {});
+  closeDetail();
+  render();
+  showToast("Recette supprimée");
+}
+
 /* ---- vue ajout (formulaire plein écran) ---- */
 function createIngredientRow(container, name = "", qty = ""){
   const row = document.createElement("div");
@@ -940,7 +990,7 @@ function validateNewRecipe({ title, category, ingredients, steps }){
   return null;
 }
 
-function renderAddForm(){
+function renderAddForm(editingRecipe){
   addScroll.innerHTML = `
     <div class="add-topbar">
       <div class="add-topbar-left">
@@ -952,12 +1002,12 @@ function renderAddForm(){
           Retour
         </button>
       </div>
-      <h2>Nouvelle recette</h2>
+      <h2>${editingRecipe ? "Modifier la recette" : "Nouvelle recette"}</h2>
     </div>
     <form id="addForm" class="add-form" novalidate>
       <div class="field">
         <label for="addTitle">Titre *</label>
-        <input id="addTitle" type="text" placeholder="Ex. Tarte aux pommes">
+        <input id="addTitle" type="text" placeholder="Ex. Tarte aux pommes" value="${escapeAttr(editingRecipe?.title || "")}">
       </div>
       <div class="field-row">
         <div class="field">
@@ -980,20 +1030,20 @@ function renderAddForm(){
       </div>
       <div class="field">
         <label for="addDesc">Description courte</label>
-        <input id="addDesc" type="text" placeholder="Une phrase pour donner envie">
+        <input id="addDesc" type="text" placeholder="Une phrase pour donner envie" value="${escapeAttr(editingRecipe?.desc || "")}">
       </div>
       <div class="field-row">
         <div class="field">
           <label for="addTime">Temps (min)</label>
-          <input id="addTime" type="number" min="0" placeholder="30">
+          <input id="addTime" type="number" min="0" placeholder="30" value="${editingRecipe?.time || ""}">
         </div>
         <div class="field">
           <label for="addServings">Personnes</label>
-          <input id="addServings" type="number" min="1" placeholder="4">
+          <input id="addServings" type="number" min="1" placeholder="4" value="${editingRecipe?.servings || ""}">
         </div>
       </div>
       <div class="field">
-        <label for="addPhoto">Photo (optionnel)</label>
+        <label for="addPhoto">Photo (optionnel)${editingRecipe ? " — laisse vide pour garder la photo actuelle" : ""}</label>
         <input id="addPhoto" type="file" accept="image/*">
       </div>
       <div class="field">
@@ -1008,12 +1058,12 @@ function renderAddForm(){
       </div>
       <div class="field">
         <label for="addNote">Astuce (optionnel)</label>
-        <textarea id="addNote" rows="2" placeholder="Un conseil, une variante…"></textarea>
+        <textarea id="addNote" rows="2" placeholder="Un conseil, une variante…">${editingRecipe?.note || ""}</textarea>
       </div>
       <p id="addError" class="add-error" hidden></p>
       <div class="add-actions">
         <button type="button" class="btn-secondary" id="addCancelBtn">Annuler</button>
-        <button type="submit" class="btn-primary">Enregistrer</button>
+        <button type="submit" class="btn-primary">${editingRecipe ? "Enregistrer les modifications" : "Enregistrer"}</button>
       </div>
     </form>
   `;
@@ -1023,8 +1073,19 @@ function renderAddForm(){
   const stepRowsEl = addScroll.querySelector("#stepRows");
   const addError = addScroll.querySelector("#addError");
 
-  ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl));
-  stepRowsEl.appendChild(createStepRow(stepRowsEl));
+  addForm.querySelector("#addCategory").value = editingRecipe?.category || "";
+  addForm.querySelector("#addDifficulty").value = editingRecipe?.difficulty || "Facile";
+
+  if (editingRecipe && editingRecipe.ingredients.length) {
+    editingRecipe.ingredients.forEach(([name, qty]) => ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl, name, qty)));
+  } else {
+    ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl));
+  }
+  if (editingRecipe && editingRecipe.steps.length) {
+    editingRecipe.steps.forEach(text => stepRowsEl.appendChild(createStepRow(stepRowsEl, text)));
+  } else {
+    stepRowsEl.appendChild(createStepRow(stepRowsEl));
+  }
   updateRemoveButtons(ingredientRowsEl);
   updateRemoveButtons(stepRowsEl);
 
@@ -1067,6 +1128,30 @@ function renderAddForm(){
     }
     addError.hidden = true;
 
+    const photoFile = addForm.querySelector("#addPhoto").files[0];
+
+    if (editingRecipe) {
+      const recipe = {
+        ...editingRecipe,
+        title, category,
+        icon: CATEGORY_ICON[category],
+        desc, time, servings, difficulty, note,
+        ingredients, steps
+      };
+      const ci = customRecipes.findIndex(r => r.id === editingRecipe.id);
+      if (ci >= 0) customRecipes[ci] = recipe;
+      const ai = ALL_RECIPES.findIndex(r => r.id === editingRecipe.id);
+      if (ai >= 0) ALL_RECIPES[ai] = recipe;
+      saveCustomRecipes();
+
+      if (photoFile) await savePhoto(recipe.id, photoFile);
+
+      closeAddForm();
+      showToast("Recette modifiée");
+      openDetail(recipe.id);
+      return;
+    }
+
     const recipe = {
       id: generateRecipeId(title),
       title, category,
@@ -1079,7 +1164,6 @@ function renderAddForm(){
     ALL_RECIPES.push(recipe);
     saveCustomRecipes();
 
-    const photoFile = addForm.querySelector("#addPhoto").files[0];
     if (photoFile) await savePhoto(recipe.id, photoFile);
 
     closeAddForm();
@@ -1094,8 +1178,8 @@ function renderAddForm(){
   });
 }
 
-function openAddForm(){
-  renderAddForm();
+function openAddForm(editingRecipe){
+  renderAddForm(editingRecipe);
   addView.classList.add("is-open");
   addView.setAttribute("aria-hidden", "false");
   addScroll.scrollTop = 0;
