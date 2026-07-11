@@ -529,18 +529,17 @@ input{ font-family: inherit; }
 
 .recipe-section{
   position:relative;
-  margin-bottom:18px; padding: 14px 16px 16px;
-  background: var(--surface); box-shadow: var(--shadow-paper-sm);
-  border-radius:4px;
+  margin-bottom:16px; padding: 14px 16px 16px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius:6px;
 }
-.recipe-section .tape{ top:-8px; }
 .recipe-section-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
 .recipe-section-head .tag{ font-size:.72rem; font-weight:800; color: var(--accent-dark); text-transform:uppercase; letter-spacing:.03em; }
 .remove-btn{
-  flex:none; border:none; background: var(--coral-tint); color: var(--coral-dark);
+  flex:none; border:none; background: var(--terracotta-tint); color: var(--terracotta-dark);
   font-size:.7rem; font-weight:700; padding:5px 11px; border-radius:20px;
 }
-.remove-btn:hover{ background: var(--coral); color:#fff; }
+.remove-btn:hover{ background: var(--terracotta); color:#fff; }
 
 .ing-lines{ display:flex; flex-direction:column; gap:4px; }
 .ing-line{ display:flex; justify-content:space-between; gap:10px; font-size:.86rem; color: var(--ink); }
@@ -550,7 +549,7 @@ input{ font-family: inherit; }
   display:flex; align-items:center; gap:8px;
   font-size:1.05rem; margin: 22px 0 12px;
 }
-.acheter-title .dot{ width:9px; height:9px; border-radius:50%; background: var(--teal); }
+.acheter-title .dot{ width:9px; height:9px; border-radius:50%; background: var(--emerald); }
 
 .check-list{ display:flex; flex-direction:column; gap:2px; }
 .check-line{
@@ -558,18 +557,17 @@ input{ font-family: inherit; }
   font-size:.9rem; color: var(--ink); cursor:pointer;
 }
 .checkbox{
-  flex:none; width:20px; height:20px; border-radius:6px; border:2px solid var(--coral);
+  flex:none; width:20px; height:20px; border-radius:5px; border:2px solid var(--emerald);
   display:flex; align-items:center; justify-content:center; color:#fff; font-size:.7rem;
 }
-.checkbox.checked{ background: var(--coral); }
+.checkbox.checked{ background: var(--emerald); }
 .check-line.done{ color: var(--ink-faint); text-decoration: line-through; }
 
 .clear-btn{
   margin-top:20px; border:none; background: var(--ink); color: var(--surface);
-  font-size:.82rem; font-weight:700; padding:11px 20px; border-radius:8px;
-  box-shadow: var(--shadow-paper-sm); transform: rotate(-1deg);
+  font-size:.82rem; font-weight:700; padding:11px 20px; border-radius:6px;
 }
-.clear-btn:hover{ transform: rotate(0deg) translateY(-1px); }
+.clear-btn:hover{ background: var(--emerald-dark); }
 
 /* =========================================================
    TIROIR DE NAVIGATION

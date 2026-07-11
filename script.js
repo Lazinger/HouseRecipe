@@ -188,7 +188,6 @@ const RECIPES = [
 /* ---- recettes ajoutées par l'utilisateur (persistées) ---- */
 const CUSTOM_RECIPES_KEY = "carnet-recettes-perso";
 const CATEGORY_ICON = { "entrée": "bowl", plat: "pot", dessert: "tart" };
-const CATEGORY_TAPE = { "entrée": "tape-teal", plat: "tape-coral", dessert: "" };
 
 function loadCustomRecipes(){
   try { return JSON.parse(localStorage.getItem(CUSTOM_RECIPES_KEY) || "[]"); }
@@ -1025,7 +1024,6 @@ function renderPanier(){
     : `
       ${cart.map(entry => `
         <div class="recipe-section cat-${entry.category}">
-          <div class="tape ${CATEGORY_TAPE[entry.category] || ""}"></div>
           <div class="recipe-section-head">
             <span class="tag">${entry.title} · ${entry.servings} pers.</span>
             <button class="remove-btn" type="button" data-removeid="${escapeAttr(entry.recipeId)}">Retirer</button>
