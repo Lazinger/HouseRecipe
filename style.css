@@ -185,60 +185,37 @@ input{ font-family: inherit; }
 .hero-card{
   position:relative;
   display:grid; grid-template-columns: 1.15fr 1fr; gap:0;
-  background: linear-gradient(135deg, var(--coral) 0%, var(--coral-dark) 100%);
-  color: #fff;
-  clip-path: var(--torn);
-  overflow:visible;
-  box-shadow: 0 24px 48px -20px rgba(225,64,31,.5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow:hidden;
   cursor:pointer;
-  border: none;
   width:100%; text-align:left;
-  isolation: isolate;
-  transform: rotate(-1deg);
+  transition: box-shadow .2s ease, border-color .2s ease;
 }
-.hero-card::before{
-  content:""; position:absolute; z-index:0; width:260px; height:260px; border-radius:50%;
-  background: rgba(255,255,255,.14); top:-90px; right:-40px; filter: blur(2px);
-}
-.hero-card::after{
-  content:""; position:absolute; z-index:0; width:160px; height:160px; border-radius:50%;
-  background: rgba(255,255,255,.1); bottom:-60px; right:120px;
-}
-.hero-card .tape{ background: rgba(255,201,60,.9); left:36%; top:-11px; }
-.hero-doodle{ position:absolute; z-index:1; opacity:.55; color:#fff; }
-.hero-copy{ position:relative; z-index:1; padding: 32px 28px; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+.hero-card:hover{ border-color: var(--emerald); box-shadow: var(--shadow-raised); }
+.hero-copy{ padding: 32px 28px; display:flex; flex-direction:column; gap:10px; justify-content:center; }
 .hero-eyebrow{
-  font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; font-weight:700;
-  color: rgba(255,255,255,.85);
+  font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
+  color: var(--terracotta-dark);
 }
-.hero-copy h2{ color: #fff; font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight:700; line-height:1.15; transform: rotate(-.6deg); }
-.hero-copy p{ color: rgba(255,255,255,.85); font-size:.92rem; max-width: 46ch; }
-.hero-meta{ display:flex; gap:10px; margin-top:8px; flex-wrap: wrap; }
+.hero-copy h2{ font-family: var(--font-display); font-style: italic; color: var(--ink); font-size: clamp(1.7rem, 3.2vw, 2.4rem); font-weight:600; line-height:1.1; }
+.hero-copy p{ color: var(--ink-soft); font-size:.92rem; max-width: 46ch; }
+.hero-meta{ display:flex; gap:8px; margin-top:8px; flex-wrap: wrap; }
 .hero-meta span{
-  font-size:.76rem; font-weight:700; background: rgba(255,255,255,.18);
-  border: 1.5px dashed rgba(255,255,255,.6);
-  padding: 5px 12px; border-radius: 999px;
+  font-size:.76rem; font-weight:700; color: var(--emerald-dark); background: var(--emerald-tint);
+  padding: 5px 12px; border-radius: 4px;
 }
 .hero-art{
-  position:relative; z-index:1; display:flex; align-items:center; justify-content:center;
-  min-height: 190px;
+  position:relative; display:flex; align-items:center; justify-content:center;
+  min-height: 190px; background: var(--emerald-tint);
+  color: var(--emerald-dark);
 }
-.hero-art-circle{
-  width: 130px; height:130px; border-radius:50%;
-  background: rgba(255,255,255,.16);
-  display:flex; align-items:center; justify-content:center;
-  animation: heroWobble 6s ease-in-out infinite;
-}
-.hero-art svg{ width: 56px; height:56px; color:#fff; }
-
-@keyframes heroWobble{
-  0%,100%{ transform: rotate(-4deg); }
-  50%{ transform: rotate(4deg); }
-}
+.hero-art svg{ width: 64px; height:64px; }
 
 @media (max-width: 640px){
   .hero-card{ grid-template-columns: 1fr; }
-  .hero-art{ order:-1; min-height:140px; padding-top: 24px; }
+  .hero-art{ order:-1; min-height:140px; }
 }
 
 /* =========================================================
@@ -251,56 +228,51 @@ input{ font-family: inherit; }
 
 .recipe-grid{
   display:grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr));
-  gap: 20px;
+  gap: 18px;
+  padding-top: 6px;
 }
 
 .recipe-card{
   position:relative;
   background: var(--surface);
-  border:none;
-  clip-path: var(--torn);
-  padding: 20px 20px 18px;
-  box-shadow: var(--shadow-paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 18px 18px 16px;
   cursor:pointer;
-  transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease;
+  transition: border-color .2s ease, box-shadow .2s ease;
   text-align:left;
   width:100%;
   display:flex; flex-direction:column; gap:12px;
 }
-.recipe-grid{ padding-top: 6px; }
-.recipe-card:nth-child(3n){ transform: rotate(-2deg); }
-.recipe-card:nth-child(3n+1){ transform: rotate(1.5deg); }
-.recipe-card:nth-child(3n+2){ transform: rotate(-1deg); }
-.recipe-card:hover{ transform: rotate(0deg) translateY(-5px); box-shadow: var(--shadow-raised); }
-.recipe-card:active{ transform: rotate(0deg) translateY(-1px); }
+.recipe-card:hover{ border-color: var(--emerald); box-shadow: var(--shadow-raised); }
+.recipe-card:active{ transform: translateY(1px); }
 
-.card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-top: 4px; }
+.card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
 .card-icon{
   color: var(--accent); flex:none;
-  width: 46px; height:46px; border-radius: 12px;
+  width: 42px; height:42px; border-radius: 8px;
   background: var(--accent-tint);
   display:flex; align-items:center; justify-content:center;
-  transform: rotate(-4deg);
 }
-.card-icon svg{ width:24px; height:24px; }
+.card-icon svg{ width:22px; height:22px; }
 
 .card-fav{
-  flex:none; background: var(--bg); border:none; color: var(--ink-faint); padding:8px;
+  flex:none; background: transparent; border:none; color: var(--ink-faint); padding:8px;
   display:flex; border-radius: 999px;
-  transition: color .15s ease, background .15s ease;
+  transition: color .15s ease;
 }
-.card-fav[aria-pressed="true"]{ color: var(--coral); background: var(--coral-tint); }
+.card-fav[aria-pressed="true"]{ color: var(--terracotta-dark); }
 .card-fav svg{ width:16px; height:16px; }
 
 .card-cat{
   font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; font-weight:800;
   color: var(--accent-dark);
 }
-.card-title{ font-family: var(--font-display); font-size:1.1rem; font-weight:600; line-height:1.25; color: var(--ink); }
+.card-title{ font-family: var(--font-display); font-style: italic; font-size:1.15rem; font-weight:600; line-height:1.25; color: var(--ink); }
 .card-desc{ font-size:.84rem; color: var(--ink-soft); line-height:1.45; }
 
 .card-meta{
-  display:flex; gap:14px; margin-top:auto; padding-top:12px; border-top: 1.5px dashed var(--line);
+  display:flex; gap:14px; margin-top:auto; padding-top:12px; border-top: 1px solid var(--line);
   font-size:.76rem; color: var(--ink-soft); font-weight:500;
 }
 .card-meta span{ display:flex; align-items:center; gap:4px; }

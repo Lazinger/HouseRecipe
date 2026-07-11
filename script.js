@@ -600,8 +600,6 @@ function renderHero(){
   const featured = RECIPES[0];
   heroSlot.innerHTML = `
     <button class="hero-card cat-${featured.category}" data-id="${featured.id}" type="button">
-      <div class="tape"></div>
-      <svg class="hero-doodle" style="top:18px;right:22px;width:26px;" viewBox="0 0 24 24" fill="none"><path d="M3 12c3-6 9-6 9 0s6 6 9 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       <div class="hero-copy">
         <span class="hero-eyebrow">La recette du carnet</span>
         <h2>${featured.title}</h2>
@@ -612,7 +610,7 @@ function renderHero(){
           <span>${featured.difficulty}</span>
         </div>
       </div>
-      <div class="hero-art"><div class="hero-art-circle">${ICONS[featured.icon]}</div></div>
+      <div class="hero-art">${ICONS[featured.icon]}</div>
     </button>
   `;
   heroSlot.querySelector(".hero-card").addEventListener("click", () => openDetail(featured.id));
@@ -649,7 +647,6 @@ function renderGrid(){
     card.dataset.id = r.id;
     const isFav = state.favorites.has(r.id);
     card.innerHTML = `
-      <div class="tape ${CATEGORY_TAPE[r.category] || ""}"></div>
       <div class="card-top">
         <span class="card-icon">${ICONS[r.icon]}</span>
         <button class="card-fav" type="button" aria-pressed="${isFav}" aria-label="Ajouter aux favoris" data-favid="${r.id}">
