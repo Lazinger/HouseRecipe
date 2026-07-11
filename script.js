@@ -200,6 +200,89 @@ function saveCustomRecipes(){
 const customRecipes = loadCustomRecipes();
 const ALL_RECIPES = [...RECIPES, ...customRecipes];
 
+/* ---- photos de recettes (IndexedDB — trop lourd pour localStorage) ---- */
+const PHOTO_DB_NAME = "carnet-photos";
+const PHOTO_STORE = "photos";
+
+function openPhotoDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(PHOTO_DB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(PHOTO_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function savePhoto(recipeId, file){
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PHOTO_STORE, "readwrite");
+    tx.objectStore(PHOTO_STORE).put(file, recipeId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function getPhoto(recipeId){
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PHOTO_STORE, "readonly");
+    const req = tx.objectStore(PHOTO_STORE).get(recipeId);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+function applyCardPhoto(recipeId, iconEl){
+  getPhoto(recipeId).then(blob => {
+    if (!blob || !iconEl) return;
+    iconEl.classList.add("has-photo");
+    iconEl.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="">`;
+  }).catch(() => {});
+}
+function applyDetailPhoto(recipeId, photoEl){
+  getPhoto(recipeId).then(blob => {
+    if (!blob || !photoEl) return;
+    photoEl.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="">`;
+    photoEl.hidden = false;
+  }).catch(() => {});
+}
+
+/* ---- export / import : sauvegarde JSON des recettes ajoutées + favoris ---- */
+function exportRecipes(){
+  const data = { recipes: customRecipes, favorites: [...state.favorites] };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `carnet-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Sauvegarde téléchargée");
+}
+function importRecipesFromFile(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch { showToast("Fichier invalide"); return; }
+    if (!data || !Array.isArray(data.recipes) || !Array.isArray(data.favorites)) {
+      showToast("Fichier invalide");
+      return;
+    }
+    let added = 0;
+    data.recipes.forEach(recipe => {
+      if (!recipe || !recipe.id || ALL_RECIPES.some(r => r.id === recipe.id)) return;
+      customRecipes.push(recipe);
+      ALL_RECIPES.push(recipe);
+      added++;
+    });
+    data.favorites.forEach(id => state.favorites.add(id));
+    saveCustomRecipes();
+    saveFavorites();
+    render();
+    showToast(added > 0 ? `${added} recette(s) importée(s)` : "Sauvegarde importée");
+  };
+  reader.readAsText(file);
+}
+
 function slugify(str){
   const withoutAccents = str.toLowerCase().normalize("NFD")
     .split("").filter(ch => ch.codePointAt(0) < 0x300 || ch.codePointAt(0) > 0x36f).join("");
@@ -248,6 +331,9 @@ const navAllBtn = document.getElementById("navAllBtn");
 const navFavBtn = document.getElementById("navFavBtn");
 const navPanierBtn = document.getElementById("navPanierBtn");
 const navAddBtn = document.getElementById("navAddBtn");
+const navExportBtn = document.getElementById("navExportBtn");
+const navImportBtn = document.getElementById("navImportBtn");
+const importFileInput = document.getElementById("importFileInput");
 const timerBadge = document.getElementById("timerBadge");
 const timerBadgeValue = document.getElementById("timerBadgeValue");
 const toast = document.getElementById("toast");
@@ -669,6 +755,7 @@ function renderGrid(){
       toggleFavorite(r.id);
     });
     grid.appendChild(card);
+    applyCardPhoto(r.id, card.querySelector(".card-icon"));
   });
 }
 
@@ -723,6 +810,7 @@ function openDetail(id){
         </div>
       </div>
     </div>
+    <div class="detail-photo" id="detailPhoto" hidden></div>
     <div class="detail-body">
       <div>
         <h3 class="panel-title">Ingrédients</h3>
@@ -752,6 +840,7 @@ function openDetail(id){
 
   currentOpenRecipe = r;
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
+  applyDetailPhoto(r.id, detailScroll.querySelector("#detailPhoto"));
 
   let currentServings = r.servings;
   const servingsValueEl = detailScroll.querySelector("#servingsValue");
@@ -904,6 +993,10 @@ function renderAddForm(){
         </div>
       </div>
       <div class="field">
+        <label for="addPhoto">Photo (optionnel)</label>
+        <input id="addPhoto" type="file" accept="image/*">
+      </div>
+      <div class="field">
         <label>Ingrédients *</label>
         <div id="ingredientRows" class="dyn-rows"></div>
         <button type="button" class="dyn-add" id="addIngredientRow">+ Ajouter un ingrédient</button>
@@ -947,7 +1040,7 @@ function renderAddForm(){
   addScroll.querySelector("#addMenuBtn").addEventListener("click", openDrawer);
   addScroll.querySelector("#addCancelBtn").addEventListener("click", closeAddForm);
 
-  addForm.addEventListener("submit", (e) => {
+  addForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const title = addForm.querySelector("#addTitle").value.trim();
@@ -985,6 +1078,9 @@ function renderAddForm(){
     customRecipes.push(recipe);
     ALL_RECIPES.push(recipe);
     saveCustomRecipes();
+
+    const photoFile = addForm.querySelector("#addPhoto").files[0];
+    if (photoFile) await savePhoto(recipe.id, photoFile);
 
     closeAddForm();
     showToast("Recette ajoutée");
@@ -1126,6 +1222,14 @@ navAllBtn.addEventListener("click", goToAllRecipes);
 navFavBtn.addEventListener("click", goToFavoris);
 navPanierBtn.addEventListener("click", goToPanier);
 navAddBtn.addEventListener("click", goToAddRecipe);
+navExportBtn.addEventListener("click", () => { exportRecipes(); closeDrawer(); });
+navImportBtn.addEventListener("click", () => importFileInput.click());
+importFileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file) importRecipesFromFile(file);
+  e.target.value = "";
+  closeDrawer();
+});
 
 favToggleHeader.addEventListener("click", () => {
   const chipFav = document.querySelector('.chip[data-filter="favoris"]');
