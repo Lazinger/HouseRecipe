@@ -1,55 +1,38 @@
 /* =========================================================
    LE CARNET — design tokens
-   Palette moderne : corail, sarcelle, ambre sur fond crème clair
+   Carnet lumineux épuré : presque blanc, une seule couleur bijou (émeraude)
    ========================================================= */
 :root{
-  --bg: #FBF2DE;
-  --surface: #FFFDF8;
-  --ink: #241A10;
-  --ink-soft: #7A6449;
-  --ink-faint: #B3A18A;
+  --bg: #FBFAF6;
+  --surface: #FFFFFF;
+  --ink: #20241D;
+  --ink-soft: #5C6154;
+  --ink-faint: #8A8F84;
+  --line: #E4E2D8;
 
-  --coral: #FF5A3C;
-  --coral-dark: #E1401F;
-  --coral-tint: #FFE7E0;
+  --emerald: #1F5C42;
+  --emerald-dark: #163F2D;
+  --emerald-tint: #E8F0E4;
 
-  --teal: #12977F;
-  --teal-dark: #0C7566;
-  --teal-tint: #DCF3EC;
+  --terracotta: #B5533A;
+  --terracotta-dark: #8F3E2A;
+  --terracotta-tint: #F1DCD2;
 
-  --amber: #F5A524;
-  --amber-dark: #D6870F;
-  --amber-tint: #FDECC8;
-
-  --line: #EAD9B4;
-
-  --tape-yellow: #FFC93C;
-  --tape-coral: #FF5A3C;
-  --tape-teal: #12977F;
+  --mustard: #B3822A;
+  --mustard-dark: #8F6A20;
+  --mustard-tint: #F3E6C8;
 
   --font-display: "Fraunces", "Georgia", serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-hand: "Caveat", cursive;
+  --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --radius-lg: 28px;
-  --radius-md: 20px;
-  --radius-sm: 14px;
-
-  --shadow-soft: 0 2px 8px rgba(36,26,16,.06), 0 12px 28px -14px rgba(36,26,16,.14);
-  --shadow-raised: 0 18px 40px -14px rgba(36,26,16,.26);
-  --shadow-paper: 4px 7px 0 rgba(36,26,16,.16), 0 4px 14px rgba(36,26,16,.1);
-  --shadow-paper-sm: 2px 4px 0 rgba(36,26,16,.16);
-
-  /* bord "papier déchiré" réutilisé sur les fiches et le héros */
-  --torn: polygon(1.5% 3%, 97% 0%, 100% 96%, 3% 100%);
-  /* bord déchiré uniquement en bas, pour les blocs collés en haut d'écran (sticky) */
-  --torn-bottom: polygon(0 0, 100% 0, 100% 90%, 92% 96%, 84% 90%, 76% 96%, 68% 90%, 60% 96%, 52% 90%, 44% 96%, 36% 90%, 28% 96%, 20% 90%, 12% 96%, 4% 90%, 0% 96%);
+  --shadow-raised: 0 10px 24px -10px rgba(32,36,29,.22);
 }
 
 /* couleurs d'accent par catégorie, appliquées via classe .cat-xxx */
-.cat-entrée{ --accent: var(--teal); --accent-dark: var(--teal-dark); --accent-tint: var(--teal-tint); }
-.cat-plat{ --accent: var(--coral); --accent-dark: var(--coral-dark); --accent-tint: var(--coral-tint); }
-.cat-dessert{ --accent: var(--amber); --accent-dark: var(--amber-dark); --accent-tint: var(--amber-tint); }
+.cat-entrée{ --accent: var(--emerald); --accent-dark: var(--emerald-dark); --accent-tint: var(--emerald-tint); }
+.cat-plat{ --accent: var(--terracotta); --accent-dark: var(--terracotta-dark); --accent-tint: var(--terracotta-tint); }
+.cat-dessert{ --accent: var(--mustard); --accent-dark: var(--mustard-dark); --accent-tint: var(--mustard-tint); }
 
 *,*::before,*::after{ box-sizing: border-box; }
 @media (prefers-reduced-motion: reduce){
@@ -61,8 +44,6 @@ html{ -webkit-tap-highlight-color: transparent; }
 body{
   margin:0;
   background: var(--bg);
-  background-image: radial-gradient(rgba(36,26,16,.06) 1px, transparent 1px);
-  background-size: 15px 15px;
   color: var(--ink);
   font-family: var(--font-body);
   line-height: 1.55;
@@ -71,29 +52,10 @@ body{
   overflow-x: hidden;
 }
 
-/* halos de couleur doux et flous en fond de page, pour casser la rigidité */
-body::before, body::after{
-  content:""; position: fixed; z-index:-1; border-radius: 50%; filter: blur(60px);
-  opacity: .4; pointer-events:none;
-}
-body::before{ width: 420px; height: 420px; background: var(--coral-tint); top: -140px; right: -120px; }
-body::after{ width: 380px; height: 380px; background: var(--teal-tint); bottom: 10%; left: -160px; }
-
 h1,h2,h3{ font-family: var(--font-display); margin:0; color: var(--ink); font-weight: 600; letter-spacing:-.01em; }
 
 button{ font-family: inherit; cursor:pointer; }
 input{ font-family: inherit; }
-
-/* bande de washi tape réutilisable, accrochée en haut d'une fiche/carte */
-.tape{
-  position:absolute; width:56px; height:20px; top:-10px; left:50%;
-  transform: translateX(-50%) rotate(-4deg);
-  background: rgba(255,201,60,.85);
-  box-shadow: 0 1px 3px rgba(36,26,16,.25);
-  z-index: 3;
-}
-.tape.tape-coral{ background: rgba(255,90,60,.8); }
-.tape.tape-teal{ background: rgba(18,151,127,.8); }
 
 /* =========================================================
    EN-TÊTE
