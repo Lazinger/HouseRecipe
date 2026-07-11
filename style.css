@@ -178,6 +178,18 @@ input{ font-family: inherit; }
 .chip[data-filter="dessert"].is-active{ background: var(--mustard); color: #fff; border-color: var(--mustard); }
 .chip-fav.is-active{ background: var(--emerald); color: #fff; border-color: var(--emerald); }
 
+@media (max-width: 480px){
+  .site-header{ padding: 14px 16px 12px; }
+  .header-row{ gap:8px; }
+  .header-left{ gap:8px; }
+  .brand{ gap:8px; }
+  .brand-text p{ display:none; }
+  .brand-text h1{ font-size:1.3rem; white-space:nowrap; }
+  .header-actions{ gap:6px; }
+  .fav-toggle span{ display:none; }
+  .fav-toggle{ padding:9px 10px; }
+}
+
 /* =========================================================
    HERO — recette du jour
    ========================================================= */
