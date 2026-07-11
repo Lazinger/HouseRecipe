@@ -558,7 +558,6 @@ function renderTimerPanel(panel, recipe){
   const isPaused = belongsHere && !timerState.running && !timerState.done;
 
   panel.innerHTML = `
-    <div class="tape"></div>
     <div class="timer-panel-head"><h4>⏱ Minuteur</h4></div>
     <div class="${isDone ? "timer-display is-done" : "timer-display"}">${belongsHere ? (isDone ? "Terminé" : formatTimer(remaining)) : "00:00"}</div>
     <div class="timer-quick">
@@ -688,9 +687,6 @@ function openDetail(id){
 
   detailScroll.innerHTML = `
     <div class="detail-hero">
-      <div class="detail-hero-fill"></div>
-      <div class="tape"></div>
-      <svg class="detail-doodle" style="top:16px;right:60px;width:22px;" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg>
       <div class="detail-topbar">
         <div class="detail-topbar-left">
           <button class="detail-fav is-menu" id="detailMenuBtn" type="button" aria-label="Ouvrir le menu">
@@ -739,7 +735,7 @@ function openDetail(id){
           Ajouter au panier
         </button>
         <div class="timer-panel" id="timerPanel"></div>
-        ${r.note ? `<div class="note-box"><div class="tape"></div><b>Astuce.</b> ${r.note}</div>` : ""}
+        ${r.note ? `<div class="note-box"><b>Astuce.</b> ${r.note}</div>` : ""}
       </div>
       <div>
         <h3 class="panel-title">Préparation</h3>
