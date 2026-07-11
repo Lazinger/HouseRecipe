@@ -175,7 +175,7 @@ input{ font-family: inherit; }
 .chip[data-filter="tout"].is-active{ background: var(--ink); color: #fff; border-color: var(--ink); }
 .chip[data-filter="entrée"].is-active{ background: var(--emerald); color: #fff; border-color: var(--emerald); }
 .chip[data-filter="plat"].is-active{ background: var(--terracotta); color: #fff; border-color: var(--terracotta); }
-.chip[data-filter="dessert"].is-active{ background: var(--mustard); color: #fff; border-color: var(--mustard); }
+.chip[data-filter="dessert"].is-active{ background: var(--mustard-dark); color: #fff; border-color: var(--mustard); }
 .chip-fav.is-active{ background: var(--emerald); color: #fff; border-color: var(--emerald); }
 
 @media (max-width: 480px){
