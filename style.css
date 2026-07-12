@@ -502,7 +502,7 @@ input{ font-family: inherit; }
 .ing-icon svg{ width:15px; height:15px; }
 .ing-text{ display:flex; flex-direction:column; min-width:0; }
 .ing-name{ color: var(--ink); font-weight:700; font-size:.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ing-qty{ color: var(--ink-faint); font-weight:600; white-space:nowrap; font-size:.72rem; }
+.ing-qty{ color: var(--ink-soft); font-weight:600; white-space:nowrap; font-size:.72rem; }
 
 .step-list{ list-style:none; margin:0; padding:0; counter-reset: step; display:flex; flex-direction:column; gap:20px; }
 .step-list li{
