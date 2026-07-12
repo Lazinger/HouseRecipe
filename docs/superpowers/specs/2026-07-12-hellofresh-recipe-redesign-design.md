@@ -10,7 +10,7 @@ Ceci **remplace** l'identité visuelle "carnet lumineux épuré" (Fraunces/DM Sa
 
 ## Décisions issues du brainstorming
 
-1. **Périmètre** : le nouveau style (couleurs, police) s'applique à **tout le site**, pas seulement la fiche recette. Cette spec ne couvre en détail que la **fiche recette** (page la plus complexe) ; la déclinaison sur l'accueil / la grille / le header / le panier / le tiroir de navigation réutilisera les mêmes tokens (couleurs, police) mais n'a pas été maquettée — à traiter comme une suite logique une fois la fiche recette validée en usage réel, pas dans le même plan d'implémentation (trop de surface pour une seule passe).
+1. **Périmètre** : le nouveau style (couleurs, police) s'applique à **tout le site**, pas seulement la fiche recette. Cette spec couvre en détail la **fiche recette** et le **formulaire d'ajout/édition** (qui doit reprendre le même style et le même ordre de champs, voir section dédiée plus bas — l'utilisateur recopie ses recettes depuis de vraies fiches HelloFresh, donc la cohérence entre formulaire et fiche facilite la saisie). La déclinaison sur l'accueil / la grille / le header / le panier / le tiroir de navigation réutilisera les mêmes tokens (couleurs, police) mais n'a pas été maquettée — à traiter comme une suite logique une fois la fiche recette validée en usage réel, pas dans le même plan d'implémentation (trop de surface pour une seule passe).
 2. **Palette** : vert de marque HelloFresh (`#5C9A1B` foncé / `#8DC63F`-ish clair selon usage), fond crème `#FFFBF5`, texte quasi-noir `#1F1B16`. Remplace `--emerald`/`--bg`/`--ink` actuels (à décider en implémentation : nouveaux tokens ou réassignation des tokens existants — probablement réassignation pour ne pas dupliquer tout le système de variables).
 3. **Typographie** : Poppins (bold/rounded sans-serif) remplace Fraunces (titres) et DM Sans (corps). **Pas la police propriétaire exacte de HelloFresh** (inaccessible/non libre) — Poppins est l'équivalent visuel le plus proche en police libre. Doit être **auto-hébergée en `.woff2`** (comme Fraunces/DM Sans/Caveat aujourd'hui) pour préserver le fonctionnement 100% hors-ligne — pas de dépendance Google Fonts CDN en prod.
 4. **Structure de la fiche recette**, dans cet ordre (voir maquette V5) :
@@ -59,10 +59,14 @@ Réutilise la DB IndexedDB existante (`carnet-photos`, store `photos`), déjà k
 
 ## Formulaire d'ajout/édition (`renderAddForm`)
 
+**Décision ajoutée après revue de la spec** : l'utilisateur recopie ses recettes depuis de vraies fiches HelloFresh papier/appli. Le formulaire doit donc :
+1. Reprendre le **même habillage visuel** que la fiche recette (Poppins, vert, mêmes styles de champs) plutôt que le style carnet actuel — un formulaire qui a déjà l'air d'une fiche HelloFresh est plus rapide à remplir en recopiant une vraie fiche sous les yeux.
+2. Suivre le **même ordre de champs que l'ordre d'affichage de la fiche recette** (voir structure ci-dessus), pour que recopier une recette HelloFresh se fasse dans l'ordre où l'info apparaît sur l'originale : Titre → Catégorie/Difficulté → Description → Temps/Personnes → Calories/Protéines → Allergènes → Photo principale → Ingrédients → Ustensiles → Étapes (texte + photo par étape) → Astuce.
+
 Nouveaux champs, tous optionnels :
-- Calories (number), Protéines en g (number) — deux inputs courts, même ligne
-- Allergènes (text, libre)
-- Ustensiles : liste dynamique (même pattern que les lignes d'étapes actuelles — un input texte par ligne, bouton "+ Ajouter un ustensile")
+- Calories (number), Protéines en g (number) — deux inputs courts, même ligne, positionnés juste après Temps/Personnes
+- Allergènes (text, libre), positionné juste après Calories/Protéines
+- Ustensiles : liste dynamique (même pattern que les lignes d'étapes actuelles — un input texte par ligne, bouton "+ Ajouter un ustensile"), positionnée entre Ingrédients et Étapes
 - Chaque ligne d'étape existante (`createStepRow`) gagne un input `type="file"` optionnel pour sa photo, en plus du texte. À la soumission, pour chaque ligne d'étape ayant un fichier sélectionné : `savePhoto(`${recipe.id}::step::${index}`, file)`.
 
 ## Rendu de la fiche recette (`openDetail` / template HTML)
@@ -79,4 +83,4 @@ Nouveaux champs, tous optionnels :
 
 ## Prochaine étape
 
-Écrire un plan d'implémentation (`writing-plans`) pour la **fiche recette uniquement** (périmètre de cette spec) : modèle de données, stockage photos par étape, formulaire, rendu, palette/police. La déclinaison du style au reste du site (accueil, grille, header) sera un projet suivant, une fois la fiche recette validée en usage réel.
+Écrire un plan d'implémentation (`writing-plans`) pour la **fiche recette + le formulaire d'ajout/édition** (périmètre de cette spec) : modèle de données, stockage photos par étape, formulaire (nouveaux champs, réordonnancement, restyle), rendu de la fiche, palette/police. La déclinaison du style au reste du site (accueil, grille, header) sera un projet suivant, une fois la fiche recette validée en usage réel.
