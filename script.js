@@ -869,7 +869,13 @@ function openDetail(id){
           <button class="step-btn" id="servePlus" type="button" aria-label="Augmenter le nombre de personnes">+</button>
         </span></div>
         <div class="cell"><span class="l">Difficulté</span><span class="v">${r.difficulty}</span></div>
+        ${r.nutrition ? `
+        <div class="cell is-nutri"><span class="l">Calories</span><span class="v">${r.nutrition.calories} kcal</span></div>
+        <div class="cell is-nutri"><span class="l">Protéines</span><span class="v">${r.nutrition.protein} g</span></div>
+        ` : ""}
       </div>
+      ${r.allergens ? `<p class="allergen-line"><b>Allergènes :</b> ${r.allergens}</p>` : ""}
+      ${r.utensils && r.utensils.length ? `<p class="tool-line">${r.utensils.map(u => `<span>${u}</span>`).join("")}</p>` : ""}
     </div>
     <div class="detail-body">
       <div>
@@ -886,8 +892,8 @@ function openDetail(id){
       </div>
       <div>
         <h3 class="panel-title">Préparation</h3>
-        <ol class="step-list">
-          ${r.steps.map(s => `<li>${s}</li>`).join("")}
+        <ol class="step-list" id="stepList">
+          ${r.steps.map((s, i) => `<li data-step-index="${i}"><span class="step-num">${i + 1}</span><p>${s}</p></li>`).join("")}
         </ol>
       </div>
     </div>
@@ -905,6 +911,19 @@ function openDetail(id){
   currentOpenRecipe = r;
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
   applyDetailPhoto(r.id, detailScroll.querySelector("#detailHero"));
+  const stepListEl = detailScroll.querySelector("#stepList");
+  r.steps.forEach((_, i) => {
+    getStepPhoto(r.id, i).then(blob => {
+      if (!blob) return;
+      const li = stepListEl.querySelector(`li[data-step-index="${i}"]`);
+      if (!li) return;
+      const img = document.createElement("img");
+      img.className = "step-photo";
+      img.src = URL.createObjectURL(blob);
+      img.alt = "";
+      li.querySelector(".step-num").after(img);
+    }).catch(() => {});
+  });
 
   let currentServings = r.servings;
   const servingsValueEl = detailScroll.querySelector("#servingsValue");
