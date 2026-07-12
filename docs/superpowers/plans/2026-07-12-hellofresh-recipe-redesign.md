@@ -219,12 +219,14 @@ with:
 }
 .hf-theme .detail-hero::after{
   content:""; position:absolute; inset:0; z-index:0;
-  background: linear-gradient(180deg, rgba(0,0,0,.05) 35%, rgba(0,0,0,.62));
+  background: linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.75) 100%);
   pointer-events:none;
 }
 ```
 
 (the fallback gradient uses `--accent`/`--accent-tint`, which are already defined per category via the existing `.cat-plat`/`.cat-dessert`/`.cat-entrée` rules on `#detailView` — no new category-color work needed. The `::after` dark overlay is scoped to `.hf-theme` only, since the non-`.hf-theme` version of `.detail-hero` doesn't exist anymore outside this view.)
+
+**Corrected during task review:** the overlay values above are the final, shipped ones. The original draft (`rgba(0,0,0,.05) 35%, rgba(0,0,0,.62)`) left the small category-eyebrow label under-contrasted near the top of a tall/wrapped-title hero against light category tints (~2:1, fails WCAG AA); raising the floor alpha to `.55` fixed it (~4.9-5.6:1 depending on category, verified independently).
 
 - [ ] **Step 2: Keep topbar/heading above the dark overlay, recolor heading text to white**
 
@@ -616,15 +618,16 @@ async function deleteAllPhotosForRecipe(recipeId){
   const db = await openPhotoDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(PHOTO_STORE, "readwrite");
-    const range = IDBKeyRange.bound(recipeId, recipeId + "￿");
-    const req = tx.objectStore(PHOTO_STORE).delete(range);
+    const store = tx.objectStore(PHOTO_STORE);
+    store.delete(recipeId);
+    store.delete(IDBKeyRange.bound(recipeId + "::", recipeId + "::￿"));
     tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(req.error);
+    tx.onerror = () => reject(tx.error);
   });
 }
 ```
 
-`IDBKeyRange.bound(recipeId, recipeId + "￿")` covers both the exact key `recipeId` (main photo) and every `recipeId::step::N` key (step photos), since those are lexicographically greater than `recipeId` alone and less than `recipeId` followed by the maximum Unicode code point. `IDBObjectStore.delete()` accepts a range directly (no cursor loop needed).
+**Corrected during the final whole-branch review** (original code below was shipped, then fixed — kept here for the record): deletes the exact main-photo key, plus a range scoped to this recipe's own `::` step-photo namespace. The original version used `IDBKeyRange.bound(recipeId, recipeId + "￿")`, which matches any stored key with `recipeId` as a plain string *prefix* — not just this recipe's own keys. Since `generateRecipeId()` dedupes collisions with `-2`/`-3` suffixes, sibling recipes routinely end up with prefix-related ids (e.g. `salade` / `salade-2`), so the original code silently deleted an unrelated recipe's photos too. The fix works because `-` (0x2D) sorts before `:` (0x3A) in ASCII, so `salade-2` correctly sorts *before* `salade::` and is excluded from the step-photo range, while `salade::step::N` correctly falls inside it.
 
 - [ ] **Step 2: Verify via the browser console**
 
@@ -1069,13 +1072,12 @@ and replace it with:
     const utensils = utensilsList.length ? utensilsList : undefined;
 
     const stepRowEls = [...stepRowsEl.querySelectorAll(".dyn-row")];
-    const steps = stepRowEls
-      .map(row => row.querySelector(".step-input").value.trim())
-      .filter(Boolean);
-    const stepPhotoFiles = stepRowEls.map(row => row.querySelector(".step-photo-input").files[0] || null);
+    const filledStepRows = stepRowEls.filter(row => row.querySelector(".step-input").value.trim());
+    const steps = filledStepRows.map(row => row.querySelector(".step-input").value.trim());
+    const stepPhotoFiles = filledStepRows.map(row => row.querySelector(".step-photo-input").files[0] || null);
 ```
 
-Note: `nutrition` requires **both** calories and protein filled in (avoids a stat cell with a blank value); `allergens`/`utensils` are included only if non-empty. `stepPhotoFiles` indices line up with `stepRowEls` (all rows, including any blank ones); a blank step row's photo is simply never saved since blank steps are filtered out of `steps` right after — this is an existing edge case already present for text steps today (blank rows are silently dropped), unchanged by this task.
+Note: `nutrition` requires **both** calories and protein filled in (avoids a stat cell with a blank value); `allergens`/`utensils` are included only if non-empty. **Corrected during task review:** `steps` and `stepPhotoFiles` must both derive from the same filtered (`filledStepRows`) list — an earlier draft filtered `steps` but left `stepPhotoFiles` indexed against the unfiltered row list, so a blank row between two filled ones misaligned later steps' photos to the wrong index, making them permanently unreachable via `getStepPhoto`. Known remaining limitation (not fixed, documented): photos are keyed by *positional* index, so inserting/deleting/reordering steps during an edit (after photos were already attached) can still misattach a photo to the wrong step, since file inputs can't be prefilled and existing photos are preserved by index alone.
 
 - [ ] **Step 8: Include the new fields on the saved recipe object and save step photos, both for edit and create**
 
