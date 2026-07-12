@@ -463,6 +463,11 @@ function clearCart(){
 function updateCartBadge(){
   cartBadge.textContent = cart.length;
   cartBadge.hidden = cart.length === 0;
+  const detailCartBadge = document.getElementById("detailCartBadge");
+  if (detailCartBadge) {
+    detailCartBadge.textContent = cart.length;
+    detailCartBadge.hidden = cart.length === 0;
+  }
 }
 
 /* ---- verrouillage du scroll : plusieurs vues plein écran peuvent être empilées ---- */
@@ -581,18 +586,31 @@ function playTimerBeep(){
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
 
-function startTimer(recipe, minutes){
-  const duration = Math.max(1, Math.round(minutes)) * 60;
-  timerState = {
-    recipeId: recipe.id, recipeTitle: recipe.title,
-    durationSeconds: duration,
-    endAt: Date.now() + duration * 1000,
-    running: true, remainingAtPause: duration, done: false
-  };
+function addTimerMinutes(recipe, minutes){
+  const addSeconds = Math.max(1, Math.round(minutes)) * 60;
+  const belongsHere = timerState && timerState.recipeId === recipe.id;
+
+  if (!belongsHere) {
+    timerState = {
+      recipeId: recipe.id, recipeTitle: recipe.title,
+      durationSeconds: addSeconds,
+      endAt: Date.now() + addSeconds * 1000,
+      running: false, remainingAtPause: addSeconds, done: false
+    };
+  } else if (timerState.running) {
+    timerState.endAt += addSeconds * 1000;
+    timerState.durationSeconds += addSeconds;
+    timerState.done = false;
+  } else {
+    timerState.remainingAtPause += addSeconds;
+    timerState.durationSeconds += addSeconds;
+    timerState.done = false;
+  }
+
   saveTimerState(timerState);
   updateTimerBadge();
   renderTimerPanelIfOpen();
-  ensureTimerTicking();
+  if (timerState.running) ensureTimerTicking();
 }
 function pauseTimer(){
   if (!timerState || !timerState.running) return;
@@ -656,7 +674,7 @@ function renderTimerPanel(panel, recipe){
   const remaining = belongsHere ? timerRemainingSeconds() : 0;
   const isDone = belongsHere && timerState.done;
   const isRunning = belongsHere && timerState.running;
-  const isPaused = belongsHere && !timerState.running && !timerState.done;
+  const hasTime = belongsHere && remaining > 0;
 
   panel.innerHTML = `
     <div class="timer-panel-head"><h4>⏱ Minuteur</h4></div>
@@ -666,24 +684,19 @@ function renderTimerPanel(panel, recipe){
       <button type="button" data-mins="5">+5 min</button>
       <button type="button" data-mins="10">+10 min</button>
     </div>
-    ${belongsHere ? `
-      <div class="timer-actions">
-        ${isRunning ? `<button type="button" class="timer-start" id="timerPauseBtn">Pause</button>` : ""}
-        ${isPaused ? `<button type="button" class="timer-start" id="timerResumeBtn">Reprendre</button>` : ""}
-        <button type="button" class="timer-reset" id="timerResetBtn">Réinitialiser</button>
-      </div>
-    ` : ""}
+    <div class="timer-actions">
+      <button type="button" class="timer-start" id="timerPlayBtn" ${isRunning || !hasTime ? "disabled" : ""}>Lecture</button>
+      <button type="button" class="timer-start" id="timerPauseBtn" ${!isRunning ? "disabled" : ""}>Pause</button>
+      <button type="button" class="timer-reset" id="timerResetBtn" ${!belongsHere ? "disabled" : ""}>Réinitialiser</button>
+    </div>
   `;
 
   panel.querySelectorAll("[data-mins]").forEach(btn => {
-    btn.addEventListener("click", () => startTimer(recipe, parseInt(btn.dataset.mins, 10)));
+    btn.addEventListener("click", () => addTimerMinutes(recipe, parseInt(btn.dataset.mins, 10)));
   });
-  const pauseBtn = panel.querySelector("#timerPauseBtn");
-  if (pauseBtn) pauseBtn.addEventListener("click", pauseTimer);
-  const resumeBtn = panel.querySelector("#timerResumeBtn");
-  if (resumeBtn) resumeBtn.addEventListener("click", resumeTimer);
-  const resetBtn = panel.querySelector("#timerResetBtn");
-  if (resetBtn) resetBtn.addEventListener("click", resetTimer);
+  panel.querySelector("#timerPlayBtn").addEventListener("click", resumeTimer);
+  panel.querySelector("#timerPauseBtn").addEventListener("click", pauseTimer);
+  panel.querySelector("#timerResetBtn").addEventListener("click", resetTimer);
 }
 
 timerBadge.addEventListener("click", () => {
@@ -809,8 +822,9 @@ function openDetail(id){
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 7h14M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-9 0 1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           ` : ""}
-          <button class="detail-fav" id="detailCartBtn" type="button" aria-label="Ouvrir le panier de courses">
+          <button class="detail-fav has-cart-badge" id="detailCartBtn" type="button" aria-label="Ouvrir le panier de courses">
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span id="detailCartBadge" class="cart-badge" ${cart.length === 0 ? "hidden" : ""}>${cart.length}</span>
           </button>
           <button class="detail-fav" id="detailFavBtn" type="button" aria-pressed="${isFav}" aria-label="Ajouter aux favoris">
             <svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 20.5s-7.5-4.6-10-9.4C.4 7.6 2 4 5.6 3.4 8 3 10.2 4.2 12 6.6 13.8 4.2 16 3 18.4 3.4 22 4 23.6 7.6 22 11.1c-2.5 4.8-10 9.4-10 9.4Z" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
