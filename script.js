@@ -993,7 +993,7 @@ function deleteRecipe(id){
   state.favorites.delete(id);
   saveFavorites();
   removeRecipeFromCart(id);
-  deletePhoto(id).catch(() => {});
+  deleteAllPhotosForRecipe(id).catch(() => {});
   closeDetail();
   render();
   showToast("Recette supprimée");
