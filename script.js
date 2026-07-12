@@ -246,6 +246,25 @@ async function deletePhoto(recipeId){
     tx.onerror = () => reject(tx.error);
   });
 }
+function stepPhotoKey(recipeId, index){
+  return `${recipeId}::step::${index}`;
+}
+async function saveStepPhoto(recipeId, index, file){
+  return savePhoto(stepPhotoKey(recipeId, index), file);
+}
+async function getStepPhoto(recipeId, index){
+  return getPhoto(stepPhotoKey(recipeId, index));
+}
+async function deleteAllPhotosForRecipe(recipeId){
+  const db = await openPhotoDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PHOTO_STORE, "readwrite");
+    const range = IDBKeyRange.bound(recipeId, recipeId + "￿");
+    const req = tx.objectStore(PHOTO_STORE).delete(range);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(req.error);
+  });
+}
 function applyCardPhoto(recipeId, iconEl){
   getPhoto(recipeId).then(blob => {
     if (!blob || !iconEl) return;
