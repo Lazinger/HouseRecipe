@@ -259,10 +259,11 @@ async function deleteAllPhotosForRecipe(recipeId){
   const db = await openPhotoDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(PHOTO_STORE, "readwrite");
-    const range = IDBKeyRange.bound(recipeId, recipeId + "￿");
-    const req = tx.objectStore(PHOTO_STORE).delete(range);
+    const store = tx.objectStore(PHOTO_STORE);
+    store.delete(recipeId);
+    store.delete(IDBKeyRange.bound(recipeId + "::", recipeId + "::￿"));
     tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(req.error);
+    tx.onerror = () => reject(tx.error);
   });
 }
 function applyCardPhoto(recipeId, iconEl){

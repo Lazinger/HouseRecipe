@@ -603,7 +603,7 @@ input{ font-family: inherit; }
 .dyn-row-step .step-photo-input{ flex:none; width:120px; font-size:.68rem; color: var(--ink-soft); }
 .dyn-remove{
   flex:none; width:36px; height:36px; border-radius:50%; border:none;
-  background: var(--bg); color: var(--ink-faint); font-size:.9rem;
+  background: var(--bg); color: var(--ink-soft); font-size:.9rem;
 }
 .dyn-remove:hover{ color: var(--terracotta-dark); }
 .dyn-remove:disabled{ opacity:.35; cursor:not-allowed; }
