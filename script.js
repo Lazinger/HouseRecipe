@@ -1296,7 +1296,7 @@ chips.forEach(chip => {
   });
 });
 
-addFab.addEventListener("click", openAddForm);
+addFab.addEventListener("click", () => openAddForm());
 cartToggle.addEventListener("click", openPanier);
 
 menuToggle.addEventListener("click", openDrawer);
