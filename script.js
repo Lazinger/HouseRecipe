@@ -253,11 +253,10 @@ function applyCardPhoto(recipeId, iconEl){
     iconEl.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="">`;
   }).catch(() => {});
 }
-function applyDetailPhoto(recipeId, photoEl){
+function applyDetailPhoto(recipeId, heroEl){
   getPhoto(recipeId).then(blob => {
-    if (!blob || !photoEl) return;
-    photoEl.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="">`;
-    photoEl.hidden = false;
+    if (!blob || !heroEl) return;
+    heroEl.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
   }).catch(() => {});
 }
 
@@ -802,7 +801,7 @@ function openDetail(id){
   detailView.className = `detail-view hf-theme cat-${r.category}`;
 
   detailScroll.innerHTML = `
-    <div class="detail-hero">
+    <div class="detail-hero" id="detailHero">
       <div class="detail-topbar">
         <div class="detail-topbar-left">
           <button class="detail-fav is-menu" id="detailMenuBtn" type="button" aria-label="Ouvrir le menu">
@@ -835,21 +834,19 @@ function openDetail(id){
         <span class="detail-eyebrow">${r.category}</span>
         <h2>${r.title}</h2>
         <p class="detail-sub">${r.desc}</p>
-        <div class="detail-stats">
-          <div class="stat"><span class="stat-value">${r.time} min</span><span class="stat-label">Préparation</span></div>
-          <div class="stat stat-stepper">
-            <div class="servings-row">
-              <button class="step-btn" id="serveMinus" type="button" aria-label="Réduire le nombre de personnes">–</button>
-              <span class="stat-value" id="servingsValue">${r.servings}</span>
-              <button class="step-btn" id="servePlus" type="button" aria-label="Augmenter le nombre de personnes">+</button>
-            </div>
-            <span class="stat-label">Personnes</span>
-          </div>
-          <div class="stat"><span class="stat-value">${r.difficulty}</span><span class="stat-label">Difficulté</span></div>
-        </div>
       </div>
     </div>
-    <div class="detail-photo" id="detailPhoto" hidden></div>
+    <div class="detail-info">
+      <div class="stats-flat" id="statsFlat">
+        <div class="cell"><span class="l">Préparation</span><span class="v">${r.time} min</span></div>
+        <div class="cell"><span class="l">Personnes</span><span class="v stat-stepper">
+          <button class="step-btn" id="serveMinus" type="button" aria-label="Réduire le nombre de personnes">–</button>
+          <span id="servingsValue">${r.servings}</span>
+          <button class="step-btn" id="servePlus" type="button" aria-label="Augmenter le nombre de personnes">+</button>
+        </span></div>
+        <div class="cell"><span class="l">Difficulté</span><span class="v">${r.difficulty}</span></div>
+      </div>
+    </div>
     <div class="detail-body">
       <div>
         <h3 class="panel-title">Ingrédients</h3>
@@ -883,7 +880,7 @@ function openDetail(id){
 
   currentOpenRecipe = r;
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
-  applyDetailPhoto(r.id, detailScroll.querySelector("#detailPhoto"));
+  applyDetailPhoto(r.id, detailScroll.querySelector("#detailHero"));
 
   let currentServings = r.servings;
   const servingsValueEl = detailScroll.querySelector("#servingsValue");
