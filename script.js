@@ -1209,10 +1209,9 @@ function renderAddForm(editingRecipe){
     const utensils = utensilsList.length ? utensilsList : undefined;
 
     const stepRowEls = [...stepRowsEl.querySelectorAll(".dyn-row")];
-    const steps = stepRowEls
-      .map(row => row.querySelector(".step-input").value.trim())
-      .filter(Boolean);
-    const stepPhotoFiles = stepRowEls.map(row => row.querySelector(".step-photo-input").files[0] || null);
+    const filledStepRows = stepRowEls.filter(row => row.querySelector(".step-input").value.trim());
+    const steps = filledStepRows.map(row => row.querySelector(".step-input").value.trim());
+    const stepPhotoFiles = filledStepRows.map(row => row.querySelector(".step-photo-input").files[0] || null);
 
     const errorMsg = validateNewRecipe({ title, category, ingredients, steps });
     if (errorMsg) {
