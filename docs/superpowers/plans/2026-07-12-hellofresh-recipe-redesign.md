@@ -119,8 +119,8 @@ In `style.css`, immediately after the `:root{...}` block closes (after line 51, 
   --ink-faint: #A39C8E;
   --line: #EDE6D9;
 
-  --emerald: #5C9A1B;
-  --emerald-dark: #46780F;
+  --emerald: #46780F;
+  --emerald-dark: #2E4F0A;
   --emerald-tint: #EAF3DC;
 
   --font-display: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
