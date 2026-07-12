@@ -1001,7 +1001,22 @@ function createStepRow(container, text = ""){
   row.className = "dyn-row dyn-row-step";
   row.innerHTML = `
     <input type="text" class="step-input" placeholder="Décrivez l'étape…" value="${escapeAttr(text)}">
+    <input type="file" class="step-photo-input" accept="image/*" title="Photo de l'étape (optionnel)">
     <button type="button" class="dyn-remove" aria-label="Supprimer cette étape">✕</button>
+  `;
+  row.querySelector(".dyn-remove").addEventListener("click", () => {
+    row.remove();
+    updateRemoveButtons(container);
+  });
+  return row;
+}
+
+function createUstensileRow(container, text = ""){
+  const row = document.createElement("div");
+  row.className = "dyn-row dyn-row-step";
+  row.innerHTML = `
+    <input type="text" class="tool-input" placeholder="Ex. Casserole" value="${escapeAttr(text)}">
+    <button type="button" class="dyn-remove" aria-label="Supprimer cet ustensile">✕</button>
   `;
   row.querySelector(".dyn-remove").addEventListener("click", () => {
     row.remove();
@@ -1077,6 +1092,20 @@ function renderAddForm(editingRecipe){
           <input id="addServings" type="number" min="1" placeholder="4" value="${editingRecipe?.servings || ""}">
         </div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="addCalories">Calories (optionnel)</label>
+          <input id="addCalories" type="number" min="0" placeholder="Ex. 650" value="${editingRecipe?.nutrition?.calories ?? ""}">
+        </div>
+        <div class="field">
+          <label for="addProtein">Protéines en g (optionnel)</label>
+          <input id="addProtein" type="number" min="0" step="0.1" placeholder="Ex. 20" value="${editingRecipe?.nutrition?.protein ?? ""}">
+        </div>
+      </div>
+      <div class="field">
+        <label for="addAllergens">Allergènes (optionnel)</label>
+        <input id="addAllergens" type="text" placeholder="Ex. Gluten, blé, lait" value="${escapeAttr(editingRecipe?.allergens || "")}">
+      </div>
       <div class="field">
         <label for="addPhoto">Photo (optionnel)${editingRecipe ? " — laisse vide pour garder la photo actuelle" : ""}</label>
         <input id="addPhoto" type="file" accept="image/*">
@@ -1087,7 +1116,12 @@ function renderAddForm(editingRecipe){
         <button type="button" class="dyn-add" id="addIngredientRow">+ Ajouter un ingrédient</button>
       </div>
       <div class="field">
-        <label>Étapes *</label>
+        <label>Ustensiles (optionnel)</label>
+        <div id="ustensilRows" class="dyn-rows"></div>
+        <button type="button" class="dyn-add" id="addUstensilRow">+ Ajouter un ustensile</button>
+      </div>
+      <div class="field">
+        <label>Étapes * ${editingRecipe ? "(photo : laisse vide pour garder la photo actuelle de l'étape)" : ""}</label>
         <div id="stepRows" class="dyn-rows"></div>
         <button type="button" class="dyn-add" id="addStepRow">+ Ajouter une étape</button>
       </div>
@@ -1105,6 +1139,7 @@ function renderAddForm(editingRecipe){
 
   const addForm = addScroll.querySelector("#addForm");
   const ingredientRowsEl = addScroll.querySelector("#ingredientRows");
+  const ustensilRowsEl = addScroll.querySelector("#ustensilRows");
   const stepRowsEl = addScroll.querySelector("#stepRows");
   const addError = addScroll.querySelector("#addError");
 
@@ -1116,17 +1151,27 @@ function renderAddForm(editingRecipe){
   } else {
     ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl));
   }
+  if (editingRecipe && editingRecipe.utensils && editingRecipe.utensils.length) {
+    editingRecipe.utensils.forEach(text => ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl, text)));
+  } else {
+    ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl));
+  }
   if (editingRecipe && editingRecipe.steps.length) {
     editingRecipe.steps.forEach(text => stepRowsEl.appendChild(createStepRow(stepRowsEl, text)));
   } else {
     stepRowsEl.appendChild(createStepRow(stepRowsEl));
   }
   updateRemoveButtons(ingredientRowsEl);
+  updateRemoveButtons(ustensilRowsEl);
   updateRemoveButtons(stepRowsEl);
 
   addScroll.querySelector("#addIngredientRow").addEventListener("click", () => {
     ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl));
     updateRemoveButtons(ingredientRowsEl);
+  });
+  addScroll.querySelector("#addUstensilRow").addEventListener("click", () => {
+    ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl));
+    updateRemoveButtons(ustensilRowsEl);
   });
   addScroll.querySelector("#addStepRow").addEventListener("click", () => {
     stepRowsEl.appendChild(createStepRow(stepRowsEl));
@@ -1147,13 +1192,27 @@ function renderAddForm(editingRecipe){
     const difficulty = addForm.querySelector("#addDifficulty").value;
     const note = addForm.querySelector("#addNote").value.trim();
 
+    const caloriesVal = addForm.querySelector("#addCalories").value.trim();
+    const proteinVal = addForm.querySelector("#addProtein").value.trim();
+    const nutrition = (caloriesVal && proteinVal)
+      ? { calories: parseFloat(caloriesVal), protein: parseFloat(proteinVal) }
+      : undefined;
+    const allergens = addForm.querySelector("#addAllergens").value.trim() || undefined;
+
     const ingredients = [...ingredientRowsEl.querySelectorAll(".dyn-row")]
       .map(row => [row.querySelector(".ing-name-input").value.trim(), row.querySelector(".ing-qty-input").value.trim()])
       .filter(([name]) => name);
 
-    const steps = [...stepRowsEl.querySelectorAll(".dyn-row")]
+    const utensilsList = [...ustensilRowsEl.querySelectorAll(".dyn-row")]
+      .map(row => row.querySelector(".tool-input").value.trim())
+      .filter(Boolean);
+    const utensils = utensilsList.length ? utensilsList : undefined;
+
+    const stepRowEls = [...stepRowsEl.querySelectorAll(".dyn-row")];
+    const steps = stepRowEls
       .map(row => row.querySelector(".step-input").value.trim())
       .filter(Boolean);
+    const stepPhotoFiles = stepRowEls.map(row => row.querySelector(".step-photo-input").files[0] || null);
 
     const errorMsg = validateNewRecipe({ title, category, ingredients, steps });
     if (errorMsg) {
@@ -1171,7 +1230,7 @@ function renderAddForm(editingRecipe){
         title, category,
         icon: CATEGORY_ICON[category],
         desc, time, servings, difficulty, note,
-        ingredients, steps
+        ingredients, steps, nutrition, allergens, utensils
       };
       const ci = customRecipes.findIndex(r => r.id === editingRecipe.id);
       if (ci >= 0) customRecipes[ci] = recipe;
@@ -1180,6 +1239,9 @@ function renderAddForm(editingRecipe){
       saveCustomRecipes();
 
       if (photoFile) await savePhoto(recipe.id, photoFile);
+      for (let i = 0; i < stepPhotoFiles.length; i++) {
+        if (stepPhotoFiles[i]) await saveStepPhoto(recipe.id, i, stepPhotoFiles[i]);
+      }
 
       closeAddForm();
       showToast("Recette modifiée");
@@ -1192,7 +1254,7 @@ function renderAddForm(editingRecipe){
       title, category,
       icon: CATEGORY_ICON[category],
       desc, time, servings, difficulty, note,
-      ingredients, steps
+      ingredients, steps, nutrition, allergens, utensils
     };
 
     customRecipes.push(recipe);
@@ -1200,6 +1262,9 @@ function renderAddForm(editingRecipe){
     saveCustomRecipes();
 
     if (photoFile) await savePhoto(recipe.id, photoFile);
+    for (let i = 0; i < stepPhotoFiles.length; i++) {
+      if (stepPhotoFiles[i]) await saveStepPhoto(recipe.id, i, stepPhotoFiles[i]);
+    }
 
     closeAddForm();
     showToast("Recette ajoutée");
