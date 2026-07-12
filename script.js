@@ -799,7 +799,7 @@ function openDetail(id){
   const isFav = state.favorites.has(r.id);
   const isCustom = customRecipes.some(cr => cr.id === r.id);
 
-  detailView.className = `detail-view cat-${r.category}`;
+  detailView.className = `detail-view hf-theme cat-${r.category}`;
 
   detailScroll.innerHTML = `
     <div class="detail-hero">
