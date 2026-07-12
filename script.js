@@ -792,6 +792,11 @@ function render(){
 }
 
 /* ---- vue détail ---- */
+const ING_ICON = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 21c-4.5 0-8-3.5-8-8 0-6 8-11 8-11s8 5 8 11c0 4.5-3.5 8-8 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 21V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+function ingredientRowHtml(name, qty){
+  return `<li><span class="ing-icon">${ING_ICON}</span><span class="ing-text"><span class="ing-name">${name}</span><span class="ing-qty">${qty}</span></span></li>`;
+}
+
 function openDetail(id){
   const r = ALL_RECIPES.find(x => x.id === id);
   if (!r) return;
@@ -851,7 +856,7 @@ function openDetail(id){
       <div>
         <h3 class="panel-title">Ingrédients</h3>
         <ul class="ingredient-list" id="ingredientList">
-          ${r.ingredients.map(([name, qty]) => `<li><span class="ing-name">${name}</span><span class="ing-qty">${qty}</span></li>`).join("")}
+          ${r.ingredients.map(([name, qty]) => ingredientRowHtml(name, qty)).join("")}
         </ul>
         <button class="add-to-cart-btn" id="addToCartBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -894,7 +899,7 @@ function openDetail(id){
   }
   function renderScaledIngredients(){
     ingredientListEl.innerHTML = currentIngredients()
-      .map(([name, qty]) => `<li><span class="ing-name">${name}</span><span class="ing-qty">${qty}</span></li>`)
+      .map(([name, qty]) => ingredientRowHtml(name, qty))
       .join("");
   }
   minusBtn.addEventListener("click", () => {
