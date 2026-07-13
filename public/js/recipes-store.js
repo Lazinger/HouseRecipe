@@ -1,59 +1,45 @@
-import { RECIPES } from "./recipes-data.js";
+import { supabase } from "./supabase-client.js";
+import { loadCachedRecipes, pullRecipes, cacheRecipe, uncacheRecipe, recipeToRow } from "./sync.js";
 import { state, detailView } from "./dom.js";
 import { showToast } from "./ui.js";
-import { render } from "./grid.js";
+import { render, renderHero } from "./grid.js";
 import { syncDetailFavButton } from "./detail.js";
 
-/* ---- recettes ajoutées par l'utilisateur (persistées) ---- */
-const CUSTOM_RECIPES_KEY = "carnet-recettes-perso";
+/* ---- recettes (partagées, synchronisées avec Supabase) ---- */
+export const ALL_RECIPES = [];
 
-function loadCustomRecipes(){
-  try { return JSON.parse(localStorage.getItem(CUSTOM_RECIPES_KEY) || "[]"); }
-  catch { return []; }
-}
-export function saveCustomRecipes(){
-  localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(customRecipes));
+export async function initRecipesSync(){
+  try {
+    const cached = await loadCachedRecipes();
+    ALL_RECIPES.splice(0, ALL_RECIPES.length, ...cached);
+  } catch {}
+  if (ALL_RECIPES.length) { renderHero(); render(); }
+
+  try {
+    const fresh = await pullRecipes();
+    ALL_RECIPES.splice(0, ALL_RECIPES.length, ...fresh);
+  } catch {
+    return;
+  }
+  renderHero();
+  render();
 }
 
-export const customRecipes = loadCustomRecipes();
-export const ALL_RECIPES = [...RECIPES, ...customRecipes];
-
-/* ---- export / import : sauvegarde JSON des recettes ajoutées + favoris ---- */
-export function exportRecipes(){
-  const data = { recipes: customRecipes, favorites: [...state.favorites] };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `carnet-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast("Sauvegarde téléchargée");
+export async function saveRecipe(recipe){
+  const row = recipeToRow(recipe);
+  const { error } = await supabase.from("recipes").upsert(row);
+  if (error) throw error;
+  const idx = ALL_RECIPES.findIndex(r => r.id === recipe.id);
+  if (idx >= 0) ALL_RECIPES[idx] = recipe; else ALL_RECIPES.push(recipe);
+  await cacheRecipe(recipe);
 }
-export function importRecipesFromFile(file){
-  const reader = new FileReader();
-  reader.onload = () => {
-    let data;
-    try { data = JSON.parse(reader.result); }
-    catch { showToast("Fichier invalide"); return; }
-    if (!data || !Array.isArray(data.recipes) || !Array.isArray(data.favorites)) {
-      showToast("Fichier invalide");
-      return;
-    }
-    let added = 0;
-    data.recipes.forEach(recipe => {
-      if (!recipe || !recipe.id || ALL_RECIPES.some(r => r.id === recipe.id)) return;
-      customRecipes.push(recipe);
-      ALL_RECIPES.push(recipe);
-      added++;
-    });
-    data.favorites.forEach(id => state.favorites.add(id));
-    saveCustomRecipes();
-    saveFavorites();
-    render();
-    showToast(added > 0 ? `${added} recette(s) importée(s)` : "Sauvegarde importée");
-  };
-  reader.readAsText(file);
+
+export async function deleteRecipeRemote(id){
+  const { error } = await supabase.from("recipes").delete().eq("id", id);
+  if (error) throw error;
+  const idx = ALL_RECIPES.findIndex(r => r.id === id);
+  if (idx >= 0) ALL_RECIPES.splice(idx, 1);
+  await uncacheRecipe(id);
 }
 
 function slugify(str){
@@ -68,7 +54,7 @@ export function generateRecipeId(title){
   return id;
 }
 
-/* ---- persistance des favoris ---- */
+/* ---- persistance des favoris (encore locale — synchronisée dans un lot ultérieur) ---- */
 export function saveFavorites(){
   localStorage.setItem("carnet-favoris", JSON.stringify([...state.favorites]));
 }
