@@ -5,14 +5,16 @@ Accès sécurisé via connexion Supabase (réseau requis pour l'authentification
 l'app shell et les polices se mettent en cache après la première visite.
 
 ## Structure
+Les fichiers du site vivent dans `public/` (c'est ce dossier, et lui seul,
+qui doit être publié/déployé — le reste du dépôt est interne au projet) :
 ```
-index.html     → structure de la page
-style.css      → design ("carnet lumineux épuré")
-js/            → logique en modules ES (recettes, panier, minuteur, photos, vues...) — voir js/main.js pour le point d'entrée
-manifest.json  → manifeste PWA (nom, icône, couleurs)
-sw.js          → service worker (mise en cache pour le mode hors-ligne)
-fonts/         → Fraunces, DM Sans, Caveat en .woff2 (auto-hébergées)
-icons/         → icône de l'app (icons/icon.svg)
+public/index.html     → structure de la page
+public/style.css      → design ("carnet lumineux épuré")
+public/js/            → logique en modules ES (recettes, panier, minuteur, photos, vues...) — voir js/main.js pour le point d'entrée
+public/manifest.json  → manifeste PWA (nom, icône, couleurs)
+public/sw.js          → service worker (mise en cache pour le mode hors-ligne)
+public/fonts/         → Fraunces, DM Sans, Caveat en .woff2 (auto-hébergées)
+public/icons/         → icône de l'app (icons/icon.svg)
 ```
 
 ## Utilisation
@@ -25,7 +27,11 @@ classiques (single-file) fonctionnent en `file://`.
 Le plus simple : double-cliquer sur `lancer-le-carnet.bat` (démarre un
 serveur local et ouvre le site dans le navigateur ; laissez la fenêtre
 ouverte pendant l'utilisation, fermez-la pour arrêter). Sinon, n'importe
-quel serveur statique convient (ex. `npx serve .`).
+quel serveur statique convient (ex. `npx serve public`).
+
+Le site est aussi déployé en continu sur Netlify (HTTPS, requis pour tester
+l'installation PWA sur téléphone) — chaque `git push` sur `master` republie
+automatiquement `public/`.
 
 Les favoris et les recettes ajoutées sont stockés dans `localStorage` ; les
 photos de recettes sont stockées dans IndexedDB (trop volumineuses pour
@@ -54,11 +60,10 @@ Deux approches courantes pour la suite :
    npx cap copy
    npx cap open android
    ```
-   Placez tous les fichiers du projet (`index.html`, `style.css`, `js/`,
-   `manifest.json`, `sw.js`, `fonts/`, `icons/`) dans le dossier `www/`
-   généré par Capacitor avant `npx cap copy`. Capacitor sert l'app via un
-   schéma local propre (pas `file://` brut), donc les modules ES
-   fonctionnent sans changement.
+   Copiez le contenu de `public/` dans le dossier `www/` généré par
+   Capacitor avant `npx cap copy`. Capacitor sert l'app via un schéma local
+   propre (pas `file://` brut), donc les modules ES fonctionnent sans
+   changement.
 
 2. **WebView Android simple** (si vous préférez un projet Android natif
    minimal) : créez une `WebView` plein écran dans une `Activity` et

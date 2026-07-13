@@ -6,4 +6,4 @@ REM Laisse cette fenêtre ouverte pendant l'utilisation ; ferme-la pour arrêter
 
 cd /d "%~dp0"
 start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:3000"
-npx serve . -l 3000
+npx serve public -l 3000
