@@ -1,6 +1,6 @@
 import { ING_ICON } from "./icons.js";
 import { state, detailView, detailScroll } from "./dom.js";
-import { ALL_RECIPES, customRecipes, toggleFavorite, saveFavorites, saveCustomRecipes } from "./recipes-store.js";
+import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "./recipes-store.js";
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
 import { scaleQuantity } from "./quantity.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "./photos.js";
@@ -20,7 +20,6 @@ export function openDetail(id){
   const r = ALL_RECIPES.find(x => x.id === id);
   if (!r) return;
   const isFav = state.favorites.has(r.id);
-  const isCustom = customRecipes.some(cr => cr.id === r.id);
 
   detailView.className = `detail-view hf-theme cat-${r.category}`;
 
@@ -37,14 +36,12 @@ export function openDetail(id){
           </button>
         </div>
         <div class="detail-topbar-actions">
-          ${isCustom ? `
           <button class="detail-fav" id="detailEditBtn" type="button" aria-label="Modifier la recette">
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
           </button>
           <button class="detail-fav" id="detailDeleteBtn" type="button" aria-label="Supprimer la recette">
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 7h14M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-9 0 1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          ` : ""}
           <button class="detail-fav has-cart-badge" id="detailCartBtn" type="button" aria-label="Ouvrir le panier de courses">
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             <span id="detailCartBadge" class="cart-badge" ${cart.length === 0 ? "hidden" : ""}>${cart.length}</span>
@@ -103,10 +100,8 @@ export function openDetail(id){
   detailScroll.querySelector("#detailFavBtn").addEventListener("click", () => toggleFavorite(r.id));
   detailScroll.querySelector("#detailCartBtn").addEventListener("click", openPanier);
   detailScroll.querySelector("#detailMenuBtn").addEventListener("click", openDrawer);
-  if (isCustom) {
-    detailScroll.querySelector("#detailEditBtn").addEventListener("click", () => goToEditRecipe(r));
-    detailScroll.querySelector("#detailDeleteBtn").addEventListener("click", () => deleteRecipe(r.id));
-  }
+  detailScroll.querySelector("#detailEditBtn").addEventListener("click", () => goToEditRecipe(r));
+  detailScroll.querySelector("#detailDeleteBtn").addEventListener("click", () => deleteRecipe(r.id));
 
   currentOpenRecipe = r;
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
@@ -183,13 +178,14 @@ function goToEditRecipe(recipe){
   openAddForm(recipe);
 }
 
-function deleteRecipe(id){
+async function deleteRecipe(id){
   if (!confirm("Supprimer définitivement cette recette ?")) return;
-  const ci = customRecipes.findIndex(r => r.id === id);
-  if (ci >= 0) customRecipes.splice(ci, 1);
-  const ai = ALL_RECIPES.findIndex(r => r.id === id);
-  if (ai >= 0) ALL_RECIPES.splice(ai, 1);
-  saveCustomRecipes();
+  try {
+    await deleteRecipeRemote(id);
+  } catch {
+    showToast("Impossible de supprimer la recette. Vérifie ta connexion.");
+    return;
+  }
   state.favorites.delete(id);
   saveFavorites();
   removeRecipeFromCart(id);
