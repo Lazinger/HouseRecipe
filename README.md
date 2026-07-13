@@ -8,7 +8,7 @@ Fonctionne 100 % hors-ligne : polices auto-hébergées et service worker
 ```
 index.html     → structure de la page
 style.css      → design ("carnet lumineux épuré")
-script.js      → données des recettes + logique (recherche, filtres, favoris, photos, export/import)
+js/            → logique en modules ES (recettes, panier, minuteur, photos, vues...) — voir js/main.js pour le point d'entrée
 manifest.json  → manifeste PWA (nom, icône, couleurs)
 sw.js          → service worker (mise en cache pour le mode hors-ligne)
 fonts/         → Fraunces, DM Sans, Caveat en .woff2 (auto-hébergées)

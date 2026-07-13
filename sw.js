@@ -1,12 +1,25 @@
 /* service worker : met le carnet en cache pour un fonctionnement hors-ligne.
    Incrémenter CACHE_NAME force le renouvellement du cache au prochain déploiement. */
-const CACHE_NAME = "carnet-cache-v2";
+const CACHE_NAME = "carnet-cache-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js",
   "./manifest.json",
+  "./js/main.js",
+  "./js/dom.js",
+  "./js/ui.js",
+  "./js/recipes-data.js",
+  "./js/recipes-store.js",
+  "./js/cart.js",
+  "./js/timer.js",
+  "./js/grid.js",
+  "./js/detail.js",
+  "./js/add-form.js",
+  "./js/photos.js",
+  "./js/quantity.js",
+  "./js/icons.js",
+  "./js/utils.js",
   "./fonts/caveat.woff2",
   "./fonts/dm-sans.woff2",
   "./fonts/fraunces.woff2",
