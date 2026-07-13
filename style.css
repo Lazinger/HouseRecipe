@@ -741,3 +741,6 @@ button:focus-visible, input:focus-visible{
 .auth-card .add-form{ padding:0; text-align:left; }
 .auth-switch{ margin-top:16px; font-size:.85rem; color: var(--ink-soft); text-align:center; }
 .auth-switch button{ background:none; border:none; color: var(--emerald-dark); font-weight:600; cursor:pointer; padding:0; text-decoration:underline; }
+
+body.auth-locked .site-header,
+body.auth-locked #addFab{ display:none; }
