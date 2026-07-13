@@ -1,8 +1,8 @@
 # Le Carnet — site de recettes
 
 Site statique en HTML / CSS / JS pur (aucune dépendance à installer, aucun build).
-Fonctionne 100 % hors-ligne : polices auto-hébergées et service worker
-(`sw.js`) qui met le site en cache après la première visite.
+Accès sécurisé via connexion Supabase (réseau requis pour l'authentification) ;
+l'app shell et les polices se mettent en cache après la première visite.
 
 ## Structure
 ```
@@ -36,8 +36,8 @@ dans le menu pour sauvegarder/transférer ses recettes.
 
 Le site a été conçu pour être facilement encapsulé dans une WebView, sans
 modification majeure :
-- aucune dépendance réseau (polices auto-hébergées, service worker),
-- pas de données sensibles en stockage local,
+- authentification via Supabase (réseau requis pour la connexion, session stockée localement après),
+- polices auto-hébergées, service worker pour la mise en cache,
 - boutons et zones tactiles dimensionnés pour le doigt,
 - écoute de l'événement `popstate` déjà en place pour se brancher sur le
   bouton "retour" matériel Android.

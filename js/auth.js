@@ -56,12 +56,17 @@ function renderLoginForm(){
     const submitBtn = form.querySelector(".btn-primary");
     submitBtn.disabled = true;
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    submitBtn.disabled = false;
-    if (error) {
-      errorEl.textContent = "Email ou mot de passe incorrect.";
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        errorEl.textContent = "Email ou mot de passe incorrect.";
+        errorEl.hidden = false;
+      }
+    } catch {
+      errorEl.textContent = "Connexion impossible. Réessaie.";
       errorEl.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 }
