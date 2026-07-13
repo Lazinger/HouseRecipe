@@ -7,7 +7,7 @@
 import {
   state, searchInput, chips, favToggleHeader, addFab, cartToggle,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
-  navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navExportBtn, navImportBtn, importFileInput,
+  navAllBtn, navFavBtn, navPanierBtn, navAddBtn,
   navLogoutBtn, accountToggle,
   detailView, addView, panierView, profileView
 } from "./dom.js";
@@ -16,7 +16,6 @@ import { closeDetail } from "./detail.js";
 import { openAddForm, closeAddForm } from "./add-form.js";
 import { openPanier, closePanier, updateCartBadge } from "./cart.js";
 import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe } from "./ui.js";
-import { exportRecipes, importRecipesFromFile } from "./recipes-store.js";
 import { initAuth, logout } from "./auth.js";
 import { openProfile, closeProfile, updateAccountBadge } from "./profile.js";
 import "./timer.js";
@@ -62,14 +61,6 @@ navAllBtn.addEventListener("click", goToAllRecipes);
 navFavBtn.addEventListener("click", goToFavoris);
 navPanierBtn.addEventListener("click", goToPanier);
 navAddBtn.addEventListener("click", goToAddRecipe);
-navExportBtn.addEventListener("click", () => { exportRecipes(); closeDrawer(); });
-navImportBtn.addEventListener("click", () => importFileInput.click());
-importFileInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (file) importRecipesFromFile(file);
-  e.target.value = "";
-  closeDrawer();
-});
 
 favToggleHeader.addEventListener("click", () => {
   const chipFav = document.querySelector('.chip[data-filter="favoris"]');
