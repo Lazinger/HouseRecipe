@@ -8,8 +8,8 @@ import {
   state, searchInput, chips, favToggleHeader, addFab, cartToggle,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navExportBtn, navImportBtn, importFileInput,
-  navLogoutBtn,
-  detailView, addView, panierView
+  navLogoutBtn, accountToggle,
+  detailView, addView, panierView, profileView
 } from "./dom.js";
 import { render, renderHero } from "./grid.js";
 import { closeDetail } from "./detail.js";
@@ -18,6 +18,7 @@ import { openPanier, closePanier, updateCartBadge } from "./cart.js";
 import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe } from "./ui.js";
 import { exportRecipes, importRecipesFromFile } from "./recipes-store.js";
 import { initAuth, logout } from "./auth.js";
+import { openProfile, closeProfile, updateAccountBadge } from "./profile.js";
 import "./timer.js";
 
 /* ---- service worker : active le mode hors-ligne ---- */
@@ -32,6 +33,7 @@ window.addEventListener("popstate", () => {
   if (detailView.classList.contains("is-open")) closeDetail();
   if (addView.classList.contains("is-open")) closeAddForm();
   if (panierView.classList.contains("is-open")) closePanier();
+  if (profileView.classList.contains("is-open")) closeProfile();
   if (drawer.classList.contains("is-open")) closeDrawer();
 });
 
@@ -84,11 +86,14 @@ favToggleHeader.addEventListener("click", () => {
   render();
 });
 
+accountToggle.addEventListener("click", openProfile);
+
 /* ---- démarrage (attend une session valide) ---- */
 initAuth(() => {
   renderHero();
   render();
   updateCartBadge();
+  updateAccountBadge();
 });
 
 navLogoutBtn.addEventListener("click", () => {

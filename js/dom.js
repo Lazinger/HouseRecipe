@@ -31,6 +31,10 @@ export const importFileInput = document.getElementById("importFileInput");
 export const timerBadge = document.getElementById("timerBadge");
 export const timerBadgeValue = document.getElementById("timerBadgeValue");
 export const toast = document.getElementById("toast");
+export const accountToggle = document.getElementById("accountToggle");
+export const accountIcon = document.getElementById("accountIcon");
+export const profileView = document.getElementById("profileView");
+export const profileScroll = document.getElementById("profileScroll");
 
 /* ---- état de l'application ---- */
 export const state = {

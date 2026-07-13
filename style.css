@@ -202,6 +202,23 @@ input{ font-family: inherit; }
 }
 .cart-badge[hidden]{ display:none; }
 
+.account-toggle{
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  width:40px; height:40px; flex:none;
+  background: var(--surface); color: var(--ink);
+  border:1px solid var(--line); border-radius: 50%;
+  transition: border-color .15s ease, color .15s ease;
+}
+.account-toggle:hover{ border-color: var(--emerald); color: var(--emerald-dark); }
+.account-toggle:active{ transform: scale(.94); }
+.account-icon{ display:flex; align-items:center; justify-content:center; }
+.account-icon.has-initials{
+  width:100%; height:100%; border-radius:50%;
+  background: var(--emerald); color:#fff;
+  font-size:.78rem; font-weight:800; letter-spacing:.02em;
+}
+
 .search-row{ max-width:1080px; margin: 16px auto 0; }
 .search-box{
   display:flex; align-items:center; gap:10px;

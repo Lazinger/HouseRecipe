@@ -45,6 +45,11 @@
         <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 20.5s-7.5-4.6-10-9.4C.4 7.6 2 4 5.6 3.4 8 3 10.2 4.2 12 6.6 13.8 4.2 16 3 18.4 3.4 22 4 23.6 7.6 22 11.1c-2.5 4.8-10 9.4-10 9.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         <span>Favoris</span>
       </button>
+      <button id="accountToggle" class="account-toggle" type="button" aria-label="Mon compte">
+        <span id="accountIcon" class="account-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+      </button>
     </div>
   </div>
 
@@ -101,6 +106,11 @@
 <!-- ===== VUE CONNEXION (plein écran, avant tout accès à l'app) ===== -->
 <section id="authView" class="detail-view add-view auth-view" aria-hidden="true">
   <div class="detail-scroll" id="authScroll"></div>
+</section>
+
+<!-- ===== VUE PROFIL (prénom/nom du compte, plein écran) ===== -->
+<section id="profileView" class="detail-view add-view" aria-hidden="true">
+  <div class="detail-scroll" id="profileScroll"></div>
 </section>
 
 <button id="addFab" class="fab" type="button" aria-label="Ajouter une recette">
