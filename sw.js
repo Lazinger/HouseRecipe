@@ -1,6 +1,7 @@
 /* service worker : met le carnet en cache pour un fonctionnement hors-ligne.
    Incrémenter CACHE_NAME force le renouvellement du cache au prochain déploiement. */
-const CACHE_NAME = "carnet-cache-v5";
+const CACHE_NAME = "carnet-cache-v6";
+const SUPABASE_ORIGIN = "https://bmotbwubruvsrflaufis.supabase.co";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -44,6 +45,11 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  /* Les appels à l'API Supabase (auth, données) ne doivent jamais être mis
+     en cache : ce sont des réponses dynamiques, pas des fichiers statiques
+     du site. Les laisser passer sans interception garde toujours les
+     données à jour (ex. getUser() après une mise à jour de profil). */
+  if (event.request.url.startsWith(SUPABASE_ORIGIN)) return;
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
