@@ -8,6 +8,7 @@ import {
   state, searchInput, chips, favToggleHeader, addFab, cartToggle,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navExportBtn, navImportBtn, importFileInput,
+  navLogoutBtn,
   detailView, addView, panierView
 } from "./dom.js";
 import { render, renderHero } from "./grid.js";
@@ -16,6 +17,7 @@ import { openAddForm, closeAddForm } from "./add-form.js";
 import { openPanier, closePanier, updateCartBadge } from "./cart.js";
 import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe } from "./ui.js";
 import { exportRecipes, importRecipesFromFile } from "./recipes-store.js";
+import { initAuth, logout } from "./auth.js";
 import "./timer.js";
 
 /* ---- service worker : active le mode hors-ligne ---- */
@@ -82,7 +84,14 @@ favToggleHeader.addEventListener("click", () => {
   render();
 });
 
-/* ---- démarrage ---- */
-renderHero();
-render();
-updateCartBadge();
+/* ---- démarrage (attend une session valide) ---- */
+initAuth(() => {
+  renderHero();
+  render();
+  updateCartBadge();
+});
+
+navLogoutBtn.addEventListener("click", () => {
+  closeDrawer();
+  logout();
+});

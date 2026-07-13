@@ -26,6 +26,7 @@ export const navPanierBtn = document.getElementById("navPanierBtn");
 export const navAddBtn = document.getElementById("navAddBtn");
 export const navExportBtn = document.getElementById("navExportBtn");
 export const navImportBtn = document.getElementById("navImportBtn");
+export const navLogoutBtn = document.getElementById("navLogoutBtn");
 export const importFileInput = document.getElementById("importFileInput");
 export const timerBadge = document.getElementById("timerBadge");
 export const timerBadgeValue = document.getElementById("timerBadgeValue");
