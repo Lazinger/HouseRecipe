@@ -1,13 +1,14 @@
-import { RECIPES, CATEGORY_LABELS } from "./recipes-data.js";
+import { CATEGORY_LABELS } from "./recipes-data.js";
 import { ICONS } from "./icons.js";
 import { heroSlot, grid, emptyState, resultTitle, resultCount, state } from "./dom.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
 import { applyCardPhoto } from "./photos.js";
 import { openDetail } from "./detail.js";
 
-/* ---- rendu du héros (recette du jour, fixe pour la démo) ---- */
+/* ---- rendu du héros (recette mise en avant) ---- */
 export function renderHero(){
-  const featured = RECIPES[0];
+  const featured = ALL_RECIPES[0];
+  if (!featured) { heroSlot.innerHTML = ""; return; }
   heroSlot.innerHTML = `
     <button class="hero-card cat-${featured.category}" data-id="${featured.id}" type="button">
       <div class="hero-copy">
