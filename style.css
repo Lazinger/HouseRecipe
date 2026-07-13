@@ -729,3 +729,15 @@ input{ font-family: inherit; }
 button:focus-visible, input:focus-visible{
   outline: 2px solid var(--emerald); outline-offset: 2px;
 }
+
+/* ---- vue connexion ---- */
+.auth-view .detail-scroll{
+  display:flex; align-items:center; justify-content:center;
+  min-height:100%; padding: 24px;
+}
+.auth-card{ width:100%; max-width:360px; text-align:center; }
+.auth-card h2{ font-family: var(--font-display); font-style:italic; font-size:1.7rem; margin-bottom:4px; }
+.auth-sub{ color: var(--ink-soft); font-size:.9rem; margin-bottom:22px; }
+.auth-card .add-form{ padding:0; text-align:left; }
+.auth-switch{ margin-top:16px; font-size:.85rem; color: var(--ink-soft); text-align:center; }
+.auth-switch button{ background:none; border:none; color: var(--emerald-dark); font-weight:600; cursor:pointer; padding:0; text-decoration:underline; }
