@@ -16,10 +16,16 @@ icons/         → icône de l'app (icons/icon.svg)
 ```
 
 ## Utilisation
-Servez le dossier avec n'importe quel serveur statique (ex. `npx serve .`).
-Le service worker requiert `http://` ou `https://` — ouvrir `index.html`
-directement en `file://` fonctionne pour la navigation, mais sans mise en
-cache hors-ligne.
+**Un serveur local est requis** (double-cliquer sur `index.html` ne
+fonctionne plus) : la logique est découpée en modules JS (`js/`), et les
+navigateurs bloquent le chargement des modules ES en ouverture directe de
+fichier (`file://`) pour des raisons de sécurité CORS — seuls les scripts
+classiques (single-file) fonctionnent en `file://`.
+
+Le plus simple : double-cliquer sur `lancer-le-carnet.bat` (démarre un
+serveur local et ouvre le site dans le navigateur ; laissez la fenêtre
+ouverte pendant l'utilisation, fermez-la pour arrêter). Sinon, n'importe
+quel serveur statique convient (ex. `npx serve .`).
 
 Les favoris et les recettes ajoutées sont stockés dans `localStorage` ; les
 photos de recettes sont stockées dans IndexedDB (trop volumineuses pour
@@ -48,12 +54,18 @@ Deux approches courantes pour la suite :
    npx cap copy
    npx cap open android
    ```
-   Placez `index.html`, `style.css`, `script.js` dans le dossier `www/`
-   généré par Capacitor avant `npx cap copy`.
+   Placez tous les fichiers du projet (`index.html`, `style.css`, `js/`,
+   `manifest.json`, `sw.js`, `fonts/`, `icons/`) dans le dossier `www/`
+   généré par Capacitor avant `npx cap copy`. Capacitor sert l'app via un
+   schéma local propre (pas `file://` brut), donc les modules ES
+   fonctionnent sans changement.
 
 2. **WebView Android simple** (si vous préférez un projet Android natif
-   minimal) : créez une `WebView` plein écran dans une `Activity`, chargez
-   les fichiers depuis `assets/`, et activez JavaScript
-   (`settings.javaScriptEnabled = true`). Pour le bouton retour matériel,
-   interceptez `onBackPressed()` et appelez `webView.goBack()` ou injectez
-   un événement `popstate`.
+   minimal) : créez une `WebView` plein écran dans une `Activity` et
+   activez JavaScript (`settings.javaScriptEnabled = true`). ⚠️ Chargez les
+   fichiers via `WebViewAssetLoader` (sert `assets/` sur
+   `https://appassets.androidplatform.net/`) plutôt que
+   `loadUrl("file:///android_asset/...")` — le chargement direct en
+   `file://` bloque les modules ES pour la même raison qu'en navigateur
+   desktop. Pour le bouton retour matériel, interceptez `onBackPressed()`
+   et appelez `webView.goBack()` ou injectez un événement `popstate`.
