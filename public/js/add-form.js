@@ -1,7 +1,7 @@
 import { escapeAttr } from "./utils.js";
 import { CATEGORY_ICON } from "./recipes-data.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
-import { customRecipes, ALL_RECIPES, saveCustomRecipes, generateRecipeId } from "./recipes-store.js";
+import { saveRecipe, generateRecipeId } from "./recipes-store.js";
 import { savePhoto, saveStepPhoto } from "./photos.js";
 import { showToast, openDrawer, syncBodyScrollLock } from "./ui.js";
 import { openDetail } from "./detail.js";
@@ -249,43 +249,25 @@ function renderAddForm(editingRecipe){
     addError.hidden = true;
 
     const photoFile = addForm.querySelector("#addPhoto").files[0];
-
-    if (editingRecipe) {
-      const recipe = {
-        ...editingRecipe,
-        title, category,
-        icon: CATEGORY_ICON[category],
-        desc, time, servings, difficulty, note,
-        ingredients, steps, nutrition, allergens, utensils
-      };
-      const ci = customRecipes.findIndex(r => r.id === editingRecipe.id);
-      if (ci >= 0) customRecipes[ci] = recipe;
-      const ai = ALL_RECIPES.findIndex(r => r.id === editingRecipe.id);
-      if (ai >= 0) ALL_RECIPES[ai] = recipe;
-      saveCustomRecipes();
-
-      if (photoFile) await savePhoto(recipe.id, photoFile);
-      for (let i = 0; i < stepPhotoFiles.length; i++) {
-        if (stepPhotoFiles[i]) await saveStepPhoto(recipe.id, i, stepPhotoFiles[i]);
-      }
-
-      closeAddForm();
-      showToast("Recette modifiée");
-      openDetail(recipe.id);
-      return;
-    }
+    const submitBtn = addForm.querySelector(".btn-primary");
+    submitBtn.disabled = true;
 
     const recipe = {
-      id: generateRecipeId(title),
+      id: editingRecipe ? editingRecipe.id : generateRecipeId(title),
       title, category,
       icon: CATEGORY_ICON[category],
       desc, time, servings, difficulty, note,
       ingredients, steps, nutrition, allergens, utensils
     };
 
-    customRecipes.push(recipe);
-    ALL_RECIPES.push(recipe);
-    saveCustomRecipes();
+    try {
+      await saveRecipe(recipe);
+    } catch {
+      submitBtn.disabled = false;
+      addError.textContent = "Impossible d'enregistrer la recette. Vérifie ta connexion.";
+      addError.hidden = false;
+      return;
+    }
 
     if (photoFile) await savePhoto(recipe.id, photoFile);
     for (let i = 0; i < stepPhotoFiles.length; i++) {
@@ -293,8 +275,14 @@ function renderAddForm(editingRecipe){
     }
 
     closeAddForm();
-    showToast("Recette ajoutée");
 
+    if (editingRecipe) {
+      showToast("Recette modifiée");
+      openDetail(recipe.id);
+      return;
+    }
+
+    showToast("Recette ajoutée");
     chips.forEach(c => c.classList.remove("is-active"));
     document.querySelector('.chip[data-filter="tout"]').classList.add("is-active");
     state.filter = "tout";
