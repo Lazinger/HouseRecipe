@@ -1,6 +1,6 @@
 /* service worker : met le carnet en cache pour un fonctionnement hors-ligne.
    Incrémenter CACHE_NAME force le renouvellement du cache au prochain déploiement. */
-const CACHE_NAME = "carnet-cache-v1";
+const CACHE_NAME = "carnet-cache-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
