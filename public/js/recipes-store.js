@@ -86,14 +86,24 @@ export function toggleFavorite(id){
   }
 }
 
+export function clearFavoritesLocal(){
+  state.favorites = new Set();
+  localStorage.removeItem("carnet-favoris");
+}
+
 export async function initFavoritesSync(){
   try {
     const userId = await currentUserId();
     if (!userId) return;
     const { data, error } = await supabase.from("favorites").select("recipe_id").eq("user_id", userId);
     if (error) throw error;
-    state.favorites = new Set(data.map(r => r.recipe_id));
-    saveFavorites();
+    if (data.length === 0 && state.favorites.size > 0) {
+      const rows = [...state.favorites].map(recipe_id => ({ user_id: userId, recipe_id }));
+      await supabase.from("favorites").insert(rows).catch(() => {});
+    } else {
+      state.favorites = new Set(data.map(r => r.recipe_id));
+      saveFavorites();
+    }
     render();
   } catch {
     /* hors-ligne ou erreur réseau : on garde les favoris déjà en cache localStorage */

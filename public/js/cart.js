@@ -56,6 +56,8 @@ export async function initCartSync(){
       saveCart();
       saveCheckedItems();
       updateCartBadge();
+    } else if (cart.length > 0) {
+      syncCartRemote();
     }
   } catch {
     /* hors-ligne ou erreur réseau : on garde le panier déjà en cache localStorage */
@@ -206,4 +208,12 @@ export function closePanier(){
   panierView.classList.remove("is-open");
   panierView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
+}
+
+export function clearCartLocal(){
+  cart.length = 0;
+  checkedItems.clear();
+  localStorage.removeItem(CART_KEY);
+  localStorage.removeItem(CART_CHECKED_KEY);
+  updateCartBadge();
 }
