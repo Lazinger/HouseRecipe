@@ -33,10 +33,15 @@ Le site est aussi déployé en continu sur Netlify (HTTPS, requis pour tester
 l'installation PWA sur téléphone) — chaque `git push` sur `master` republie
 automatiquement `public/`.
 
-Les favoris et les recettes ajoutées sont stockés dans `localStorage` ; les
-photos de recettes sont stockées dans IndexedDB (trop volumineuses pour
-`localStorage`). Tout reste sur l'appareil — export/import JSON disponible
-dans le menu pour sauvegarder/transférer ses recettes.
+Les recettes sont un livre de cuisine **partagé** entre tous les comptes du
+foyer, synchronisé via Supabase (Postgres + Row Level Security) — ajouter,
+modifier ou supprimer une recette sur un appareil la met à jour sur les
+autres après rafraîchissement. Favoris et panier restent **personnels** à
+chaque compte, également synchronisés. `localStorage` sert de cache local
+(chargement instantané, lecture possible hors-ligne) ; les photos de
+recettes sont mises en cache dans IndexedDB (trop volumineuses pour
+`localStorage`). Les écritures faites hors-ligne échouent proprement pour
+l'instant (pas encore de file d'attente — prévu dans un lot ultérieur).
 
 ## Passage en application Android
 
