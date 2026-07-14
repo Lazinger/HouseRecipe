@@ -1,6 +1,6 @@
 /* service worker : met le carnet en cache pour un fonctionnement hors-ligne.
    Incrémenter CACHE_NAME force le renouvellement du cache au prochain déploiement. */
-const CACHE_NAME = "carnet-cache-v7";
+const CACHE_NAME = "carnet-cache-v8";
 const SUPABASE_ORIGIN = "https://bmotbwubruvsrflaufis.supabase.co";
 const APP_SHELL = [
   "./",
@@ -24,6 +24,7 @@ const APP_SHELL = [
   "./js/supabase-client.js",
   "./js/auth.js",
   "./js/profile.js",
+  "./js/sync.js",
   "./fonts/caveat.woff2",
   "./fonts/dm-sans.woff2",
   "./fonts/fraunces.woff2",
