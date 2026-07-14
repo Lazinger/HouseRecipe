@@ -3,18 +3,42 @@ import { supabase } from "./supabase-client.js";
 const authView = document.getElementById("authView");
 const authScroll = document.getElementById("authScroll");
 
+function unlock(onReady){
+  authView.classList.remove("is-open");
+  authView.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("auth-locked");
+  onReady();
+}
+
+function lock(){
+  renderLoginForm();
+  authView.classList.add("is-open");
+  authView.setAttribute("aria-hidden", "false");
+  document.body.classList.add("auth-locked");
+}
+
+function hasStoredSession(){
+  return Object.keys(localStorage).some(k => k.startsWith("sb-") && k.endsWith("-auth-token"));
+}
+
 export function initAuth(onReady){
+  let unlocked = false;
+
+  /* Hors-ligne, Supabase peut échouer à revalider/rafraîchir le jeton via
+     le réseau et ne jamais confirmer la session — sans ce court-circuit,
+     l'app resterait bloquée sur l'écran de connexion alors qu'une session
+     valide est déjà en localStorage. On fait confiance au jeton stocké. */
+  if (!navigator.onLine && hasStoredSession()) {
+    unlocked = true;
+    unlock(onReady);
+  }
+
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session) {
-      authView.classList.remove("is-open");
-      authView.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("auth-locked");
-      onReady();
-    } else {
-      renderLoginForm();
-      authView.classList.add("is-open");
-      authView.setAttribute("aria-hidden", "false");
-      document.body.classList.add("auth-locked");
+      if (!unlocked) { unlocked = true; unlock(onReady); }
+    } else if (navigator.onLine) {
+      unlocked = false;
+      lock();
     }
   });
 }
