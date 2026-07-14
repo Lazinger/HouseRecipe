@@ -54,16 +54,48 @@ export function generateRecipeId(title){
   return id;
 }
 
-/* ---- persistance des favoris (encore locale — synchronisée dans un lot ultérieur) ---- */
+/* ---- persistance des favoris (Supabase, avec cache localStorage) ---- */
 export function saveFavorites(){
   localStorage.setItem("carnet-favoris", JSON.stringify([...state.favorites]));
 }
+
+async function currentUserId(){
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id || null;
+}
+
+function syncFavoriteRemote(id, isFavorite){
+  currentUserId().then(userId => {
+    if (!userId) return;
+    const query = isFavorite
+      ? supabase.from("favorites").insert({ user_id: userId, recipe_id: id })
+      : supabase.from("favorites").delete().eq("user_id", userId).eq("recipe_id", id);
+    query.then(() => {}).catch(() => {});
+  }).catch(() => {});
+}
+
 export function toggleFavorite(id){
-  if (state.favorites.has(id)) { state.favorites.delete(id); showToast("Retiré des favoris"); }
-  else { state.favorites.add(id); showToast("Ajouté aux favoris"); }
+  let isFavorite;
+  if (state.favorites.has(id)) { state.favorites.delete(id); isFavorite = false; showToast("Retiré des favoris"); }
+  else { state.favorites.add(id); isFavorite = true; showToast("Ajouté aux favoris"); }
   saveFavorites();
+  syncFavoriteRemote(id, isFavorite);
   render();
   if (!detailView.hidden && detailView.classList.contains("is-open")) {
     syncDetailFavButton(id);
+  }
+}
+
+export async function initFavoritesSync(){
+  try {
+    const userId = await currentUserId();
+    if (!userId) return;
+    const { data, error } = await supabase.from("favorites").select("recipe_id").eq("user_id", userId);
+    if (error) throw error;
+    state.favorites = new Set(data.map(r => r.recipe_id));
+    saveFavorites();
+    render();
+  } catch {
+    /* hors-ligne ou erreur réseau : on garde les favoris déjà en cache localStorage */
   }
 }
