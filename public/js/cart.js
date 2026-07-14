@@ -1,3 +1,4 @@
+import { supabase } from "./supabase-client.js";
 import { parseQuantity, formatScaledNumber } from "./quantity.js";
 import { cartBadge, panierView, panierScroll } from "./dom.js";
 import { escapeAttr } from "./utils.js";
@@ -24,6 +25,42 @@ function saveCheckedItems(){
 
 export const cart = loadCart();
 const checkedItems = loadCheckedItems();
+
+async function currentUserId(){
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id || null;
+}
+
+function syncCartRemote(){
+  currentUserId().then(userId => {
+    if (!userId) return;
+    supabase.from("cart_state").upsert({
+      user_id: userId,
+      items: cart,
+      checked: [...checkedItems],
+      updated_at: new Date().toISOString()
+    }, { onConflict: "user_id" }).then(() => {}).catch(() => {});
+  }).catch(() => {});
+}
+
+export async function initCartSync(){
+  try {
+    const userId = await currentUserId();
+    if (!userId) return;
+    const { data, error } = await supabase.from("cart_state").select("items, checked").eq("user_id", userId).maybeSingle();
+    if (error) throw error;
+    if (data) {
+      cart.splice(0, cart.length, ...(data.items || []));
+      checkedItems.clear();
+      (data.checked || []).forEach(k => checkedItems.add(k));
+      saveCart();
+      saveCheckedItems();
+      updateCartBadge();
+    }
+  } catch {
+    /* hors-ligne ou erreur réseau : on garde le panier déjà en cache localStorage */
+  }
+}
 
 function mergeQuantityParts(parts){
   const parsed = parts.map(parseQuantity);
@@ -56,6 +93,7 @@ export function addRecipeToCart(recipe, servings, ingredients){
   if (idx >= 0) cart[idx] = entry; else cart.push(entry);
   saveCart();
   updateCartBadge();
+  syncCartRemote();
 }
 
 export function removeRecipeFromCart(recipeId){
@@ -63,6 +101,7 @@ export function removeRecipeFromCart(recipeId){
   if (idx >= 0) cart.splice(idx, 1);
   saveCart();
   updateCartBadge();
+  syncCartRemote();
   renderPanier();
 }
 
@@ -72,6 +111,7 @@ function clearCart(){
   saveCart();
   saveCheckedItems();
   updateCartBadge();
+  syncCartRemote();
   renderPanier();
   showToast("Panier vidé");
 }
@@ -146,6 +186,7 @@ function renderPanier(){
       const key = box.dataset.key;
       if (checkedItems.has(key)) checkedItems.delete(key); else checkedItems.add(key);
       saveCheckedItems();
+      syncCartRemote();
       renderPanier();
     });
   });
