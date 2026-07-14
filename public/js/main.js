@@ -14,8 +14,8 @@ import {
 import { render } from "./grid.js";
 import { closeDetail } from "./detail.js";
 import { openAddForm, closeAddForm } from "./add-form.js";
-import { openPanier, closePanier, updateCartBadge } from "./cart.js";
-import { initRecipesSync } from "./recipes-store.js";
+import { openPanier, closePanier, updateCartBadge, initCartSync } from "./cart.js";
+import { initRecipesSync, initFavoritesSync } from "./recipes-store.js";
 import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
 import { openProfile, closeProfile, updateAccountBadge } from "./profile.js";
@@ -83,6 +83,8 @@ accountToggle.addEventListener("click", openProfile);
 /* ---- démarrage (attend une session valide) ---- */
 initAuth(() => {
   initRecipesSync();
+  initFavoritesSync();
+  initCartSync();
   updateCartBadge();
   updateAccountBadge();
 });
