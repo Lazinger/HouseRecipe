@@ -18,7 +18,8 @@ import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal 
 import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
 import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
-import { openProfile, closeProfile, updateAccountBadge } from "./profile.js";
+import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./profile.js";
+import { flush } from "./write-queue.js";
 import "./timer.js";
 
 /* ---- service worker : active le mode hors-ligne ---- */
@@ -27,6 +28,9 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
+
+/* ---- file d'attente hors-ligne : réessaie dès que la connexion revient ---- */
+window.addEventListener("online", () => { flush(); });
 
 /* ---- gestion du bouton retour matériel Android (WebView) ---- */
 window.addEventListener("popstate", () => {
@@ -85,8 +89,10 @@ initAuth(() => {
   initRecipesSync();
   initFavoritesSync();
   initCartSync();
+  initSyncBadge();
   updateCartBadge();
   updateAccountBadge();
+  flush();
 });
 
 navLogoutBtn.addEventListener("click", () => {

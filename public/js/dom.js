@@ -30,6 +30,7 @@ export const timerBadgeValue = document.getElementById("timerBadgeValue");
 export const toast = document.getElementById("toast");
 export const accountToggle = document.getElementById("accountToggle");
 export const accountIcon = document.getElementById("accountIcon");
+export const syncBadge = document.getElementById("syncBadge");
 export const profileView = document.getElementById("profileView");
 export const profileScroll = document.getElementById("profileScroll");
 
