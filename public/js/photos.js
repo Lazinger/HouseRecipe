@@ -95,6 +95,22 @@ async function getPhotoWithFallback(key){
   }
 }
 
+export async function initPhotosSync(){
+  const db = await openPhotoDB();
+  const allKeys = await new Promise((resolve, reject) => {
+    const tx = db.transaction(PHOTO_STORE, "readonly");
+    const req = tx.objectStore(PHOTO_STORE).getAllKeys();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  for (const key of allKeys) {
+    if (isPhotoSynced(key)) continue;
+    const blob = await getPhoto(key);
+    if (!blob) continue;
+    await photoWriteHandler({ op: "upload", key, blob }).catch(() => enqueue("photo", key, { op: "upload", key, blob }));
+  }
+}
+
 /* ---- API publique ---- */
 export async function savePhoto(recipeId, file){
   await cachePhotoLocally(recipeId, file);
