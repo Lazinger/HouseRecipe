@@ -76,6 +76,25 @@ async function photoWriteHandler(payload){
 }
 registerHandler("photo", photoWriteHandler);
 
+async function fetchAndCacheFromStorage(key){
+  const { data } = supabase.storage.from("recipe-photos").getPublicUrl(key);
+  const res = await fetch(data.publicUrl);
+  if (!res.ok) throw new Error("photo introuvable");
+  const blob = await res.blob();
+  await cachePhotoLocally(key, blob);
+  return blob;
+}
+
+async function getPhotoWithFallback(key){
+  const local = await getPhoto(key);
+  if (local) return local;
+  try {
+    return await fetchAndCacheFromStorage(key);
+  } catch {
+    return null;
+  }
+}
+
 /* ---- API publique ---- */
 export async function savePhoto(recipeId, file){
   await cachePhotoLocally(recipeId, file);
@@ -89,7 +108,7 @@ export async function saveStepPhoto(recipeId, index, file){
 }
 
 export async function getStepPhoto(recipeId, index){
-  return getPhoto(stepPhotoKey(recipeId, index));
+  return getPhotoWithFallback(stepPhotoKey(recipeId, index));
 }
 
 export async function deleteAllPhotosForRecipe(recipeId){
@@ -105,14 +124,14 @@ export async function deleteAllPhotosForRecipe(recipeId){
 }
 
 export function applyCardPhoto(recipeId, iconEl){
-  getPhoto(recipeId).then(blob => {
+  getPhotoWithFallback(recipeId).then(blob => {
     if (!blob || !iconEl) return;
     iconEl.classList.add("has-photo");
     iconEl.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="">`;
   }).catch(() => {});
 }
 export function applyDetailPhoto(recipeId, heroEl){
-  getPhoto(recipeId).then(blob => {
+  getPhotoWithFallback(recipeId).then(blob => {
     if (!blob || !heroEl) return;
     heroEl.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
   }).catch(() => {});
