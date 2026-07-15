@@ -1,15 +1,23 @@
 import { openSyncDB, QUEUE_STORE } from "./sync.js";
-import { showToast } from "./ui.js";
 
 const listeners = new Set();
+const failureListeners = new Set();
 const handlers = {};
 
 function notifyListeners(size){
   listeners.forEach(cb => cb(size));
 }
 
+function notifyFailure(message){
+  failureListeners.forEach(cb => cb(message));
+}
+
 export function onQueueChange(callback){
   listeners.add(callback);
+}
+
+export function onPermanentFailure(callback){
+  failureListeners.add(callback);
 }
 
 export function registerHandler(type, handler){
@@ -67,7 +75,7 @@ export async function flush(){
       await dequeue(entry.key);
     } catch {
       await dequeue(entry.key);
-      showToast("Échec de synchronisation d'une modification récente");
+      notifyFailure("Échec de synchronisation d'une modification récente");
     }
   }
   notifyListeners(await getQueueSize());

@@ -16,10 +16,10 @@ import { closeDetail } from "./detail.js";
 import { openAddForm, closeAddForm } from "./add-form.js";
 import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./cart.js";
 import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
-import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe } from "./ui.js";
+import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, showToast } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
 import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./profile.js";
-import { flush } from "./write-queue.js";
+import { flush, onPermanentFailure } from "./write-queue.js";
 import "./timer.js";
 
 /* ---- service worker : active le mode hors-ligne ---- */
@@ -31,6 +31,7 @@ if ("serviceWorker" in navigator) {
 
 /* ---- file d'attente hors-ligne : réessaie dès que la connexion revient ---- */
 window.addEventListener("online", () => { flush(); });
+onPermanentFailure(showToast);
 
 /* ---- gestion du bouton retour matériel Android (WebView) ---- */
 window.addEventListener("popstate", () => {
