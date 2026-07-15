@@ -63,6 +63,10 @@ async function getAllEntries(){
   });
 }
 
+function wait(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function flush(){
   if (!navigator.onLine) return;
   const entries = await getAllEntries();
@@ -74,8 +78,18 @@ export async function flush(){
       await handler(entry.payload);
       await dequeue(entry.key);
     } catch {
-      await dequeue(entry.key);
-      notifyFailure("Échec de synchronisation d'une modification récente");
+      /* Une reconnexion tout juste rétablie (DNS, TLS, rafraîchissement du
+         jeton Supabase) peut faire échouer la première tentative alors que
+         le réseau est en fait de retour — on retente une fois avant
+         d'abandonner définitivement. */
+      await wait(1500);
+      try {
+        await handler(entry.payload);
+        await dequeue(entry.key);
+      } catch {
+        await dequeue(entry.key);
+        notifyFailure("Échec de synchronisation d'une modification récente");
+      }
     }
   }
   notifyListeners(await getQueueSize());
