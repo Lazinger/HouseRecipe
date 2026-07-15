@@ -271,6 +271,7 @@ function renderAddForm(editingRecipe){
 
     if (editingRecipe) {
       showToast("Recette modifiée");
+      render();
       openDetail(recipe.id);
       return;
     }
