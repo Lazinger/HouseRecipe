@@ -85,14 +85,14 @@ favToggleHeader.addEventListener("click", () => {
 accountToggle.addEventListener("click", openProfile);
 
 /* ---- démarrage (attend une session valide) ---- */
-initAuth(() => {
+initAuth(async () => {
+  await flush();
   initRecipesSync();
   initFavoritesSync();
   initCartSync();
   initSyncBadge();
   updateCartBadge();
   updateAccountBadge();
-  flush();
 });
 
 navLogoutBtn.addEventListener("click", () => {
