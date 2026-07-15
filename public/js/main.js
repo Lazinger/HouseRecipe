@@ -86,7 +86,7 @@ accountToggle.addEventListener("click", openProfile);
 
 /* ---- démarrage (attend une session valide) ---- */
 initAuth(async () => {
-  await flush();
+  await flush().catch(() => {});
   initRecipesSync();
   initFavoritesSync();
   initCartSync();
