@@ -111,9 +111,28 @@ export async function getStepPhoto(recipeId, index){
   return getPhotoWithFallback(stepPhotoKey(recipeId, index));
 }
 
-export async function deleteAllPhotosForRecipe(recipeId){
+async function collectPhotoKeysForRecipe(recipeId){
   const db = await openPhotoDB();
   return new Promise((resolve, reject) => {
+    const tx = db.transaction(PHOTO_STORE, "readonly");
+    const store = tx.objectStore(PHOTO_STORE);
+    const keys = [];
+    const mainReq = store.getKey(recipeId);
+    mainReq.onsuccess = () => { if (mainReq.result !== undefined) keys.push(recipeId); };
+    const cursorReq = store.openKeyCursor(IDBKeyRange.bound(recipeId + "::", recipeId + "::￿"));
+    cursorReq.onsuccess = () => {
+      const cursor = cursorReq.result;
+      if (cursor) { keys.push(cursor.key); cursor.continue(); }
+    };
+    tx.oncomplete = () => resolve(keys);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function deleteAllPhotosForRecipe(recipeId){
+  const keys = await collectPhotoKeysForRecipe(recipeId);
+  const db = await openPhotoDB();
+  await new Promise((resolve, reject) => {
     const tx = db.transaction(PHOTO_STORE, "readwrite");
     const store = tx.objectStore(PHOTO_STORE);
     store.delete(recipeId);
@@ -121,6 +140,9 @@ export async function deleteAllPhotosForRecipe(recipeId){
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+  for (const key of keys) {
+    await photoWriteHandler({ op: "delete", key }).catch(() => enqueue("photo", key, { op: "delete", key }));
+  }
 }
 
 export function applyCardPhoto(recipeId, iconEl){
