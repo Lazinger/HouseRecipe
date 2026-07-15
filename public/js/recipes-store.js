@@ -76,14 +76,21 @@ async function currentUserId(){
   return data?.user?.id || null;
 }
 
+async function favoriteWriteHandler({ recipeId, isFavorite }){
+  const userId = await currentUserId();
+  if (!userId) return;
+  const query = isFavorite
+    ? supabase.from("favorites").upsert({ user_id: userId, recipe_id: recipeId }, { onConflict: "user_id,recipe_id" })
+    : supabase.from("favorites").delete().eq("user_id", userId).eq("recipe_id", recipeId);
+  const { error } = await query;
+  if (error) throw error;
+}
+registerHandler("favorite", favoriteWriteHandler);
+
 function syncFavoriteRemote(id, isFavorite){
-  currentUserId().then(userId => {
-    if (!userId) return;
-    const query = isFavorite
-      ? supabase.from("favorites").insert({ user_id: userId, recipe_id: id })
-      : supabase.from("favorites").delete().eq("user_id", userId).eq("recipe_id", id);
-    query.then(() => {}).catch(() => {});
-  }).catch(() => {});
+  favoriteWriteHandler({ recipeId: id, isFavorite }).catch(() => {
+    enqueue("favorite", id, { recipeId: id, isFavorite });
+  });
 }
 
 export function toggleFavorite(id){
