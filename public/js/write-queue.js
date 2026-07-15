@@ -67,6 +67,24 @@ function wait(ms){
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/* Une reconnexion tout juste rétablie (DNS, TLS, rafraîchissement du jeton
+   Supabase) peut faire échouer les premières tentatives alors que le réseau
+   est en fait de retour — on retente à quelques reprises, avec un délai
+   croissant, avant d'abandonner définitivement. */
+const RETRY_DELAYS_MS = [2000, 5000];
+
+async function attemptEntry(handler, payload){
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await handler(payload);
+      return true;
+    } catch {
+      if (attempt >= RETRY_DELAYS_MS.length) return false;
+      await wait(RETRY_DELAYS_MS[attempt]);
+    }
+  }
+}
+
 export async function flush(){
   if (!navigator.onLine) return;
   const entries = await getAllEntries();
@@ -74,23 +92,9 @@ export async function flush(){
     if (!navigator.onLine) break;
     const handler = handlers[entry.type];
     if (!handler) { await dequeue(entry.key); continue; }
-    try {
-      await handler(entry.payload);
-      await dequeue(entry.key);
-    } catch {
-      /* Une reconnexion tout juste rétablie (DNS, TLS, rafraîchissement du
-         jeton Supabase) peut faire échouer la première tentative alors que
-         le réseau est en fait de retour — on retente une fois avant
-         d'abandonner définitivement. */
-      await wait(1500);
-      try {
-        await handler(entry.payload);
-        await dequeue(entry.key);
-      } catch {
-        await dequeue(entry.key);
-        notifyFailure("Échec de synchronisation d'une modification récente");
-      }
-    }
+    const succeeded = await attemptEntry(handler, entry.payload);
+    await dequeue(entry.key);
+    if (!succeeded) notifyFailure("Échec de synchronisation d'une modification récente");
   }
   notifyListeners(await getQueueSize());
 }
