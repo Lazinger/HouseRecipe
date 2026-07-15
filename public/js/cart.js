@@ -3,6 +3,7 @@ import { parseQuantity, formatScaledNumber } from "./quantity.js";
 import { cartBadge, panierView, panierScroll } from "./dom.js";
 import { escapeAttr } from "./utils.js";
 import { showToast, openDrawer, syncBodyScrollLock } from "./ui.js";
+import { enqueue, registerHandler } from "./write-queue.js";
 
 /* ---- panier de courses (persisté) ---- */
 const CART_KEY = "carnet-panier";
@@ -31,16 +32,22 @@ async function currentUserId(){
   return data?.user?.id || null;
 }
 
+async function cartWriteHandler({ items, checked }){
+  const userId = await currentUserId();
+  if (!userId) return;
+  const { error } = await supabase.from("cart_state").upsert({
+    user_id: userId,
+    items,
+    checked,
+    updated_at: new Date().toISOString()
+  }, { onConflict: "user_id" });
+  if (error) throw error;
+}
+registerHandler("cart", cartWriteHandler);
+
 function syncCartRemote(){
-  currentUserId().then(userId => {
-    if (!userId) return;
-    supabase.from("cart_state").upsert({
-      user_id: userId,
-      items: cart,
-      checked: [...checkedItems],
-      updated_at: new Date().toISOString()
-    }, { onConflict: "user_id" }).then(() => {}).catch(() => {});
-  }).catch(() => {});
+  const payload = { items: [...cart], checked: [...checkedItems] };
+  cartWriteHandler(payload).catch(() => enqueue("cart", "main", payload));
 }
 
 export async function initCartSync(){
