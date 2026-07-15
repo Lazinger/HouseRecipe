@@ -1,14 +1,21 @@
 import { supabase } from "./supabase-client.js";
 
 const DB_NAME = "carnet-sync";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const RECIPES_STORE = "recipes";
+export const QUEUE_STORE = "write-queue";
 
-function openSyncDB(){
+export function openSyncDB(){
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
-      req.result.createObjectStore(RECIPES_STORE, { keyPath: "id" });
+      const db = req.result;
+      if (!db.objectStoreNames.contains(RECIPES_STORE)) {
+        db.createObjectStore(RECIPES_STORE, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(QUEUE_STORE)) {
+        db.createObjectStore(QUEUE_STORE, { keyPath: "key" });
+      }
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
