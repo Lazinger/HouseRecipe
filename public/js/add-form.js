@@ -260,14 +260,7 @@ function renderAddForm(editingRecipe){
       ingredients, steps, nutrition, allergens, utensils
     };
 
-    try {
-      await saveRecipe(recipe);
-    } catch {
-      submitBtn.disabled = false;
-      addError.textContent = "Impossible d'enregistrer la recette. Vérifie ta connexion.";
-      addError.hidden = false;
-      return;
-    }
+    await saveRecipe(recipe);
 
     if (photoFile) await savePhoto(recipe.id, photoFile);
     for (let i = 0; i < stepPhotoFiles.length; i++) {

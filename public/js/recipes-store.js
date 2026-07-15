@@ -1,5 +1,6 @@
 import { supabase } from "./supabase-client.js";
 import { loadCachedRecipes, pullRecipes, cacheRecipe, uncacheRecipe, recipeToRow } from "./sync.js";
+import { enqueue, registerHandler } from "./write-queue.js";
 import { state, detailView } from "./dom.js";
 import { showToast } from "./ui.js";
 import { render, renderHero } from "./grid.js";
@@ -25,21 +26,32 @@ export async function initRecipesSync(){
   render();
 }
 
+async function recipeWriteHandler(payload){
+  if (payload.op === "delete") {
+    const { error } = await supabase.from("recipes").delete().eq("id", payload.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("recipes").upsert(payload.row);
+    if (error) throw error;
+  }
+}
+registerHandler("recipe", recipeWriteHandler);
+
 export async function saveRecipe(recipe){
-  const row = recipeToRow(recipe);
-  const { error } = await supabase.from("recipes").upsert(row);
-  if (error) throw error;
   const idx = ALL_RECIPES.findIndex(r => r.id === recipe.id);
   if (idx >= 0) ALL_RECIPES[idx] = recipe; else ALL_RECIPES.push(recipe);
   await cacheRecipe(recipe);
+
+  const row = recipeToRow(recipe);
+  await recipeWriteHandler({ op: "upsert", row }).catch(() => enqueue("recipe", recipe.id, { op: "upsert", row }));
 }
 
 export async function deleteRecipeRemote(id){
-  const { error } = await supabase.from("recipes").delete().eq("id", id);
-  if (error) throw error;
   const idx = ALL_RECIPES.findIndex(r => r.id === id);
   if (idx >= 0) ALL_RECIPES.splice(idx, 1);
   await uncacheRecipe(id);
+
+  await recipeWriteHandler({ op: "delete", id }).catch(() => enqueue("recipe", id, { op: "delete", id }));
 }
 
 function slugify(str){

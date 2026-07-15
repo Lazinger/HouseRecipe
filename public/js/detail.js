@@ -180,12 +180,7 @@ function goToEditRecipe(recipe){
 
 async function deleteRecipe(id){
   if (!confirm("Supprimer définitivement cette recette ?")) return;
-  try {
-    await deleteRecipeRemote(id);
-  } catch {
-    showToast("Impossible de supprimer la recette. Vérifie ta connexion.");
-    return;
-  }
+  await deleteRecipeRemote(id);
   state.favorites.delete(id);
   saveFavorites();
   removeRecipeFromCart(id);
