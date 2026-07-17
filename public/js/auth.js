@@ -1,4 +1,5 @@
 import { supabase } from "./supabase-client.js";
+import { showToast } from "./ui.js";
 
 const authView = document.getElementById("authView");
 const authScroll = document.getElementById("authScroll");
@@ -35,12 +36,33 @@ export function initAuth(onReady){
 
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session) {
-      if (!unlocked) { unlocked = true; unlock(onReady); }
+      if (!unlocked) {
+        unlocked = true;
+        redeemPendingInviteCode(session);
+        unlock(onReady);
+      }
     } else if (navigator.onLine) {
       unlocked = false;
       lock();
     }
   });
+}
+
+async function redeemPendingInviteCode(session){
+  const code = session.user.user_metadata?.pending_invite_code;
+  if (!code) return;
+  try {
+    const { data, error } = await supabase.rpc("redeem_invite_code", { input_code: code });
+    if (error || !data) {
+      showToast("Code d'invitation invalide.");
+    } else {
+      showToast("Code d'invitation validé, bienvenue !");
+    }
+  } catch {
+    showToast("Code d'invitation invalide.");
+  } finally {
+    supabase.auth.updateUser({ data: { pending_invite_code: null } }).catch(() => {});
+  }
 }
 
 export function logout(){
