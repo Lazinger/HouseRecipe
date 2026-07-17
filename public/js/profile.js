@@ -52,6 +52,7 @@ async function renderProfile(){
   const { data } = await supabase.auth.getUser();
   const user = data?.user;
   const meta = user?.user_metadata || {};
+  const isAdmin = user?.email === "jerem.r30@gmail.com";
 
   profileScroll.innerHTML = `
     <div class="add-topbar">
@@ -85,6 +86,15 @@ async function renderProfile(){
         <button type="submit" class="btn-primary">Enregistrer</button>
       </div>
     </form>
+    ${isAdmin ? `
+      <div class="add-form">
+        <div class="field">
+          <label>Ajouter un membre du foyer</label>
+          <button type="button" id="generateInviteBtn" class="btn-primary">Générer un code d'invitation</button>
+          <p id="inviteCodeResult" class="auth-sub" hidden></p>
+        </div>
+      </div>
+    ` : ""}
   `;
 
   profileScroll.querySelector("#profileMenuBtn").addEventListener("click", openDrawer);
@@ -112,4 +122,22 @@ async function renderProfile(){
       submitBtn.disabled = false;
     }
   });
+
+  if (isAdmin) {
+    profileScroll.querySelector("#generateInviteBtn").addEventListener("click", async () => {
+      const btn = profileScroll.querySelector("#generateInviteBtn");
+      const resultEl = profileScroll.querySelector("#inviteCodeResult");
+      btn.disabled = true;
+      try {
+        const { data: code, error } = await supabase.rpc("generate_invite_code");
+        resultEl.textContent = (error || !code) ? "Impossible de générer un code." : `Code généré : ${code}`;
+        resultEl.hidden = false;
+      } catch {
+        resultEl.textContent = "Impossible de générer un code.";
+        resultEl.hidden = false;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
 }
