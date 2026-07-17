@@ -112,3 +112,22 @@ insert into public.recipes (id, title, category, icon, description, time, servin
  '[["Oignons rouges","1 kg"],["Sucre roux","100 g"],["Vinaigre balsamique","8 cl"],["Beurre","30 g"],["Sel","1 pincée"]]'::jsonb,
  '["Émincez finement les oignons.","Faites-les suer dans le beurre à feu doux 10 minutes.","Ajoutez le sucre et laissez caraméliser légèrement 10 minutes.","Versez le vinaigre, salez, et laissez mijoter à découvert 30 minutes en remuant régulièrement.","Mettez en pot une fois la texture bien confite et laissez refroidir avant de fermer."]'::jsonb
 );
+
+-- ===== recipe-photos : photos de recettes (bucket Storage public) =====
+insert into storage.buckets (id, name, public) values ('recipe-photos', 'recipe-photos', true);
+
+create policy "Household members can read recipe photos"
+  on storage.objects for select
+  using (bucket_id = 'recipe-photos' and auth.uid() is not null);
+
+create policy "Household members can upload recipe photos"
+  on storage.objects for insert
+  with check (bucket_id = 'recipe-photos' and auth.uid() is not null);
+
+create policy "Household members can update recipe photos"
+  on storage.objects for update
+  using (bucket_id = 'recipe-photos' and auth.uid() is not null);
+
+create policy "Household members can delete recipe photos"
+  on storage.objects for delete
+  using (bucket_id = 'recipe-photos' and auth.uid() is not null);
