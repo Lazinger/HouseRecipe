@@ -131,3 +131,42 @@ create policy "Household members can update recipe photos"
 create policy "Household members can delete recipe photos"
   on storage.objects for delete
   using (bucket_id = 'recipe-photos' and auth.uid() is not null);
+
+-- ===== Fonctions RPC pour l'inscription par code d'invitation =====
+create or replace function public.generate_invite_code()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_code text;
+begin
+  if auth.email() is distinct from 'jerem.r30@gmail.com' then
+    raise exception 'not authorized';
+  end if;
+  new_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8));
+  insert into public.invite_codes (code) values (new_code);
+  return new_code;
+end;
+$$;
+
+create or replace function public.redeem_invite_code(input_code text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  affected integer;
+begin
+  if auth.uid() is null then
+    return false;
+  end if;
+  update public.invite_codes
+    set used_by = auth.uid(), used_at = now()
+    where code = input_code and used_by is null;
+  get diagnostics affected = row_count;
+  return affected > 0;
+end;
+$$;
