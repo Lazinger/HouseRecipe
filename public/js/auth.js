@@ -172,6 +172,13 @@ function renderSignupForm(){
     submitBtn.disabled = true;
 
     try {
+      const { data: codeValid, error: codeError } = await supabase.rpc("check_invite_code", { input_code: pending_invite_code });
+      if (codeError || !codeValid) {
+        errorEl.textContent = "Code d'invitation invalide.";
+        errorEl.hidden = false;
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
         email, password,
         options: { data: { first_name, last_name, pending_invite_code } }

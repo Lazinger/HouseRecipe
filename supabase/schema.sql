@@ -151,6 +151,17 @@ begin
 end;
 $$;
 
+create or replace function public.check_invite_code(input_code text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return exists(select 1 from public.invite_codes where code = input_code and used_by is null);
+end;
+$$;
+
 create or replace function public.redeem_invite_code(input_code text)
 returns boolean
 language plpgsql
