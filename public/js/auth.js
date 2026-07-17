@@ -66,6 +66,7 @@ function renderLoginForm(){
           <button type="submit" class="btn-primary">Se connecter</button>
         </div>
       </form>
+      <p class="auth-switch">Pas encore de compte ? <button type="button" id="showSignupBtn">Créer un compte</button></p>
     </div>
   `;
 
@@ -93,4 +94,92 @@ function renderLoginForm(){
       submitBtn.disabled = false;
     }
   });
+
+  authScroll.querySelector("#showSignupBtn").addEventListener("click", renderSignupForm);
+}
+
+function renderSignupForm(){
+  authScroll.innerHTML = `
+    <div class="auth-card">
+      <h2>Le Carnet</h2>
+      <p class="auth-sub">Crée ton compte pour rejoindre le foyer.</p>
+      <form id="signupForm" class="add-form" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="signupFirstName">Prénom</label>
+            <input id="signupFirstName" type="text" placeholder="Prénom" required>
+          </div>
+          <div class="field">
+            <label for="signupLastName">Nom</label>
+            <input id="signupLastName" type="text" placeholder="Nom" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="signupEmail">Email</label>
+          <input id="signupEmail" type="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="signupPassword">Mot de passe</label>
+          <input id="signupPassword" type="password" autocomplete="new-password" required>
+        </div>
+        <div class="field">
+          <label for="signupCode">Code d'invitation</label>
+          <input id="signupCode" type="text" autocomplete="off" required>
+        </div>
+        <p id="signupError" class="add-error" hidden></p>
+        <div class="add-actions">
+          <button type="submit" class="btn-primary">Créer mon compte</button>
+        </div>
+      </form>
+      <p class="auth-switch">Déjà un compte ? <button type="button" id="showLoginBtn">Se connecter</button></p>
+    </div>
+  `;
+
+  const form = authScroll.querySelector("#signupForm");
+  const errorEl = authScroll.querySelector("#signupError");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorEl.hidden = true;
+    const first_name = form.querySelector("#signupFirstName").value.trim();
+    const last_name = form.querySelector("#signupLastName").value.trim();
+    const email = form.querySelector("#signupEmail").value.trim();
+    const password = form.querySelector("#signupPassword").value;
+    const pending_invite_code = form.querySelector("#signupCode").value.trim();
+    const submitBtn = form.querySelector(".btn-primary");
+    submitBtn.disabled = true;
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { first_name, last_name, pending_invite_code } }
+      });
+      if (error) {
+        errorEl.textContent = "Inscription impossible. Vérifie tes informations.";
+        errorEl.hidden = false;
+      } else {
+        renderSignupConfirmation();
+      }
+    } catch {
+      errorEl.textContent = "Inscription impossible. Réessaie.";
+      errorEl.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  authScroll.querySelector("#showLoginBtn").addEventListener("click", renderLoginForm);
+}
+
+function renderSignupConfirmation(){
+  authScroll.innerHTML = `
+    <div class="auth-card">
+      <h2>Le Carnet</h2>
+      <p class="auth-sub">Compte créé ! Vérifie tes emails pour confirmer ton adresse, puis reviens te connecter.</p>
+      <div class="add-actions">
+        <button type="button" id="backToLoginBtn" class="btn-primary">Retour à la connexion</button>
+      </div>
+    </div>
+  `;
+  authScroll.querySelector("#backToLoginBtn").addEventListener("click", renderLoginForm);
 }
