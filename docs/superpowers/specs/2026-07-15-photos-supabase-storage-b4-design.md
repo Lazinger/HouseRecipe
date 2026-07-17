@@ -42,9 +42,11 @@ create policy "Household members can delete recipe photos"
 
 (Le bucket est public en lecture pour n'importe qui possédant l'URL — ces policies gouvernent qui peut lire/écrire *via le client Supabase authentifié*, cohérent avec le reste du schéma où `auth.uid() is not null` suffit, pas de restriction par propriétaire.)
 
-**Chemin des objets** :
+**Chemin des objets** (corrigé lors de l'implémentation — voir note ci-dessous) :
 - Photo principale : `{recipeId}`
-- Photo d'étape : `{recipeId}/step-{index}`
+- Photo d'étape : `{recipeId}::step::{index}`
+
+Note : le plan d'implémentation a repris tel quel le format de clé déjà utilisé par le cache IndexedDB local (`::step::`), à plat, plutôt que le séparateur `/step-` initialement prévu ici. Confirmé sûr (deux-points valides dans une clé Supabase Storage et dans l'URL publique) et validé explicitement par l'utilisateur après la review finale — au prix d'un bucket à plat (pas de sous-dossier par recette dans l'explorateur Supabase Storage) plutôt qu'arborescent.
 
 Le `contentType` est fixé explicitement à l'upload depuis `file.type` — pas besoin d'extension dans le chemin, le navigateur affiche l'image correctement via l'en-tête `Content-Type` renvoyé par Storage.
 
