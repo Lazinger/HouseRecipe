@@ -1,4 +1,4 @@
-import { toast, detailView, addView, panierView, drawer, drawerOverlay, chips, favToggleHeader, state, searchInput } from "./dom.js";
+import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput } from "./dom.js";
 import { closeDetail } from "./detail.js";
 import { closeAddForm, openAddForm } from "./add-form.js";
 import { closePanier, openPanier } from "./cart.js";
@@ -36,6 +36,16 @@ export function closeDrawer(){
   drawerOverlay.classList.remove("is-open");
   setTimeout(() => { drawerOverlay.hidden = true; }, 250);
   syncBodyScrollLock();
+}
+
+/* ---- fond assombri partagé (fiche recette / ajout / panier / compte) ---- */
+export function openSheetBackdrop(){
+  sheetBackdrop.hidden = false;
+  requestAnimationFrame(() => sheetBackdrop.classList.add("is-open"));
+}
+export function closeSheetBackdrop(){
+  sheetBackdrop.classList.remove("is-open");
+  setTimeout(() => { sheetBackdrop.hidden = true; }, 320);
 }
 
 function closeAllOverlays(){

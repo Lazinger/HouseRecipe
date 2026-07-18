@@ -3,7 +3,7 @@ import { CATEGORY_ICON } from "./recipes-data.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
 import { savePhoto, saveStepPhoto } from "./photos.js";
-import { showToast, openDrawer, syncBodyScrollLock } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "./ui.js";
 import { openDetail } from "./detail.js";
 import { render } from "./grid.js";
 
@@ -73,10 +73,6 @@ function renderAddForm(editingRecipe){
       <div class="add-topbar-left">
         <button class="menu-btn" id="addMenuBtn" type="button" aria-label="Ouvrir le menu">
           <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-        <button class="back-btn" id="addBackBtn" type="button">
-          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Retour
         </button>
       </div>
       <h2>${editingRecipe ? "Modifier la recette" : "Nouvelle recette"}</h2>
@@ -204,7 +200,6 @@ function renderAddForm(editingRecipe){
     stepRowsEl.appendChild(createStepRow(stepRowsEl));
     updateRemoveButtons(stepRowsEl);
   });
-  addScroll.querySelector("#addBackBtn").addEventListener("click", closeAddForm);
   addScroll.querySelector("#addMenuBtn").addEventListener("click", openDrawer);
   addScroll.querySelector("#addCancelBtn").addEventListener("click", closeAddForm);
 
@@ -291,6 +286,7 @@ export function openAddForm(editingRecipe){
   addView.classList.add("is-open");
   addView.setAttribute("aria-hidden", "false");
   addScroll.scrollTop = 0;
+  openSheetBackdrop();
   syncBodyScrollLock();
 }
 
@@ -298,4 +294,5 @@ export function closeAddForm(){
   addView.classList.remove("is-open");
   addView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
+  closeSheetBackdrop();
 }

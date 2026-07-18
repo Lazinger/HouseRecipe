@@ -33,6 +33,7 @@ export const accountIcon = document.getElementById("accountIcon");
 export const syncBadge = document.getElementById("syncBadge");
 export const profileView = document.getElementById("profileView");
 export const profileScroll = document.getElementById("profileScroll");
+export const sheetBackdrop = document.getElementById("sheetBackdrop");
 
 /* ---- état de l'application ---- */
 export const state = {

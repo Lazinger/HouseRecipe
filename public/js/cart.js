@@ -2,7 +2,7 @@ import { supabase } from "./supabase-client.js";
 import { parseQuantity, formatScaledNumber } from "./quantity.js";
 import { cartBadge, panierView, panierScroll } from "./dom.js";
 import { escapeAttr } from "./utils.js";
-import { showToast, openDrawer, syncBodyScrollLock } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "./ui.js";
 import { enqueue, registerHandler } from "./write-queue.js";
 
 /* ---- panier de courses (persisté) ---- */
@@ -174,17 +174,12 @@ function renderPanier(){
         <button class="menu-btn" id="panierMenuBtn" type="button" aria-label="Ouvrir le menu">
           <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <button class="back-btn" id="panierBackBtn" type="button">
-          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Retour
-        </button>
       </div>
       <h2>Panier de courses</h2>
     </div>
     <div class="panier-body">${body}</div>
   `;
 
-  panierScroll.querySelector("#panierBackBtn").addEventListener("click", closePanier);
   panierScroll.querySelector("#panierMenuBtn").addEventListener("click", openDrawer);
   panierScroll.querySelectorAll("[data-removeid]").forEach(btn => {
     btn.addEventListener("click", () => removeRecipeFromCart(btn.dataset.removeid));
@@ -208,6 +203,7 @@ export function openPanier(){
   panierView.classList.add("is-open");
   panierView.setAttribute("aria-hidden", "false");
   panierScroll.scrollTop = 0;
+  openSheetBackdrop();
   syncBodyScrollLock();
 }
 
@@ -215,6 +211,7 @@ export function closePanier(){
   panierView.classList.remove("is-open");
   panierView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
+  closeSheetBackdrop();
 }
 
 export function clearCartLocal(){

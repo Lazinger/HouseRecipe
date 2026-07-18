@@ -4,7 +4,7 @@ import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
 import { scaleQuantity } from "./quantity.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "./photos.js";
-import { showToast, openDrawer, syncBodyScrollLock } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "./ui.js";
 import { renderTimerPanel } from "./timer.js";
 import { render } from "./grid.js";
 import { openAddForm } from "./add-form.js";
@@ -29,10 +29,6 @@ export function openDetail(id){
         <div class="detail-topbar-left">
           <button class="detail-fav is-menu" id="detailMenuBtn" type="button" aria-label="Ouvrir le menu">
             <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          </button>
-          <button class="back-btn" id="backBtn" type="button">
-            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Retour
           </button>
         </div>
         <div class="detail-topbar-actions">
@@ -96,7 +92,6 @@ export function openDetail(id){
     </div>
   `;
 
-  detailScroll.querySelector("#backBtn").addEventListener("click", closeDetail);
   detailScroll.querySelector("#detailFavBtn").addEventListener("click", () => toggleFavorite(r.id));
   detailScroll.querySelector("#detailCartBtn").addEventListener("click", openPanier);
   detailScroll.querySelector("#detailMenuBtn").addEventListener("click", openDrawer);
@@ -157,6 +152,7 @@ export function openDetail(id){
   detailView.setAttribute("aria-hidden", "false");
   detailScroll.scrollTop = 0;
   syncBodyScrollLock();
+  openSheetBackdrop();
 }
 
 export function syncDetailFavButton(id){
@@ -171,6 +167,7 @@ export function closeDetail(){
   detailView.classList.remove("is-open");
   detailView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
+  closeSheetBackdrop();
 }
 
 function goToEditRecipe(recipe){

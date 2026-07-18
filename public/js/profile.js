@@ -1,7 +1,7 @@
 import { supabase } from "./supabase-client.js";
 import { accountIcon, syncBadge, profileView, profileScroll } from "./dom.js";
 import { escapeAttr } from "./utils.js";
-import { showToast, openDrawer, syncBodyScrollLock } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "./ui.js";
 import { onQueueChange, getQueueSize } from "./write-queue.js";
 
 const PERSON_ICON = `<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
@@ -40,12 +40,14 @@ export async function openProfile(){
   profileView.setAttribute("aria-hidden", "false");
   profileScroll.scrollTop = 0;
   syncBodyScrollLock();
+  openSheetBackdrop();
 }
 
 export function closeProfile(){
   profileView.classList.remove("is-open");
   profileView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
+  closeSheetBackdrop();
 }
 
 async function renderProfile(){
@@ -59,10 +61,6 @@ async function renderProfile(){
       <div class="add-topbar-left">
         <button class="menu-btn" id="profileMenuBtn" type="button" aria-label="Ouvrir le menu">
           <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-        <button class="back-btn" id="profileBackBtn" type="button">
-          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Retour
         </button>
       </div>
       <h2>Mon compte</h2>
@@ -98,7 +96,6 @@ async function renderProfile(){
   `;
 
   profileScroll.querySelector("#profileMenuBtn").addEventListener("click", openDrawer);
-  profileScroll.querySelector("#profileBackBtn").addEventListener("click", closeProfile);
 
   profileScroll.querySelector("#profileForm").addEventListener("submit", async (e) => {
     e.preventDefault();

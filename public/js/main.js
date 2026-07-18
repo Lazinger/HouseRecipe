@@ -9,7 +9,7 @@ import {
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn,
   navLogoutBtn, accountToggle,
-  detailView, addView, panierView, profileView
+  detailView, addView, panierView, profileView, sheetBackdrop
 } from "./dom.js";
 import { render } from "./grid.js";
 import { closeDetail } from "./detail.js";
@@ -34,14 +34,20 @@ if ("serviceWorker" in navigator) {
 window.addEventListener("online", () => { flush(); });
 onPermanentFailure(showToast);
 
-/* ---- gestion du bouton retour matériel Android (WebView) ---- */
-window.addEventListener("popstate", () => {
+/* ---- fermeture de la feuille ouverte (tap sur le fond assombri, ou retour matériel Android) ---- */
+function closeAnyOpenSheet(){
   if (detailView.classList.contains("is-open")) closeDetail();
   if (addView.classList.contains("is-open")) closeAddForm();
   if (panierView.classList.contains("is-open")) closePanier();
   if (profileView.classList.contains("is-open")) closeProfile();
+}
+
+window.addEventListener("popstate", () => {
+  closeAnyOpenSheet();
   if (drawer.classList.contains("is-open")) closeDrawer();
 });
+
+sheetBackdrop.addEventListener("click", closeAnyOpenSheet);
 
 /* ---- écouteurs ---- */
 searchInput.addEventListener("input", (e) => {
