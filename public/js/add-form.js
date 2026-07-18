@@ -3,7 +3,7 @@ import { CATEGORY_ICON } from "./recipes-data.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
 import { savePhoto, saveStepPhoto } from "./photos.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { openDetail } from "./detail.js";
 import { render } from "./grid.js";
 
@@ -270,6 +270,8 @@ function renderAddForm(editingRecipe){
       openDetail(recipe.id);
       return;
     }
+
+    requestCloseSheet();
 
     showToast("Recette ajoutée");
     chips.forEach(c => c.classList.remove("is-active"));

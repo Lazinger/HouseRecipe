@@ -2,6 +2,7 @@ import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBac
 import { closeDetail } from "./detail.js";
 import { closeAddForm, openAddForm } from "./add-form.js";
 import { closePanier, openPanier } from "./cart.js";
+import { closeProfile } from "./profile.js";
 import { render } from "./grid.js";
 
 /* ---- toast ---- */
@@ -73,10 +74,12 @@ function closeAllOverlays(){
   closeDetail();
   closeAddForm();
   closePanier();
+  closeProfile();
 }
 
 export function goToAllRecipes(){
   closeAllOverlays();
+  requestCloseSheet();
   closeDrawer();
   chips.forEach(c => c.classList.remove("is-active"));
   document.querySelector('.chip[data-filter="tout"]').classList.add("is-active");
@@ -88,6 +91,7 @@ export function goToAllRecipes(){
 }
 export function goToFavoris(){
   closeAllOverlays();
+  requestCloseSheet();
   closeDrawer();
   chips.forEach(c => c.classList.remove("is-active"));
   document.querySelector('.chip[data-filter="favoris"]').classList.add("is-active");

@@ -1,7 +1,7 @@
 import { supabase } from "./supabase-client.js";
 import { accountIcon, syncBadge, profileView, profileScroll } from "./dom.js";
 import { escapeAttr } from "./utils.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { onQueueChange, getQueueSize } from "./write-queue.js";
 
 const PERSON_ICON = `<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
@@ -114,6 +114,7 @@ async function renderProfile(){
         await updateAccountBadge();
         showToast("Profil enregistré");
         closeProfile();
+        requestCloseSheet();
       }
     } catch {
       showToast("Impossible d'enregistrer le profil");

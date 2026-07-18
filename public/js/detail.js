@@ -4,7 +4,7 @@ import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
 import { scaleQuantity } from "./quantity.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "./photos.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { renderTimerPanel } from "./timer.js";
 import { render } from "./grid.js";
 import { openAddForm } from "./add-form.js";
@@ -185,6 +185,7 @@ async function deleteRecipe(id){
   removeRecipeFromCart(id);
   deleteAllPhotosForRecipe(id).catch(() => {});
   closeDetail();
+  requestCloseSheet();
   render();
   showToast("Recette supprimée");
 }
