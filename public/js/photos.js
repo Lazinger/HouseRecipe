@@ -76,6 +76,11 @@ async function photoWriteHandler(payload){
 }
 registerHandler("photo", photoWriteHandler);
 
+// Clés confirmées absentes de Supabase Storage pour cette session : évite de
+// refaire la requête réseau à chaque rendu tant qu'aucune photo n'a été
+// uploadée entre-temps (voir confirmedMissing.delete dans savePhoto/saveStepPhoto).
+const confirmedMissing = new Set();
+
 async function fetchAndCacheFromStorage(key){
   const { data } = supabase.storage.from("recipe-photos").getPublicUrl(key);
   const res = await fetch(data.publicUrl);
@@ -88,9 +93,11 @@ async function fetchAndCacheFromStorage(key){
 async function getPhotoWithFallback(key){
   const local = await getPhoto(key);
   if (local) return local;
+  if (confirmedMissing.has(key)) return null;
   try {
     return await fetchAndCacheFromStorage(key);
   } catch {
+    confirmedMissing.add(key);
     return null;
   }
 }
@@ -114,12 +121,14 @@ export async function initPhotosSync(){
 /* ---- API publique ---- */
 export async function savePhoto(recipeId, file){
   await cachePhotoLocally(recipeId, file);
+  confirmedMissing.delete(recipeId);
   await photoWriteHandler({ op: "upload", key: recipeId, blob: file }).catch(() => enqueue("photo", recipeId, { op: "upload", key: recipeId, blob: file }));
 }
 
 export async function saveStepPhoto(recipeId, index, file){
   const key = stepPhotoKey(recipeId, index);
   await cachePhotoLocally(key, file);
+  confirmedMissing.delete(key);
   await photoWriteHandler({ op: "upload", key, blob: file }).catch(() => enqueue("photo", key, { op: "upload", key, blob: file }));
 }
 
