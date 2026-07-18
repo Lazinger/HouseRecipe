@@ -4,7 +4,7 @@ import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
 import { scaleQuantity } from "./quantity.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "./photos.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, resetSheetHistory } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
 import { renderTimerPanel } from "./timer.js";
 import { render } from "./grid.js";
 import { openAddForm } from "./add-form.js";
@@ -170,7 +170,6 @@ export function closeDetail(){
   detailView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
   closeSheetBackdrop();
-  resetSheetHistory();
 }
 
 function goToEditRecipe(recipe){
