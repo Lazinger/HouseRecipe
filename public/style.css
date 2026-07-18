@@ -382,7 +382,7 @@ input{ font-family: inherit; }
 }
 
 /* =========================================================
-   VUE DÉTAIL — fiche plein écran
+   VUE DÉTAIL — feuille remontante
    ========================================================= */
 .detail-view{
   position: fixed; left:0; right:0; bottom:0; top:18vh; z-index:50;
