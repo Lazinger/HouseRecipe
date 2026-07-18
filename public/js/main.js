@@ -9,7 +9,8 @@ import {
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn,
   navLogoutBtn, accountToggle,
-  detailView, addView, panierView, profileView, sheetBackdrop
+  detailView, addView, panierView, profileView, sheetBackdrop,
+  detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, brandHomeBtn
 } from "./dom.js";
 import { render } from "./grid.js";
 import { closeDetail } from "./detail.js";
@@ -17,7 +18,7 @@ import { openAddForm, closeAddForm } from "./add-form.js";
 import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./cart.js";
 import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
 import { initPhotosSync } from "./photos.js";
-import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, showToast } from "./ui.js";
+import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, showToast, requestCloseSheet } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
 import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./profile.js";
 import { flush, onPermanentFailure } from "./write-queue.js";
@@ -47,7 +48,12 @@ window.addEventListener("popstate", () => {
   if (drawer.classList.contains("is-open")) closeDrawer();
 });
 
-sheetBackdrop.addEventListener("click", closeAnyOpenSheet);
+sheetBackdrop.addEventListener("click", requestCloseSheet);
+detailCloseBtn.addEventListener("click", requestCloseSheet);
+addCloseBtn.addEventListener("click", requestCloseSheet);
+panierCloseBtn.addEventListener("click", requestCloseSheet);
+profileCloseBtn.addEventListener("click", requestCloseSheet);
+brandHomeBtn.addEventListener("click", goToAllRecipes);
 
 /* ---- écouteurs ---- */
 searchInput.addEventListener("input", (e) => {

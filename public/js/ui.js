@@ -51,6 +51,24 @@ export function closeSheetBackdrop(){
   hideBackdropTimer = setTimeout(() => { sheetBackdrop.hidden = true; }, 320);
 }
 
+/* ---- historique de navigation : permet au geste de retour natif (mobile),
+   au bouton ✕ et au tap sur le fond de fermer la vue ouverte. Une seule
+   entrée est poussée par groupe de vues empilées (ex. recette + panier) —
+   un seul retour ramène donc toujours directement à l'accueil. ---- */
+let sheetHistoryPushed = false;
+export function ensureSheetHistoryEntry(){
+  if (sheetHistoryPushed) return;
+  history.pushState({ sheet: true }, "");
+  sheetHistoryPushed = true;
+}
+export function resetSheetHistory(){
+  sheetHistoryPushed = false;
+}
+export function requestCloseSheet(){
+  if (!sheetHistoryPushed) return;
+  history.back();
+}
+
 function closeAllOverlays(){
   closeDetail();
   closeAddForm();

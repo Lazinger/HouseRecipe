@@ -34,6 +34,11 @@ export const syncBadge = document.getElementById("syncBadge");
 export const profileView = document.getElementById("profileView");
 export const profileScroll = document.getElementById("profileScroll");
 export const sheetBackdrop = document.getElementById("sheetBackdrop");
+export const detailCloseBtn = document.getElementById("detailCloseBtn");
+export const addCloseBtn = document.getElementById("addCloseBtn");
+export const panierCloseBtn = document.getElementById("panierCloseBtn");
+export const profileCloseBtn = document.getElementById("profileCloseBtn");
+export const brandHomeBtn = document.getElementById("brandHomeBtn");
 
 /* ---- état de l'application ---- */
 export const state = {

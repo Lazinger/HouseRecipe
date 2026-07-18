@@ -2,7 +2,7 @@ import { supabase } from "./supabase-client.js";
 import { parseQuantity, formatScaledNumber } from "./quantity.js";
 import { cartBadge, panierView, panierScroll } from "./dom.js";
 import { escapeAttr } from "./utils.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "./ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, resetSheetHistory } from "./ui.js";
 import { enqueue, registerHandler } from "./write-queue.js";
 
 /* ---- panier de courses (persisté) ---- */
@@ -204,6 +204,7 @@ export function openPanier(){
   panierView.setAttribute("aria-hidden", "false");
   panierScroll.scrollTop = 0;
   openSheetBackdrop();
+  ensureSheetHistoryEntry();
   syncBodyScrollLock();
 }
 
@@ -213,6 +214,7 @@ export function closePanier(){
   panierView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
   closeSheetBackdrop();
+  resetSheetHistory();
 }
 
 export function clearCartLocal(){
