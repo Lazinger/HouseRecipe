@@ -385,14 +385,30 @@ input{ font-family: inherit; }
    VUE DÉTAIL — fiche plein écran
    ========================================================= */
 .detail-view{
-  position: fixed; inset:0; z-index:50;
+  position: fixed; left:0; right:0; bottom:0; top:18vh; z-index:50;
   background: var(--bg);
-  transform: translateX(100%);
+  border-radius: 20px 20px 0 0;
+  display:flex; flex-direction:column;
+  transform: translateY(100%);
   transition: transform .32s cubic-bezier(.32,.72,0,1);
   overflow:hidden;
 }
-.detail-view.is-open{ transform: translateX(0); }
-.detail-scroll{ height:100%; overflow-y:auto; }
+.detail-view.is-open{ transform: translateY(0); }
+.sheet-grabber{
+  flex-shrink:0;
+  width:36px; height:4px; border-radius:3px;
+  background: rgba(0,0,0,.15);
+  margin: 10px auto 0;
+}
+.detail-scroll{ flex:1; min-height:0; overflow-y:auto; }
+
+.sheet-backdrop{
+  position: fixed; inset:0; z-index:49;
+  background: rgba(32,36,29,.45);
+  opacity:0; pointer-events:none;
+  transition: opacity .32s ease;
+}
+.sheet-backdrop.is-open{ opacity:1; pointer-events:auto; }
 
 .detail-hero{
   position: sticky; top:0; z-index:2;
@@ -410,12 +426,6 @@ input{ font-family: inherit; }
 .detail-topbar{ display:flex; align-items:center; justify-content:space-between; width:100%; max-width:1080px; margin:0 auto 18px; }
 .detail-topbar-left{ display:flex; align-items:center; gap:8px; }
 .detail-topbar-actions{ display:flex; align-items:center; gap:8px; }
-.back-btn{
-  display:flex; align-items:center; gap:6px;
-  background: var(--surface); border:1px solid var(--line);
-  color: var(--ink); border-radius:6px; padding:8px 15px; font-size:.84rem; font-weight:600;
-}
-.back-btn:hover{ border-color: var(--emerald); }
 .detail-fav{
   background: var(--surface); border:1px solid var(--line);
   color: var(--ink); border-radius:50%; width:38px; height:38px;
@@ -755,6 +765,12 @@ button:focus-visible, input:focus-visible{
 }
 
 /* ---- vue connexion ---- */
+.auth-view{
+  top:0; border-radius:0;
+  transform: translateX(100%);
+}
+.auth-view.is-open{ transform: translateX(0); }
+
 .auth-view .detail-scroll{
   display:flex; align-items:center; justify-content:center;
   min-height:100%; padding: 24px;

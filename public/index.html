@@ -89,18 +89,24 @@
   </section>
 </main>
 
-<!-- ===== VUE DÉTAIL (fiche recette plein écran) ===== -->
+<!-- ===== FOND ASSOMBRI PARTAGÉ (fiche recette / ajout / panier / compte) ===== -->
+<div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
+
+<!-- ===== VUE DÉTAIL (fiche recette, feuille remontante) ===== -->
 <section id="detailView" class="detail-view" aria-hidden="true">
+  <div class="sheet-grabber"></div>
   <div class="detail-scroll" id="detailScroll"></div>
 </section>
 
-<!-- ===== VUE AJOUT (formulaire plein écran) ===== -->
+<!-- ===== VUE AJOUT (formulaire, feuille remontante) ===== -->
 <section id="addView" class="detail-view add-view hf-theme" aria-hidden="true">
+  <div class="sheet-grabber"></div>
   <div class="detail-scroll" id="addScroll"></div>
 </section>
 
-<!-- ===== VUE PANIER (liste de courses plein écran) ===== -->
+<!-- ===== VUE PANIER (liste de courses, feuille remontante) ===== -->
 <section id="panierView" class="detail-view add-view" aria-hidden="true">
+  <div class="sheet-grabber"></div>
   <div class="detail-scroll" id="panierScroll"></div>
 </section>
 
@@ -109,8 +115,9 @@
   <div class="detail-scroll" id="authScroll"></div>
 </section>
 
-<!-- ===== VUE PROFIL (prénom/nom du compte, plein écran) ===== -->
+<!-- ===== VUE PROFIL (prénom/nom du compte, feuille remontante) ===== -->
 <section id="profileView" class="detail-view add-view" aria-hidden="true">
+  <div class="sheet-grabber"></div>
   <div class="detail-scroll" id="profileScroll"></div>
 </section>
 
