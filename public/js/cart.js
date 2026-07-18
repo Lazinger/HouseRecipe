@@ -208,6 +208,7 @@ export function openPanier(){
 }
 
 export function closePanier(){
+  if (!panierView.classList.contains("is-open")) return;
   panierView.classList.remove("is-open");
   panierView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();

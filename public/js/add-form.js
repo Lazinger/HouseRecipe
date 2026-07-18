@@ -291,6 +291,7 @@ export function openAddForm(editingRecipe){
 }
 
 export function closeAddForm(){
+  if (!addView.classList.contains("is-open")) return;
   addView.classList.remove("is-open");
   addView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();

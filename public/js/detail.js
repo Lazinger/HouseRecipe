@@ -164,6 +164,7 @@ export function syncDetailFavButton(id){
 }
 
 export function closeDetail(){
+  if (!detailView.classList.contains("is-open")) return;
   detailView.classList.remove("is-open");
   detailView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();

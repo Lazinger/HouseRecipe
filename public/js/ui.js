@@ -39,13 +39,16 @@ export function closeDrawer(){
 }
 
 /* ---- fond assombri partagé (fiche recette / ajout / panier / compte) ---- */
+let hideBackdropTimer = null;
 export function openSheetBackdrop(){
+  clearTimeout(hideBackdropTimer);
   sheetBackdrop.hidden = false;
   requestAnimationFrame(() => sheetBackdrop.classList.add("is-open"));
 }
 export function closeSheetBackdrop(){
+  clearTimeout(hideBackdropTimer);
   sheetBackdrop.classList.remove("is-open");
-  setTimeout(() => { sheetBackdrop.hidden = true; }, 320);
+  hideBackdropTimer = setTimeout(() => { sheetBackdrop.hidden = true; }, 320);
 }
 
 function closeAllOverlays(){

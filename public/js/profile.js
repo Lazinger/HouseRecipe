@@ -44,6 +44,7 @@ export async function openProfile(){
 }
 
 export function closeProfile(){
+  if (!profileView.classList.contains("is-open")) return;
   profileView.classList.remove("is-open");
   profileView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
