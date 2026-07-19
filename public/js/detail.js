@@ -95,7 +95,7 @@ export function openDetail(id){
   `;
 
   detailScroll.querySelector("#detailFavBtn").addEventListener("click", () => toggleFavorite(r.id));
-  detailScroll.querySelector("#detailCartBtn").addEventListener("click", openPanier);
+  detailScroll.querySelector("#detailCartBtn").addEventListener("click", goToPanierFromDetail);
   detailScroll.querySelector("#detailMenuBtn").addEventListener("click", openDrawer);
   detailScroll.querySelector("#detailEditBtn").addEventListener("click", () => goToEditRecipe(r));
   detailScroll.querySelector("#detailDeleteBtn").addEventListener("click", () => deleteRecipe(r.id));
@@ -177,6 +177,11 @@ export function closeDetail(){
 function goToEditRecipe(recipe){
   closeDetail();
   openAddForm(recipe);
+}
+
+function goToPanierFromDetail(){
+  closeDetail();
+  openPanier();
 }
 
 async function deleteRecipe(id){
