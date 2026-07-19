@@ -395,8 +395,9 @@ input{ font-family: inherit; }
   transform: translateX(100%);
   transition: transform .32s cubic-bezier(.32,.72,0,1);
   overflow:hidden;
+  pointer-events:none;
 }
-.detail-view.is-open{ transform: translateX(0); }
+.detail-view.is-open{ transform: translateX(0); pointer-events:auto; }
 .detail-scroll{ flex:1; min-height:0; overflow-y:auto; }
 
 .detail-close{
