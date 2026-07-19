@@ -25,6 +25,7 @@ export function renderHero(){
     </button>
   `;
   heroSlot.querySelector(".hero-card").addEventListener("click", () => openDetail(featured.id));
+  applyCardPhoto(featured.id, heroSlot.querySelector(".hero-art"));
 }
 
 /* ---- filtrage ---- */
@@ -58,19 +59,21 @@ function renderGrid(){
     card.dataset.id = r.id;
     const isFav = state.favorites.has(r.id);
     card.innerHTML = `
-      <div class="card-top">
+      <div class="card-photo">
         <span class="card-icon">${ICONS[r.icon]}</span>
         <button class="card-fav" type="button" aria-pressed="${isFav}" aria-label="Ajouter aux favoris" data-favid="${r.id}">
           <svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-10-9.4C.4 7.6 2 4 5.6 3.4 8 3 10.2 4.2 12 6.6 13.8 4.2 16 3 18.4 3.4 22 4 23.6 7.6 22 11.1c-2.5 4.8-10 9.4-10 9.4Z" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </button>
       </div>
-      <span class="card-cat">${r.category}</span>
-      <h3 class="card-title">${r.title}</h3>
-      <p class="card-desc">${r.desc}</p>
-      <div class="card-meta">
-        <span>⏱ ${r.time} min</span>
-        <span>${r.servings} pers.</span>
-        <span>${r.difficulty}</span>
+      <div class="card-body">
+        <span class="card-cat">${r.category}</span>
+        <h3 class="card-title">${r.title}</h3>
+        <p class="card-desc">${r.desc}</p>
+        <div class="card-meta">
+          <span>⏱ ${r.time} min</span>
+          <span>${r.servings} pers.</span>
+          <span>${r.difficulty}</span>
+        </div>
       </div>
     `;
     card.addEventListener("click", (e) => {
