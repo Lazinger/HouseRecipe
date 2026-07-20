@@ -3,6 +3,7 @@ import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, 
 import { supabase, SUPABASE_URL } from "./supabase-client.js";
 import { CATEGORY_ICON } from "./recipes-data.js";
 import { openAddForm } from "./add-form.js";
+import { openPhotoEditor } from "./photo-editor.js";
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_ICON));
 const VALID_DIFFICULTIES = new Set(["Facile", "Intermédiaire", "Difficile"]);
@@ -141,7 +142,8 @@ function renderScanCapture(){
     extractBtn.textContent = "Analyse en cours…";
     try {
       const raw = await scanRecipeImages(capturedFiles);
-      const prefillData = sanitizeExtractedRecipe(raw, capturedFiles[0]);
+      const editedPhoto = await openPhotoEditor(capturedFiles[0], 16 / 9);
+      const prefillData = sanitizeExtractedRecipe(raw, editedPhoto || undefined);
       closeScanRecipe();
       openAddForm(null, prefillData);
     } catch (err) {
