@@ -144,7 +144,10 @@ export function openPhotoEditor(blob, aspectRatio){
       photoEditorView.setAttribute("aria-hidden", "false");
       openSheetBackdrop();
       syncBodyScrollLock();
-    }).catch(() => settle(null));
+    }).catch((err) => {
+      console.error("photo-editor:", err);
+      settle(null);
+    });
   });
 }
 
