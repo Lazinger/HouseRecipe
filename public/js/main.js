@@ -9,7 +9,7 @@ import {
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn,
   navLogoutBtn, accountToggle,
-  detailView, addView, panierView, profileView, scanView, photoEditorView, sheetBackdrop,
+  detailView, addView, panierView, profileView, scanView, sheetBackdrop,
   detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, brandHomeBtn
 } from "./dom.js";
 import { render } from "./grid.js";
@@ -44,7 +44,7 @@ function closeAnyOpenSheet(){
   if (panierView.classList.contains("is-open")) closePanier();
   if (profileView.classList.contains("is-open")) closeProfile();
   if (scanView.classList.contains("is-open")) closeScanRecipe();
-  if (photoEditorView.classList.contains("is-open")) closePhotoEditor();
+  closePhotoEditor();
 }
 
 window.addEventListener("popstate", () => {
