@@ -34,7 +34,11 @@ async function scanRecipeImages(files){
     body: JSON.stringify({ images })
   });
 
-  if (!res.ok) throw new Error("Échec de l'analyse de la recette");
+  if (!res.ok) {
+    let detail = "";
+    try { const body = await res.json(); detail = body?.error || ""; } catch {}
+    throw new Error(`Échec (${res.status})${detail ? " : " + detail : ""}`);
+  }
   return res.json();
 }
 
@@ -142,7 +146,7 @@ function renderScanCapture(){
       openAddForm(null, prefillData);
     } catch (err) {
       console.error("scan-recipe:", err);
-      scanError.textContent = "Impossible d'analyser ces photos, réessaie.";
+      scanError.textContent = "Impossible d'analyser ces photos : " + (err.message || "erreur inconnue") + " (réessaie)";
       scanError.hidden = false;
       extractBtn.textContent = "Extraire";
       updateScanButtons();
