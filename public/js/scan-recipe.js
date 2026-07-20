@@ -140,7 +140,8 @@ function renderScanCapture(){
       const prefillData = sanitizeExtractedRecipe(raw, capturedFiles[0]);
       closeScanRecipe();
       openAddForm(null, prefillData);
-    } catch {
+    } catch (err) {
+      console.error("scan-recipe:", err);
       scanError.textContent = "Impossible d'analyser ces photos, réessaie.";
       scanError.hidden = false;
       extractBtn.textContent = "Extraire";

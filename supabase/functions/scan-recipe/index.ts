@@ -66,6 +66,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (!GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY n'est pas configurée sur ce projet Supabase");
+      return new Response(JSON.stringify({ error: "Clé Gemini non configurée" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
     const imageParts = images.map(img => ({
       inlineData: { mimeType: img.mimeType, data: img.data }
     }));
@@ -128,7 +136,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    console.error("scan-recipe:", err);
+    return new Response(JSON.stringify({ error: "Erreur inattendue" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
