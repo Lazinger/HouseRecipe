@@ -7,10 +7,10 @@
 import {
   state, searchInput, chips, favToggleHeader, addFab, cartToggle,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
-  navAllBtn, navFavBtn, navPanierBtn, navAddBtn,
+  navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn,
   navLogoutBtn, accountToggle,
-  detailView, addView, panierView, profileView, sheetBackdrop,
-  detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, brandHomeBtn
+  detailView, addView, panierView, profileView, scanView, sheetBackdrop,
+  detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, brandHomeBtn
 } from "./dom.js";
 import { render } from "./grid.js";
 import { closeDetail } from "./detail.js";
@@ -18,7 +18,8 @@ import { openAddForm, closeAddForm } from "./add-form.js";
 import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./cart.js";
 import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
 import { initPhotosSync } from "./photos.js";
-import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, showToast, requestCloseSheet, resetSheetHistory } from "./ui.js";
+import { closeScanRecipe } from "./scan-recipe.js";
+import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, goToScanRecipe, showToast, requestCloseSheet, resetSheetHistory } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
 import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./profile.js";
 import { flush, onPermanentFailure } from "./write-queue.js";
@@ -41,6 +42,7 @@ function closeAnyOpenSheet(){
   if (addView.classList.contains("is-open")) closeAddForm();
   if (panierView.classList.contains("is-open")) closePanier();
   if (profileView.classList.contains("is-open")) closeProfile();
+  if (scanView.classList.contains("is-open")) closeScanRecipe();
 }
 
 window.addEventListener("popstate", () => {
@@ -54,6 +56,7 @@ detailCloseBtn.addEventListener("click", requestCloseSheet);
 addCloseBtn.addEventListener("click", requestCloseSheet);
 panierCloseBtn.addEventListener("click", requestCloseSheet);
 profileCloseBtn.addEventListener("click", requestCloseSheet);
+scanCloseBtn.addEventListener("click", requestCloseSheet);
 brandHomeBtn.addEventListener("click", goToAllRecipes);
 
 /* ---- écouteurs ---- */
@@ -81,6 +84,7 @@ navAllBtn.addEventListener("click", goToAllRecipes);
 navFavBtn.addEventListener("click", goToFavoris);
 navPanierBtn.addEventListener("click", goToPanier);
 navAddBtn.addEventListener("click", goToAddRecipe);
+navScanBtn.addEventListener("click", goToScanRecipe);
 
 favToggleHeader.addEventListener("click", () => {
   const chipFav = document.querySelector('.chip[data-filter="favoris"]');

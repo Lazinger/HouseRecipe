@@ -1,8 +1,9 @@
-import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput } from "./dom.js";
+import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView } from "./dom.js";
 import { closeDetail } from "./detail.js";
 import { closeAddForm, openAddForm } from "./add-form.js";
 import { closePanier, openPanier } from "./cart.js";
 import { closeProfile } from "./profile.js";
+import { closeScanRecipe, openScanRecipe } from "./scan-recipe.js";
 import { render } from "./grid.js";
 
 /* ---- toast ---- */
@@ -19,6 +20,7 @@ export function syncBodyScrollLock(){
   const anyOpen = detailView.classList.contains("is-open")
     || addView.classList.contains("is-open")
     || panierView.classList.contains("is-open")
+    || scanView.classList.contains("is-open")
     || drawer.classList.contains("is-open");
   document.body.style.overflow = anyOpen ? "hidden" : "";
 }
@@ -75,6 +77,7 @@ function closeAllOverlays(){
   closeAddForm();
   closePanier();
   closeProfile();
+  closeScanRecipe();
 }
 
 export function goToAllRecipes(){
@@ -108,4 +111,9 @@ export function goToAddRecipe(){
   closeAllOverlays();
   closeDrawer();
   openAddForm();
+}
+export function goToScanRecipe(){
+  closeAllOverlays();
+  closeDrawer();
+  openScanRecipe();
 }
