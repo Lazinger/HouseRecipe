@@ -1,5 +1,6 @@
 import { escapeAttr } from "./utils.js";
 import { CATEGORY_ICON } from "./recipes-data.js";
+import { openPhotoEditor } from "./photo-editor.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
 import { savePhoto, saveStepPhoto } from "./photos.js";
@@ -34,6 +35,16 @@ function createStepRow(container, text = ""){
   row.querySelector(".dyn-remove").addEventListener("click", () => {
     row.remove();
     updateRemoveButtons(container);
+  });
+  row.querySelector(".step-photo-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const edited = await openPhotoEditor(file, 1);
+    e.target.value = "";
+    if (!edited) return;
+    const dt = new DataTransfer();
+    dt.items.add(new File([edited], "step.jpg", { type: "image/jpeg" }));
+    e.target.files = dt.files;
   });
   return row;
 }
@@ -209,6 +220,17 @@ function renderAddForm(editingRecipe, prefillData){
   });
   addScroll.querySelector("#addMenuBtn").addEventListener("click", openDrawer);
   addScroll.querySelector("#addCancelBtn").addEventListener("click", closeAddForm);
+
+  addForm.querySelector("#addPhoto").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const edited = await openPhotoEditor(file, 16 / 9);
+    e.target.value = "";
+    if (!edited) return;
+    const dt = new DataTransfer();
+    dt.items.add(new File([edited], "photo.jpg", { type: "image/jpeg" }));
+    e.target.files = dt.files;
+  });
 
   addForm.addEventListener("submit", async (e) => {
     e.preventDefault();
