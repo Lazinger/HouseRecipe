@@ -320,6 +320,8 @@ input{ font-family: inherit; }
 @media (max-width: 640px){
   .hero-card{ grid-template-columns: 1fr; }
   .hero-art{ order:-1; min-height:140px; }
+  .detail-heading{ flex-direction:column; align-items:stretch; gap:12px; }
+  .detail-actions-row{ justify-content:flex-end; }
 }
 
 /* =========================================================
