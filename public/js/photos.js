@@ -180,6 +180,10 @@ export function applyCardPhoto(recipeId, iconEl){
 export function applyDetailPhoto(recipeId, heroEl){
   getPhotoWithFallback(recipeId).then(blob => {
     if (!blob || !heroEl) return;
-    heroEl.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
+    heroEl.classList.add("has-photo");
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(blob);
+    img.alt = "";
+    heroEl.appendChild(img);
   }).catch(() => {});
 }

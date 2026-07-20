@@ -445,19 +445,17 @@ input{ font-family: inherit; }
 .sheet-backdrop.is-open{ opacity:1; pointer-events:auto; }
 
 .detail-hero{
-  position: sticky; top:0; z-index:2;
-  min-height: 220px;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow:hidden;
   background: linear-gradient(135deg, var(--accent-tint), var(--accent) 130%);
-  background-size: cover; background-position: center;
-  padding: 20px 20px 24px;
-  display:flex; flex-direction:column; justify-content:space-between;
+  padding: 14px;
 }
-.hf-theme .detail-hero::after{
-  content:""; position:absolute; inset:0; z-index:0;
-  background: linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.75) 100%);
-  pointer-events:none;
+.detail-hero.has-photo img{
+  position:absolute; inset:0; z-index:0;
+  width:100%; height:100%; object-fit:cover; display:block;
 }
-.detail-topbar{ display:flex; align-items:center; justify-content:space-between; width:100%; max-width:1080px; margin:0 auto 18px; }
+.detail-topbar{ position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; width:100%; max-width:1080px; margin:0 auto; }
 .detail-topbar-left{ display:flex; align-items:center; gap:8px; }
 .detail-actions-row{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .detail-fav{
@@ -470,18 +468,14 @@ input{ font-family: inherit; }
 .detail-fav.has-cart-badge{ position:relative; }
 .detail-fav[aria-pressed="true"]{ background: var(--emerald); color: #fff; border-color: var(--emerald); }
 
-.detail-topbar, .detail-heading{ position:relative; z-index:1; }
 .detail-heading{
-  width:100%; max-width:760px; margin:0 auto;
-  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  width:100%; max-width:760px; margin:0 auto; padding: 18px 20px 0;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
 }
 .detail-heading-text{ min-width:0; }
 .detail-eyebrow{ font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color: var(--accent-dark); }
 .detail-heading h2{ font-family: var(--font-display); font-style: italic; color: var(--ink); font-size: clamp(1.8rem,4vw,2.5rem); margin-top:8px; font-weight:600; }
 .detail-sub{ color: var(--ink-soft); font-size:.9rem; margin-top:10px; max-width:60ch; }
-.hf-theme .detail-eyebrow{ color:#fff; opacity:.9; }
-.hf-theme .detail-heading h2{ color:#fff; }
-.hf-theme .detail-sub{ color: rgba(255,255,255,.9); }
 
 .step-btn{
   width:20px; height:20px; border-radius:50%; border:1px solid var(--emerald);
