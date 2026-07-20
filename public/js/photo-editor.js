@@ -43,10 +43,19 @@ function closePhotoEditorView(){
   closeSheetBackdrop();
 }
 
+function settle(result){
+  if (!pendingResolve) return;
+  const doResolve = pendingResolve;
+  pendingResolve = null;
+  closePhotoEditorView();
+  doResolve(result);
+}
+
 export function openPhotoEditor(blob, aspectRatio){
   return new Promise((resolve) => {
+    pendingResolve = resolve;
     loadImage(blob).then((img) => {
-      pendingResolve = resolve;
+      if (!pendingResolve) return;
       let rotation = 0;
       let zoom = 1;
       let panX = 0;
@@ -117,16 +126,8 @@ export function openPhotoEditor(blob, aspectRatio){
         render();
       });
 
-      function finish(result){
-        if (!pendingResolve) return;
-        const doResolve = pendingResolve;
-        pendingResolve = null;
-        closePhotoEditorView();
-        doResolve(result);
-      }
-
-      photoEditorCloseBtn.onclick = () => finish(null);
-      photoEditorScroll.querySelector("#photoEditorCancelBtn").addEventListener("click", () => finish(null));
+      photoEditorCloseBtn.onclick = () => settle(null);
+      photoEditorScroll.querySelector("#photoEditorCancelBtn").addEventListener("click", () => settle(null));
       photoEditorScroll.querySelector("#photoEditorConfirmBtn").addEventListener("click", () => {
         const outputW = 1200;
         const outputH = Math.round(outputW / aspectRatio);
@@ -136,23 +137,17 @@ export function openPhotoEditor(blob, aspectRatio){
         const outputCtx = outputCanvas.getContext("2d");
         const ratio = outputW / previewW;
         drawFrame(outputCtx, outputW, outputH, img, rotation, zoom, panX * ratio, panY * ratio);
-        outputCanvas.toBlob((outBlob) => finish(outBlob), "image/jpeg", 0.85);
+        outputCanvas.toBlob((outBlob) => settle(outBlob), "image/jpeg", 0.85);
       });
 
       photoEditorView.classList.add("is-open");
       photoEditorView.setAttribute("aria-hidden", "false");
       openSheetBackdrop();
       syncBodyScrollLock();
-    });
+    }).catch(() => settle(null));
   });
 }
 
 export function closePhotoEditor(){
-  if (!photoEditorView.classList.contains("is-open")) return;
-  closePhotoEditorView();
-  if (pendingResolve) {
-    const doResolve = pendingResolve;
-    pendingResolve = null;
-    doResolve(null);
-  }
+  settle(null);
 }
