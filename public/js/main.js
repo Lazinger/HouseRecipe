@@ -9,7 +9,7 @@ import {
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn,
   navLogoutBtn, accountToggle,
-  detailView, addView, panierView, profileView, scanView, sheetBackdrop,
+  detailView, addView, panierView, profileView, scanView, photoEditorView, sheetBackdrop,
   detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, brandHomeBtn
 } from "./dom.js";
 import { render } from "./grid.js";
@@ -19,6 +19,7 @@ import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal 
 import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
 import { initPhotosSync } from "./photos.js";
 import { closeScanRecipe } from "./scan-recipe.js";
+import { closePhotoEditor } from "./photo-editor.js";
 import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, goToScanRecipe, showToast, requestCloseSheet, resetSheetHistory } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
 import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./profile.js";
@@ -43,6 +44,7 @@ function closeAnyOpenSheet(){
   if (panierView.classList.contains("is-open")) closePanier();
   if (profileView.classList.contains("is-open")) closeProfile();
   if (scanView.classList.contains("is-open")) closeScanRecipe();
+  if (photoEditorView.classList.contains("is-open")) closePhotoEditor();
 }
 
 window.addEventListener("popstate", () => {

@@ -696,6 +696,10 @@ input{ font-family: inherit; }
 }
 .scan-photo-remove:hover{ background: var(--terracotta-dark); }
 
+.photo-editor-frame{ display:flex; justify-content:center; }
+.photo-editor-frame canvas{ touch-action:none; border-radius:6px; border:1px solid var(--line); cursor:grab; max-width:100%; }
+.photo-editor-frame canvas:active{ cursor:grabbing; }
+
 .add-error{
   background: var(--terracotta-tint); color: var(--terracotta-dark); font-weight:600; font-size:.84rem;
   border-radius:4px; padding:10px 14px; margin:0;
