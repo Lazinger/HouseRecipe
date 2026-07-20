@@ -37,7 +37,8 @@ export function openDetail(id){
       <div class="detail-heading-text">
         <span class="detail-eyebrow">${r.category}</span>
         <h2>${r.title}</h2>
-        <p class="detail-sub">${r.desc}</p>
+        <p class="detail-sub" id="detailSub">${r.desc}</p>
+        <button type="button" class="detail-sub-toggle" id="detailSubToggle" hidden>Voir plus</button>
       </div>
       <div class="detail-actions-row">
         <button class="detail-fav" id="detailEditBtn" type="button" aria-label="Modifier la recette">
@@ -99,6 +100,18 @@ export function openDetail(id){
   detailScroll.querySelector("#detailMenuBtn").addEventListener("click", openDrawer);
   detailScroll.querySelector("#detailEditBtn").addEventListener("click", () => goToEditRecipe(r));
   detailScroll.querySelector("#detailDeleteBtn").addEventListener("click", () => deleteRecipe(r.id));
+
+  const detailSubEl = detailScroll.querySelector("#detailSub");
+  const detailSubToggle = detailScroll.querySelector("#detailSubToggle");
+  requestAnimationFrame(() => {
+    if (detailSubEl.scrollHeight > detailSubEl.clientHeight + 1) {
+      detailSubToggle.hidden = false;
+    }
+  });
+  detailSubToggle.addEventListener("click", () => {
+    detailSubEl.classList.add("is-expanded");
+    detailSubToggle.hidden = true;
+  });
 
   currentOpenRecipe = r;
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
