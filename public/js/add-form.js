@@ -67,7 +67,8 @@ function validateNewRecipe({ title, category, ingredients, steps }){
   return null;
 }
 
-function renderAddForm(editingRecipe){
+function renderAddForm(editingRecipe, prefillData){
+  const data = editingRecipe || prefillData || null;
   addScroll.innerHTML = `
     <div class="add-topbar">
       <div class="add-topbar-left">
@@ -80,7 +81,7 @@ function renderAddForm(editingRecipe){
     <form id="addForm" class="add-form" novalidate>
       <div class="field">
         <label for="addTitle">Titre *</label>
-        <input id="addTitle" type="text" placeholder="Ex. Tarte aux pommes" value="${escapeAttr(editingRecipe?.title || "")}">
+        <input id="addTitle" type="text" placeholder="Ex. Tarte aux pommes" value="${escapeAttr(data?.title || "")}">
       </div>
       <div class="field-row">
         <div class="field">
@@ -103,31 +104,31 @@ function renderAddForm(editingRecipe){
       </div>
       <div class="field">
         <label for="addDesc">Description courte</label>
-        <input id="addDesc" type="text" placeholder="Une phrase pour donner envie" value="${escapeAttr(editingRecipe?.desc || "")}">
+        <input id="addDesc" type="text" placeholder="Une phrase pour donner envie" value="${escapeAttr(data?.desc || "")}">
       </div>
       <div class="field-row">
         <div class="field">
           <label for="addTime">Temps (min)</label>
-          <input id="addTime" type="number" min="0" placeholder="30" value="${editingRecipe?.time || ""}">
+          <input id="addTime" type="number" min="0" placeholder="30" value="${data?.time || ""}">
         </div>
         <div class="field">
           <label for="addServings">Personnes</label>
-          <input id="addServings" type="number" min="1" placeholder="4" value="${editingRecipe?.servings || ""}">
+          <input id="addServings" type="number" min="1" placeholder="4" value="${data?.servings || ""}">
         </div>
       </div>
       <div class="field-row">
         <div class="field">
           <label for="addCalories">Calories (optionnel)</label>
-          <input id="addCalories" type="number" min="0" placeholder="Ex. 650" value="${editingRecipe?.nutrition?.calories ?? ""}">
+          <input id="addCalories" type="number" min="0" placeholder="Ex. 650" value="${data?.nutrition?.calories ?? ""}">
         </div>
         <div class="field">
           <label for="addProtein">Protéines en g (optionnel)</label>
-          <input id="addProtein" type="number" min="0" step="0.1" placeholder="Ex. 20" value="${editingRecipe?.nutrition?.protein ?? ""}">
+          <input id="addProtein" type="number" min="0" step="0.1" placeholder="Ex. 20" value="${data?.nutrition?.protein ?? ""}">
         </div>
       </div>
       <div class="field">
         <label for="addAllergens">Allergènes (optionnel)</label>
-        <input id="addAllergens" type="text" placeholder="Ex. Gluten, blé, lait" value="${escapeAttr(editingRecipe?.allergens || "")}">
+        <input id="addAllergens" type="text" placeholder="Ex. Gluten, blé, lait" value="${escapeAttr(data?.allergens || "")}">
       </div>
       <div class="field">
         <label for="addPhoto">Photo (optionnel)${editingRecipe ? " — laisse vide pour garder la photo actuelle" : ""}</label>
@@ -166,21 +167,27 @@ function renderAddForm(editingRecipe){
   const stepRowsEl = addScroll.querySelector("#stepRows");
   const addError = addScroll.querySelector("#addError");
 
-  addForm.querySelector("#addCategory").value = editingRecipe?.category || "";
-  addForm.querySelector("#addDifficulty").value = editingRecipe?.difficulty || "Facile";
+  if (!editingRecipe && prefillData?.photoBlob) {
+    const dt = new DataTransfer();
+    dt.items.add(new File([prefillData.photoBlob], "scan.jpg", { type: prefillData.photoBlob.type || "image/jpeg" }));
+    addForm.querySelector("#addPhoto").files = dt.files;
+  }
 
-  if (editingRecipe && editingRecipe.ingredients.length) {
-    editingRecipe.ingredients.forEach(([name, qty]) => ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl, name, qty)));
+  addForm.querySelector("#addCategory").value = data?.category || "";
+  addForm.querySelector("#addDifficulty").value = data?.difficulty || "Facile";
+
+  if (data?.ingredients?.length) {
+    data.ingredients.forEach(([name, qty]) => ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl, name, qty)));
   } else {
     ingredientRowsEl.appendChild(createIngredientRow(ingredientRowsEl));
   }
-  if (editingRecipe && editingRecipe.utensils && editingRecipe.utensils.length) {
-    editingRecipe.utensils.forEach(text => ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl, text)));
+  if (data?.utensils?.length) {
+    data.utensils.forEach(text => ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl, text)));
   } else {
     ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl));
   }
-  if (editingRecipe && editingRecipe.steps.length) {
-    editingRecipe.steps.forEach(text => stepRowsEl.appendChild(createStepRow(stepRowsEl, text)));
+  if (data?.steps?.length) {
+    data.steps.forEach(text => stepRowsEl.appendChild(createStepRow(stepRowsEl, text)));
   } else {
     stepRowsEl.appendChild(createStepRow(stepRowsEl));
   }
@@ -283,8 +290,8 @@ function renderAddForm(editingRecipe){
   });
 }
 
-export function openAddForm(editingRecipe){
-  renderAddForm(editingRecipe);
+export function openAddForm(editingRecipe, prefillData){
+  renderAddForm(editingRecipe, prefillData);
   addView.classList.add("is-open");
   addView.setAttribute("aria-hidden", "false");
   addScroll.scrollTop = 0;
