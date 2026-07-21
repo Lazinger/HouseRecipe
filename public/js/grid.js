@@ -5,14 +5,20 @@ import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
 import { applyCardPhoto } from "./photos.js";
 import { openDetail } from "./detail.js";
 
-/* ---- rendu du héros (recette mise en avant) ---- */
+/* ---- rendu du héros (recette mise en avant, tirage stable sur la journée) ---- */
+function pickDailyFeatured(){
+  if (!ALL_RECIPES.length) return null;
+  const dayIndex = Math.floor(Date.now() / 86400000);
+  return ALL_RECIPES[dayIndex % ALL_RECIPES.length];
+}
+
 export function renderHero(){
-  const featured = ALL_RECIPES[0];
+  const featured = pickDailyFeatured();
   if (!featured) { heroSlot.innerHTML = ""; return; }
   heroSlot.innerHTML = `
     <button class="hero-card cat-${featured.category}" data-id="${featured.id}" type="button">
       <div class="hero-copy">
-        <span class="hero-eyebrow">La recette du carnet</span>
+        <span class="hero-eyebrow">La recette du jour</span>
         <h2>${featured.title}</h2>
         <p>${featured.desc}</p>
         <div class="hero-meta">
