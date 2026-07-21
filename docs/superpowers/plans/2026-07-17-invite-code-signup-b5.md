@@ -28,7 +28,7 @@
 **Interfaces:**
 - Produces: fonctions RPC `generate_invite_code()` et `redeem_invite_code(input_code text)`, nécessaires aux Tasks 2-4 (l'utilisateur doit exécuter ce SQL manuellement avant que ces tâches puissent être testées en direct — voir Step 2).
 
-- [ ] **Step 1: Ajouter les deux fonctions**
+- [x] **Step 1: Ajouter les deux fonctions**
 
 À la fin de `supabase/schema.sql`, ajouter :
 
@@ -74,13 +74,13 @@ end;
 $$;
 ```
 
-- [ ] **Step 2: Note pour l'utilisateur (étape manuelle, hors de portée d'un subagent)**
+- [x] **Step 2: Note pour l'utilisateur (étape manuelle, hors de portée d'un subagent)**
 
 Ce SQL doit être exécuté dans le tableau de bord Supabase du projet : **SQL Editor** → **New query** → coller uniquement le nouveau bloc ci-dessus → **Run**. Résultat attendu : `Success. No rows returned`.
 
 Un subagent implémenteur ne peut pas effectuer cette étape (accès au tableau de bord Supabase requis) — il doit simplement committer le fichier modifié et signaler dans son rapport que cette étape manuelle reste à faire par l'utilisateur avant toute vérification live des tâches suivantes.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add supabase/schema.sql
@@ -98,7 +98,7 @@ git commit -m "Add RPC functions for invite-code generation and redemption"
 - Consumes: `supabase` from `./supabase-client.js` (déjà en place).
 - Produces: aucune nouvelle fonction exportée — `initAuth`, `logout` gardent leurs signatures exactes. Le comportement observable change : l'écran de connexion affiche désormais un lien vers un formulaire d'inscription.
 
-- [ ] **Step 1: Remplacer tout le contenu du fichier**
+- [x] **Step 1: Remplacer tout le contenu du fichier**
 
 Remplacer l'intégralité de `public/js/auth.js` par :
 
@@ -290,11 +290,11 @@ function renderSignupConfirmation(){
 }
 ```
 
-- [ ] **Step 2: Vérifier dans le navigateur**
+- [x] **Step 2: Vérifier dans le navigateur**
 
 Lancer un serveur local sur `public/`, recharger deux fois. Aucune erreur console au chargement. Sur l'écran de connexion, cliquer "Créer un compte" → le formulaire d'inscription s'affiche. Cliquer "Se connecter" → revient au formulaire de connexion. Si un compte de test est disponible, remplir le formulaire d'inscription avec un code bidon (ex. "test1234") et soumettre → doit afficher l'écran "Compte créé ! Vérifie tes emails...", et un email de confirmation doit être reçu à l'adresse utilisée. Si aucun compte de test n'est disponible pour ce test précis, relecture statique attentive et le signaler dans le rapport (DONE_WITH_CONCERNS).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add public/js/auth.js
@@ -312,7 +312,7 @@ git commit -m "Add signup form with invite code field"
 - Consumes: `showToast` from `./ui.js` (nouveau) ; RPC `redeem_invite_code` (Task 1).
 - `initAuth(onReady)` garde sa signature exacte et son comportement observable pour un compte sans code en attente (les deux comptes fondateurs, ou un compte ayant déjà validé son code) — seul un compte avec `pending_invite_code` dans ses métadonnées déclenche un appel RPC supplémentaire, en arrière-plan, sans bloquer `unlock(onReady)`.
 
-- [ ] **Step 1: Ajouter l'import**
+- [x] **Step 1: Ajouter l'import**
 
 Dans `public/js/auth.js`, remplacer :
 
@@ -327,7 +327,7 @@ import { supabase } from "./supabase-client.js";
 import { showToast } from "./ui.js";
 ```
 
-- [ ] **Step 2: Brancher la validation dans `initAuth` et ajouter `redeemPendingInviteCode`**
+- [x] **Step 2: Brancher la validation dans `initAuth` et ajouter `redeemPendingInviteCode`**
 
 Remplacer :
 
@@ -382,11 +382,11 @@ Notes pour l'implémenteur :
 - `redeemPendingInviteCode` n'est volontairement pas `await`-ée avant `unlock(onReady)` — la validation du code se fait en arrière-plan pendant que le reste de l'app démarre normalement, elle ne doit pas retarder le déverrouillage.
 - Le `finally` efface `pending_invite_code` des métadonnées dans tous les cas (succès ou échec), pour qu'une reconnexion ultérieure du même compte ne retente jamais la validation.
 
-- [ ] **Step 3: Vérifier dans le navigateur**
+- [x] **Step 3: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois, confirmer aucune erreur console (l'import `showToast` depuis `ui.js` ne doit provoquer aucun problème de chargement — `ui.js` n'importe pas `auth.js`, donc pas de risque de cycle). Si un compte de test avec un code en attente est disponible (suite au Step 2 de la Task 2 et une confirmation email effectuée), se connecter pour la première fois après confirmation → un toast doit apparaître ("bienvenue" ou "code invalide" selon le code utilisé), et dans Supabase la ligne `invite_codes` correspondante doit avoir `used_by`/`used_at` renseignés si le code était valide. Si aucun compte de test n'est disponible pour ce test précis, relecture statique + signalement (DONE_WITH_CONCERNS).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add public/js/auth.js
@@ -404,7 +404,7 @@ git commit -m "Redeem pending invite code on first successful login"
 - Consumes: RPC `generate_invite_code` (Task 1).
 - `renderProfile()` (non exportée) garde son comportement observable pour tout compte dont l'email n'est pas `jerem.r30@gmail.com` — aucune section supplémentaire n'apparaît pour eux.
 
-- [ ] **Step 1: Ajouter la section admin conditionnelle**
+- [x] **Step 1: Ajouter la section admin conditionnelle**
 
 Dans `public/js/profile.js`, remplacer :
 
@@ -574,11 +574,11 @@ async function renderProfile(){
 }
 ```
 
-- [ ] **Step 2: Vérifier dans le navigateur**
+- [x] **Step 2: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois, confirmer aucune erreur console. Si un compte de test est disponible : connecté avec un compte dont l'email n'est pas `jerem.r30@gmail.com`, ouvrir "Mon compte" → la section "Ajouter un membre du foyer" ne doit PAS apparaître. Connecté avec le compte `jerem.r30@gmail.com` (si accessible) → la section apparaît, cliquer "Générer un code d'invitation" → un code s'affiche, et une nouvelle ligne apparaît dans `invite_codes` côté Supabase. Si aucun compte de test n'est disponible, relecture statique + signalement (DONE_WITH_CONCERNS).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add public/js/profile.js
@@ -594,7 +594,7 @@ git commit -m "Add invite code generation for the primary account"
 
 Aucun nouveau fichier n'est ajouté à `APP_SHELL` (`js/auth.js` et `js/profile.js` y sont déjà listés) — seul leur contenu a changé, donc le cache doit être invalidé.
 
-- [ ] **Step 1: Incrémenter `CACHE_NAME`**
+- [x] **Step 1: Incrémenter `CACHE_NAME`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -608,11 +608,11 @@ par :
 const CACHE_NAME = "carnet-cache-v13";
 ```
 
-- [ ] **Step 2: Vérifier**
+- [x] **Step 2: Vérifier**
 
 Recharger deux fois. DevTools → Application → Cache Storage doit montrer `carnet-cache-v13` (l'ancien `v12` disparu).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add public/sw.js
@@ -625,33 +625,33 @@ git commit -m "Bump cache version for invite-code signup"
 
 **Files:** aucun.
 
-- [ ] **Step 1: Confirmer que la Task 1 a été appliquée**
+- [x] **Step 1: Confirmer que la Task 1 a été appliquée**
 
 Vérifier dans le tableau de bord Supabase → **Database** → **Functions** que `generate_invite_code` et `redeem_invite_code` existent. Si ce n'est pas le cas, exécuter le SQL de la Task 1 maintenant (voir Task 1, Step 2).
 
-- [ ] **Step 2: Générer un code**
+- [x] **Step 2: Générer un code**
 
 Connecté avec le compte `jerem.r30@gmail.com`, ouvrir "Mon compte" → générer un code d'invitation → noter le code affiché.
 
-- [ ] **Step 3: Inscription avec un code valide**
+- [x] **Step 3: Inscription avec un code valide**
 
 Depuis l'écran de connexion (déconnecté, ou navigation privée), cliquer "Créer un compte", remplir prénom/nom/email/mot de passe avec le code noté à l'étape précédente → soumettre → écran "Compte créé, vérifie tes emails" affiché. Ouvrir l'email de confirmation reçu, cliquer le lien → l'app doit établir une session automatiquement et afficher un toast de bienvenue. Vérifier dans Supabase → table `invite_codes` que la ligne du code utilisé a bien `used_by`/`used_at` renseignés.
 
-- [ ] **Step 4: Accès aux données partagées**
+- [x] **Step 4: Accès aux données partagées**
 
 Le nouveau compte doit voir les mêmes recettes que les comptes existants (RLS déjà partagé, aucun changement attendu ici — juste une confirmation que le nouveau compte fonctionne normalement).
 
-- [ ] **Step 5: Code invalide**
+- [x] **Step 5: Code invalide**
 
 Se déconnecter, créer un second compte de test avec un code inventé (jamais généré) → l'inscription doit tout de même réussir (comportement accepté), mais après confirmation email et première connexion, un toast "Code d'invitation invalide" doit apparaître, et aucune ligne `invite_codes` ne doit référencer ce compte.
 
-- [ ] **Step 6: Génération restreinte**
+- [x] **Step 6: Génération restreinte**
 
 Connecté avec le nouveau compte créé à la Task 6 Step 3 (pas `jerem.r30@gmail.com`), ouvrir "Mon compte" → la section de génération de code ne doit pas apparaître.
 
-- [ ] **Step 7: Vérifier l'absence d'erreurs console** sur tout le parcours ci-dessus.
+- [x] **Step 7: Vérifier l'absence d'erreurs console** sur tout le parcours ci-dessus.
 
-- [ ] **Step 8: Push**
+- [x] **Step 8: Push**
 
 ```bash
 git push
