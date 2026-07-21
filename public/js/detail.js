@@ -1,4 +1,5 @@
 import { ING_ICON } from "./icons.js";
+import { ALLERGENS } from "./recipes-data.js";
 import { state, detailView, detailScroll } from "./dom.js";
 import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "./recipes-store.js";
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
@@ -70,7 +71,7 @@ export function openDetail(id){
         <div class="cell is-nutri"><span class="l">Protéines</span><span class="v">${r.nutrition.protein} g</span></div>
         ` : ""}
       </div>
-      ${r.allergens ? `<p class="allergen-line"><b>Allergènes :</b> ${r.allergens}</p>` : ""}
+      ${r.allergens && r.allergens.length ? `<p class="allergen-line"><b>Allergènes :</b> ${r.allergens.map(key => ALLERGENS.find(a => a.key === key)?.label || key).join(", ")}</p>` : ""}
       ${r.utensils && r.utensils.length ? `<p class="tool-line">${r.utensils.map(u => `<span>${u}</span>`).join("")}</p>` : ""}
     </div>
     <div class="detail-body">

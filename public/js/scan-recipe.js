@@ -62,7 +62,6 @@ function sanitizeExtractedRecipe(raw, photoBlob){
     time: typeof raw?.time === "number" ? raw.time : undefined,
     servings: typeof raw?.servings === "number" ? raw.servings : undefined,
     nutrition,
-    allergens: typeof raw?.allergens === "string" ? raw.allergens : undefined,
     ingredients, utensils, steps,
     photoBlob
   };
