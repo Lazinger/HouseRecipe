@@ -43,7 +43,7 @@ async function scanRecipeImages(files){
   return res.json();
 }
 
-function sanitizeExtractedRecipe(raw, photoBlob){
+export function sanitizeExtractedRecipe(raw, photoBlob){
   const category = VALID_CATEGORIES.has(raw?.category) ? raw.category : "";
   const difficulty = VALID_DIFFICULTIES.has(raw?.difficulty) ? raw.difficulty : "Facile";
   const ingredients = Array.isArray(raw?.ingredients)
