@@ -566,9 +566,6 @@ input{ font-family: inherit; }
 .stat-stepper .v{ min-width:14px; text-align:center; }
 
 .detail-body{ max-width:760px; margin: 0 auto; padding: 30px 20px 60px; display:grid; gap:36px; }
-@media (min-width: 768px){
-  .detail-body{ grid-template-columns: 1fr 1.4fr; align-items:start; }
-}
 
 .panel-title{
   font-size:.8rem; text-transform:uppercase; letter-spacing:.05em; font-weight:700;
