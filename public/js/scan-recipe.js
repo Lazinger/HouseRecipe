@@ -125,10 +125,14 @@ function renderScanCapture(){
   scanScroll.querySelector("#scanAddPhotoBtn").addEventListener("click", () => {
     scanScroll.querySelector("#scanCameraInput").click();
   });
-  scanScroll.querySelector("#scanCameraInput").addEventListener("change", (e) => {
+  scanScroll.querySelector("#scanCameraInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
-    if (file) capturedFiles.push(file);
     e.target.value = "";
+    if (!file) return;
+    const aspectRatio = capturedFiles.length === 0 ? 16 / 9 : undefined;
+    const edited = await openPhotoEditor(file, aspectRatio);
+    if (!edited) return;
+    capturedFiles.push(edited);
     renderPhotoThumbs();
     updateScanButtons();
   });
@@ -142,8 +146,7 @@ function renderScanCapture(){
     extractBtn.textContent = "Analyse en cours…";
     try {
       const raw = await scanRecipeImages(capturedFiles);
-      const editedPhoto = await openPhotoEditor(capturedFiles[0], 16 / 9);
-      const prefillData = sanitizeExtractedRecipe(raw, editedPhoto || undefined);
+      const prefillData = sanitizeExtractedRecipe(raw, capturedFiles[0]);
       closeScanRecipe();
       openAddForm(null, prefillData);
     } catch (err) {
