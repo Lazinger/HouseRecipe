@@ -1,5 +1,36 @@
 import { importUrlView, importUrlScroll } from "./dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
+import { supabase, SUPABASE_URL } from "./supabase-client.js";
+import { openAddForm } from "./add-form.js";
+import { sanitizeExtractedRecipe } from "./scan-recipe.js";
+
+function base64ToBlob(base64, mimeType){
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mimeType });
+}
+
+async function importRecipeFromUrl(url){
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Non authentifié");
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/import-recipe-url`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ url })
+  });
+
+  if (!res.ok) {
+    let detail = "";
+    try { const body = await res.json(); detail = body?.error || ""; } catch {}
+    throw new Error(detail || `Échec (${res.status})`);
+  }
+  return res.json();
+}
 
 function renderImportUrl(){
   importUrlScroll.innerHTML = `
@@ -34,6 +65,41 @@ function renderImportUrl(){
 
   importUrlScroll.querySelector("#importUrlMenuBtn").addEventListener("click", openDrawer);
   importUrlScroll.querySelector("#importUrlCancelBtn").addEventListener("click", requestCloseSheet);
+
+  submitBtn.addEventListener("click", async () => {
+    const url = input.value.trim();
+    const errorEl = importUrlScroll.querySelector("#importUrlError");
+    errorEl.hidden = true;
+
+    let isValidUrl = false;
+    try {
+      const parsed = new URL(url);
+      isValidUrl = parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {}
+    if (!isValidUrl) {
+      errorEl.textContent = "Cette adresse ne ressemble pas à une URL valide (doit commencer par http:// ou https://).";
+      errorEl.hidden = false;
+      return;
+    }
+
+    submitBtn.disabled = true;
+    input.disabled = true;
+    submitBtn.textContent = "Analyse en cours…";
+    try {
+      const raw = await importRecipeFromUrl(url);
+      const photoBlob = raw.photo ? base64ToBlob(raw.photo.data, raw.photo.mimeType) : undefined;
+      const prefillData = sanitizeExtractedRecipe(raw, photoBlob);
+      closeImportUrl();
+      openAddForm(null, prefillData);
+    } catch (err) {
+      console.error("import-url:", err);
+      errorEl.textContent = "Impossible d'importer cette page : " + (err.message || "erreur inconnue") + " (réessaie)";
+      errorEl.hidden = false;
+      submitBtn.textContent = "Importer";
+      submitBtn.disabled = false;
+      input.disabled = false;
+    }
+  });
 }
 
 export function openImportUrl(){
