@@ -46,10 +46,15 @@ export const addCloseBtn = document.getElementById("addCloseBtn");
 export const panierCloseBtn = document.getElementById("panierCloseBtn");
 export const profileCloseBtn = document.getElementById("profileCloseBtn");
 export const brandHomeBtn = document.getElementById("brandHomeBtn");
+export const allergenFilterToggle = document.getElementById("allergenFilterToggle");
+export const allergenFilterBadge = document.getElementById("allergenFilterBadge");
+export const allergenFilterPanel = document.getElementById("allergenFilterPanel");
+export const allergenFilterList = document.getElementById("allergenFilterList");
 
 /* ---- état de l'application ---- */
 export const state = {
   query: "",
   filter: "tout",
-  favorites: new Set(JSON.parse(localStorage.getItem("carnet-favoris") || "[]"))
+  favorites: new Set(JSON.parse(localStorage.getItem("carnet-favoris") || "[]")),
+  excludedAllergens: new Set(JSON.parse(localStorage.getItem("carnet-allergenes-exclus") || "[]"))
 };

@@ -230,8 +230,9 @@ input{ font-family: inherit; }
 }
 .sync-badge[hidden]{ display:none; }
 
-.search-row{ max-width:1080px; margin: 16px auto 0; }
+.search-row{ max-width:1080px; margin: 16px auto 0; display:flex; gap:10px; align-items:flex-start; position:relative; }
 .search-box{
+  flex:1; min-width:0;
   display:flex; align-items:center; gap:10px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -246,6 +247,16 @@ input{ font-family: inherit; }
   width:100%; font-size:.92rem; color: var(--ink);
 }
 .search-box svg{ flex:none; }
+
+.allergen-filter-panel{
+  position:absolute; top:48px; right:0; z-index:5;
+  background: var(--surface); border:1px solid var(--line); border-radius:10px;
+  box-shadow: var(--shadow-raised); padding:14px; width:230px; max-height:320px; overflow-y:auto;
+}
+.allergen-filter-panel[hidden]{ display:none; }
+.allergen-filter-list{ display:flex; flex-direction:column; gap:4px; }
+.allergen-filter-item{ display:flex; align-items:center; gap:8px; padding:6px 4px; font-size:.86rem; color: var(--ink); border-radius:6px; }
+.allergen-filter-item:hover{ background: var(--bg); }
 
 .chip-row{
   max-width:1080px; margin: 16px auto 0;

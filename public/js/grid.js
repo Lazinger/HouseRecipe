@@ -1,6 +1,6 @@
-import { CATEGORY_LABELS } from "./recipes-data.js";
+import { CATEGORY_LABELS, ALLERGENS } from "./recipes-data.js";
 import { ICONS } from "./icons.js";
-import { heroSlot, grid, emptyState, resultTitle, resultCount, state } from "./dom.js";
+import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList } from "./dom.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
 import { applyCardPhoto } from "./photos.js";
 import { openDetail } from "./detail.js";
@@ -43,10 +43,37 @@ function getFilteredRecipes(){
       state.filter === "favoris" ? state.favorites.has(r.id) :
       r.category === state.filter;
     if (!matchesFilter) return false;
+    if (state.excludedAllergens.size && r.allergens?.some(a => state.excludedAllergens.has(a))) return false;
     if (!q) return true;
     const haystack = (r.title + " " + r.desc + " " + r.ingredients.map(i => i[0]).join(" ")).toLowerCase();
     return haystack.includes(q);
   });
+}
+
+/* ---- panneau de filtre par allergène ---- */
+function updateAllergenFilterBadge(){
+  const count = state.excludedAllergens.size;
+  allergenFilterBadge.textContent = count;
+  allergenFilterBadge.hidden = count === 0;
+}
+
+export function renderAllergenFilterPanel(){
+  allergenFilterList.innerHTML = ALLERGENS.map(a => `
+    <label class="allergen-filter-item">
+      <input type="checkbox" value="${a.key}" ${state.excludedAllergens.has(a.key) ? "checked" : ""}>
+      ${a.label}
+    </label>
+  `).join("");
+  allergenFilterList.querySelectorAll("input").forEach(cb => {
+    cb.addEventListener("change", () => {
+      if (cb.checked) state.excludedAllergens.add(cb.value);
+      else state.excludedAllergens.delete(cb.value);
+      localStorage.setItem("carnet-allergenes-exclus", JSON.stringify([...state.excludedAllergens]));
+      updateAllergenFilterBadge();
+      render();
+    });
+  });
+  updateAllergenFilterBadge();
 }
 
 /* ---- rendu de la grille ---- */

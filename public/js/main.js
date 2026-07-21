@@ -10,9 +10,10 @@ import {
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn,
   navLogoutBtn, accountToggle,
   detailView, addView, panierView, profileView, scanView, sheetBackdrop,
-  detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, brandHomeBtn
+  detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, brandHomeBtn,
+  allergenFilterToggle, allergenFilterPanel
 } from "./dom.js";
-import { render } from "./grid.js";
+import { render, renderAllergenFilterPanel } from "./grid.js";
 import { closeDetail } from "./detail.js";
 import { openAddForm, closeAddForm } from "./add-form.js";
 import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./cart.js";
@@ -74,6 +75,20 @@ chips.forEach(chip => {
     state.filter = chip.dataset.filter;
     render();
   });
+});
+
+renderAllergenFilterPanel();
+allergenFilterToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  allergenFilterPanel.hidden = !allergenFilterPanel.hidden;
+});
+document.addEventListener("click", (e) => {
+  if (allergenFilterPanel.hidden) return;
+  if (allergenFilterPanel.contains(e.target) || allergenFilterToggle.contains(e.target)) return;
+  allergenFilterPanel.hidden = true;
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !allergenFilterPanel.hidden) allergenFilterPanel.hidden = true;
 });
 
 addFab.addEventListener("click", () => openAddForm());

@@ -59,6 +59,13 @@
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-4.8-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       <input id="searchInput" type="text" placeholder="Chercher une recette, un ingrédient…" autocomplete="off">
     </label>
+    <button id="allergenFilterToggle" class="cart-toggle" type="button" aria-label="Filtrer par allergène">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 5h16M7 12h10M10 19h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span id="allergenFilterBadge" class="cart-badge" hidden>0</span>
+    </button>
+    <div class="allergen-filter-panel" id="allergenFilterPanel" hidden>
+      <div class="allergen-filter-list" id="allergenFilterList"></div>
+    </div>
   </div>
 
   <nav class="chip-row" aria-label="Filtrer par catégorie">
