@@ -87,7 +87,6 @@ export function openDetail(id){
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           Ajouter au panier
         </button>
-        <div class="timer-panel" id="timerPanel"></div>
         ${r.note ? `<div class="note-box"><b>Astuce.</b> ${r.note}</div>` : ""}
       </div>
       <div>
@@ -96,6 +95,7 @@ export function openDetail(id){
           ${r.steps.map((s, i) => `<li data-step-index="${i}"><span class="step-num">${i + 1}</span><p>${s}</p></li>`).join("")}
         </ol>
       </div>
+      <div class="timer-panel" id="timerPanel"></div>
     </div>
   `;
 
