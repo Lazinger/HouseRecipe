@@ -28,7 +28,7 @@
 - Produces: `removePhoto(recipeId)`, `removeStepPhoto(recipeId, index)`, `getMainPhoto(recipeId)` — consommées par les Tasks 2 et 3.
 - Consumes: fonctions internes déjà existantes dans le fichier — `deletePhoto(key)`, `photoWriteHandler(payload)`, `enqueue(type, key, payload)`, `getPhotoWithFallback(key)`, `stepPhotoKey(recipeId, index)`, l'ensemble `confirmedMissing`.
 
-- [ ] **Step 1: Ajouter les trois fonctions**
+- [x] **Step 1: Ajouter les trois fonctions**
 
 Dans `public/js/photos.js`, remplacer :
 
@@ -94,7 +94,7 @@ Notes pour l'implémenteur :
 - Ajouter la clé à `confirmedMissing` évite qu'un appel ultérieur à `getPhotoWithFallback` (via `applyDetailPhoto`, `applyCardPhoto`, `getStepPhoto`, `getMainPhoto`) ne retente inutilement un fetch réseau vers Supabase Storage pour une photo qu'on vient de supprimer.
 - `photoWriteHandler({ op: "delete", key })` supprime côté Supabase Storage ; en cas d'échec réseau, `enqueue` place l'opération en file d'attente hors-ligne — identique au mécanisme déjà utilisé par `deleteAllPhotosForRecipe`.
 
-- [ ] **Step 2: Vérifier dans le navigateur**
+- [x] **Step 2: Vérifier dans le navigateur**
 
 Lancer un serveur local sur `public/`, se connecter, recharger deux fois — aucune erreur console au chargement (le fichier n'a pas encore de nouvel appelant, ce step vérifie juste que le module s'importe et s'exécute sans erreur).
 
@@ -122,7 +122,7 @@ console.log('après suppression, doit être null :', after);
 - Recharger la page et vérifier sur la fiche de cette recette que le bandeau photo a disparu (confirme la suppression côté Supabase Storage, pas seulement le cache local).
 - Aucune erreur console pendant tout le test.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add public/js/photos.js
@@ -141,7 +141,7 @@ git commit -m "Ajouter les fonctions de suppression de photo (recette et etape)"
 - Consumes: `removePhoto(recipeId)`, `getMainPhoto(recipeId)` de `public/js/photos.js` (Task 1).
 - Consumes: classes CSS déjà existantes `.scan-photo-thumb`/`.scan-photo-remove` (`public/style.css`, définies pour les miniatures de scan) — pas de nouveau style nécessaire pour cette tâche.
 
-- [ ] **Step 1: Importer les nouvelles fonctions**
+- [x] **Step 1: Importer les nouvelles fonctions**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -155,7 +155,7 @@ par :
 import { savePhoto, saveStepPhoto, removePhoto, getMainPhoto } from "./photos.js";
 ```
 
-- [ ] **Step 2: Ajouter la miniature et le bouton de suppression dans le template**
+- [x] **Step 2: Ajouter la miniature et le bouton de suppression dans le template**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -179,7 +179,7 @@ par :
       </div>
 ```
 
-- [ ] **Step 3: Peupler la miniature et câbler la suppression**
+- [x] **Step 3: Peupler la miniature et câbler la suppression**
 
 Dans `public/js/add-form.js`, repérer le bloc suivant (juste après la déclaration de `addError`) :
 
@@ -212,7 +212,7 @@ Ajouter juste après :
   });
 ```
 
-- [ ] **Step 4: Réinitialiser l'état de suppression quand un nouveau fichier est choisi**
+- [x] **Step 4: Réinitialiser l'état de suppression quand un nouveau fichier est choisi**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -246,7 +246,7 @@ par :
   });
 ```
 
-- [ ] **Step 5: Appliquer la suppression à la soumission**
+- [x] **Step 5: Appliquer la suppression à la soumission**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -261,7 +261,7 @@ par :
     else if (mainPhotoRemoved) await removePhoto(recipe.id);
 ```
 
-- [ ] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -275,7 +275,7 @@ par :
 const CACHE_NAME = "carnet-cache-v37";
 ```
 
-- [ ] **Step 7: Vérifier dans le navigateur**
+- [x] **Step 7: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois. DevTools → Application → Cache Storage doit montrer `carnet-cache-v37` (l'ancien `v36` disparu).
 
@@ -293,7 +293,7 @@ Ouvrir l'édition d'une recette **sans** photo principale : aucune miniature/bou
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add public/js/add-form.js public/sw.js
@@ -312,7 +312,7 @@ git commit -m "Permettre de supprimer la photo principale d'une recette existant
 **Interfaces:**
 - Consumes: `removeStepPhoto(recipeId, index)`, `getStepPhoto(recipeId, index)` (déjà exporté avant ce plan) de `public/js/photos.js` (Task 1).
 
-- [ ] **Step 1: Importer les fonctions manquantes**
+- [x] **Step 1: Importer les fonctions manquantes**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -326,7 +326,7 @@ par :
 import { savePhoto, saveStepPhoto, removePhoto, removeStepPhoto, getMainPhoto, getStepPhoto } from "./photos.js";
 ```
 
-- [ ] **Step 2: Ajouter la miniature et le bouton de suppression dans `createStepRow`**
+- [x] **Step 2: Ajouter la miniature et le bouton de suppression dans `createStepRow`**
 
 Dans `public/js/add-form.js`, remplacer toute la fonction :
 
@@ -410,7 +410,7 @@ Notes pour l'implémenteur :
 - `recipeId`/`originalIndex` ne sont fournis que pour les lignes pré-existantes en mode édition (Step 3 ci-dessous) — les nouvelles lignes ajoutées via "+ Ajouter une étape" les passent en `undefined`, donc la recherche de photo existante est simplement sautée (`if` false), ce qui est correct : une ligne toute neuve n'a jamais de photo en stockage.
 - `row.dataset.photoRemoved` sert d'état par ligne (chaque ligne est un élément DOM distinct, donc pas de variable partagée possible comme pour la photo principale dans la Task 2).
 
-- [ ] **Step 3: Passer l'id de la recette et l'index d'origine lors de la création des lignes existantes**
+- [x] **Step 3: Passer l'id de la recette et l'index d'origine lors de la création des lignes existantes**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -434,7 +434,7 @@ par :
 
 Note : pour une recette pré-remplie depuis un scan (`prefillData`, `editingRecipe` est `null`), `editingRecipe?.id` vaut `undefined` — aucune recherche de photo existante n'est tentée, ce qui est correct puisqu'une recette en cours de création n'a encore aucune photo en stockage.
 
-- [ ] **Step 4: Appliquer la suppression à la soumission**
+- [x] **Step 4: Appliquer la suppression à la soumission**
 
 Dans `public/js/add-form.js`, repérer :
 
@@ -468,7 +468,7 @@ par :
     }
 ```
 
-- [ ] **Step 5: Ajouter les styles de la miniature d'étape**
+- [x] **Step 5: Ajouter les styles de la miniature d'étape**
 
 Dans `public/style.css`, repérer :
 
@@ -489,7 +489,7 @@ Ajouter juste après :
 .step-photo-remove:hover{ background: var(--terracotta-dark); }
 ```
 
-- [ ] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -503,7 +503,7 @@ par :
 const CACHE_NAME = "carnet-cache-v38";
 ```
 
-- [ ] **Step 7: Vérifier dans le navigateur**
+- [x] **Step 7: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois. DevTools → Application → Cache Storage doit montrer `carnet-cache-v38`.
 
@@ -520,7 +520,7 @@ Ajouter une nouvelle étape (bouton "+ Ajouter une étape") dans une recette en 
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add public/js/add-form.js public/style.css public/sw.js

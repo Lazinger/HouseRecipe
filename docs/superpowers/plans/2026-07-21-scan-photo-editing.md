@@ -29,7 +29,7 @@
 - `openPhotoEditor(blob, aspectRatio)` : `aspectRatio` devient optionnel — si omis/`undefined`, le ratio effectif est déduit des dimensions naturelles de l'image chargée. Signature de retour inchangée (`Promise<Blob|null>`).
 - Consumed par Task 2 (`public/js/scan-recipe.js`, pas encore modifié à ce stade) et par les appelants existants (`public/js/add-form.js`, déjà en place, non modifiés par cette tâche).
 
-- [ ] **Step 1: Ajouter le paramètre `enhanced` à `drawFrame`**
+- [x] **Step 1: Ajouter le paramètre `enhanced` à `drawFrame`**
 
 Dans `public/js/photo-editor.js`, remplacer :
 
@@ -86,7 +86,7 @@ function drawFrame(ctx, canvasW, canvasH, img, rotation, zoom, panX, panY, enhan
 }
 ```
 
-- [ ] **Step 2: Ratio d'aspect optionnel, état `enhanced`, bouton "Améliorer"**
+- [x] **Step 2: Ratio d'aspect optionnel, état `enhanced`, bouton "Améliorer"**
 
 Dans `public/js/photo-editor.js`, remplacer toute la fonction `openPhotoEditor` :
 
@@ -313,7 +313,7 @@ Notes pour l'implémenteur :
 - La variable locale `ratio` qui existait déjà dans le handler du bouton Valider (`const ratio = outputW / previewW;`) est renommée `scaleRatio` pour ne pas entrer en conflit de nom avec le nouveau `ratio` du ratio d'aspect déclaré plus haut dans la même fonction englobante — un second `const ratio` dans ce handler aurait techniquement fonctionné (nouvelle portée de fonction fléchée) mais aurait été source de confusion en lecture.
 - `enhanceBtn` est récupéré une seule fois (comme `zoomInput`) plutôt que requêté à nouveau dans son propre handler, cohérent avec le style existant du fichier.
 
-- [ ] **Step 3: Styles du bouton actif et de la rangée d'outils**
+- [x] **Step 3: Styles du bouton actif et de la rangée d'outils**
 
 Dans `public/style.css`, remplacer :
 
@@ -353,7 +353,7 @@ par :
 .photo-editor-tools{ display:flex; gap:8px; }
 ```
 
-- [ ] **Step 4: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 4: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -367,7 +367,7 @@ par :
 const CACHE_NAME = "carnet-cache-v39";
 ```
 
-- [ ] **Step 5: Vérifier dans le navigateur**
+- [x] **Step 5: Vérifier dans le navigateur**
 
 Lancer un serveur local sur `public/`, recharger deux fois. Aucune erreur console au chargement. DevTools → Application → Cache Storage doit montrer `carnet-cache-v39`.
 
@@ -396,7 +396,7 @@ mod.openPhotoEditor(blob).then(r => console.log('résultat ratio naturel', r));
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add public/js/photo-editor.js public/style.css public/sw.js
@@ -414,7 +414,7 @@ git commit -m "Ajouter un ratio d'aspect optionnel et un bouton Ameliorer a l'ed
 **Interfaces:**
 - Consumes: `openPhotoEditor(blob, aspectRatio)` avec `aspectRatio` optionnel, de `public/js/photo-editor.js` (Task 1).
 
-- [ ] **Step 1: Éditer chaque photo à la capture, avant de l'ajouter**
+- [x] **Step 1: Éditer chaque photo à la capture, avant de l'ajouter**
 
 Dans `public/js/scan-recipe.js`, remplacer :
 
@@ -449,7 +449,7 @@ Notes pour l'implémenteur :
 - Si l'utilisateur annule l'édition (`edited` est `null`), la fonction retourne immédiatement — la photo n'est jamais ajoutée à `capturedFiles`, aucune miniature n'apparaît, cohérent avec le comportement "annuler = photo écartée" du design.
 - `e.target.value = ""` est déplacé avant l'`await` (au lieu d'après, comme dans l'ancien code) : il doit être réinitialisé dès que le fichier est lu, indépendamment du résultat de l'édition, pour permettre de reprendre une photo au même index si besoin.
 
-- [ ] **Step 2: Retirer l'édition redondante après "Extraire"**
+- [x] **Step 2: Retirer l'édition redondante après "Extraire"**
 
 Dans `public/js/scan-recipe.js`, remplacer :
 
@@ -474,7 +474,7 @@ par :
     } catch (err) {
 ```
 
-- [ ] **Step 3: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 3: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -488,7 +488,7 @@ par :
 const CACHE_NAME = "carnet-cache-v40";
 ```
 
-- [ ] **Step 4: Vérifier dans le navigateur**
+- [x] **Step 4: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois. DevTools → Application → Cache Storage doit montrer `carnet-cache-v40`.
 
@@ -515,7 +515,7 @@ input.dispatchEvent(new Event('change', { bubbles: true }));
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add public/js/scan-recipe.js public/sw.js

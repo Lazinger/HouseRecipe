@@ -27,7 +27,7 @@
 
 **Interfaces:** Aucune nouvelle fonction exportée — comportement purement local à l'écran détail (clic bouton → `window.print()`) et à la feuille de style.
 
-- [ ] **Step 1: Ajouter le bouton "Imprimer" au template**
+- [x] **Step 1: Ajouter le bouton "Imprimer" au template**
 
 Dans `public/js/detail.js`, remplacer :
 
@@ -50,7 +50,7 @@ par :
         </button>
 ```
 
-- [ ] **Step 2: Câbler le bouton**
+- [x] **Step 2: Câbler le bouton**
 
 Dans `public/js/detail.js`, remplacer :
 
@@ -65,7 +65,7 @@ par :
   detailScroll.querySelector("#detailFavBtn").addEventListener("click", () => toggleFavorite(r.id));
 ```
 
-- [ ] **Step 3: Ajouter la feuille de style d'impression**
+- [x] **Step 3: Ajouter la feuille de style d'impression**
 
 À la toute fin de `public/style.css`, ajouter :
 
@@ -95,7 +95,7 @@ Notes pour l'implémenteur :
 - `.detail-actions-row` masque les boutons Imprimer/Modifier/Supprimer/Panier/Favoris (tous regroupés dans ce conteneur, distinct de `.detail-hero`).
 - `.detail-sub{ -webkit-line-clamp:unset; overflow:visible; }` s'applique que la description ait été développée à l'écran via "Voir plus" ou non — la classe `.is-expanded` fait la même chose, cette règle l'impose systématiquement à l'impression.
 
-- [ ] **Step 4: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 4: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -109,7 +109,7 @@ par :
 const CACHE_NAME = "carnet-cache-v49";
 ```
 
-- [ ] **Step 5: Vérifier dans le navigateur**
+- [x] **Step 5: Vérifier dans le navigateur**
 
 Lancer un serveur local sur `public/`, recharger deux fois. Aucune erreur console. DevTools → Application → Cache Storage doit montrer `carnet-cache-v49`.
 
@@ -124,7 +124,7 @@ Si aucune session authentifiée n'est disponible dans cet environnement, vérifi
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add public/js/detail.js public/style.css public/sw.js

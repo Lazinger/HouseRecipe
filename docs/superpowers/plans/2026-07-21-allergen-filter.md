@@ -34,7 +34,7 @@
 - Produces: `ALLERGENS` (tableau de `{ key, label }`), exporté depuis `public/js/recipes-data.js` — consommé par Task 1 (ce fichier), Task 2 (`detail.js`) et Task 3 (`grid.js`).
 - Le format de `recipe.allergens` passe de `string | undefined` à `string[] | undefined` (tableau de clés). Consommé par Task 2 et Task 3.
 
-- [ ] **Step 1: Ajouter la liste ALLERGENS**
+- [x] **Step 1: Ajouter la liste ALLERGENS**
 
 Dans `public/js/recipes-data.js`, remplacer :
 
@@ -69,7 +69,7 @@ export const ALLERGENS = [
 ];
 ```
 
-- [ ] **Step 2: Migration Supabase (colonne `allergens` en `jsonb`)**
+- [x] **Step 2: Migration Supabase (colonne `allergens` en `jsonb`)**
 
 Dans `supabase/schema.sql`, remplacer :
 
@@ -99,7 +99,7 @@ alter table public.recipes alter column allergens type jsonb using '[]'::jsonb;
 
 Note pour l'utilisateur (étape manuelle, hors de portée d'un subagent) : ce bloc SQL doit être exécuté dans le tableau de bord Supabase du projet : **SQL Editor** → **New query** → coller uniquement le nouveau bloc ci-dessus (pas tout le fichier) → **Run**. Résultat attendu : `Success. No rows returned`. Sans cette étape, l'application plantera à la sauvegarde d'une recette (la colonne reste de type `text` côté serveur alors que le client envoie désormais un tableau).
 
-- [ ] **Step 3: Remplacer le champ texte par des cases à cocher dans le formulaire**
+- [x] **Step 3: Remplacer le champ texte par des cases à cocher dans le formulaire**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -138,7 +138,7 @@ par :
       </div>
 ```
 
-- [ ] **Step 4: Lire les cases cochées à la soumission**
+- [x] **Step 4: Lire les cases cochées à la soumission**
 
 Dans `public/js/add-form.js`, remplacer :
 
@@ -153,7 +153,7 @@ par :
     const allergens = allergensChecked.length ? allergensChecked : undefined;
 ```
 
-- [ ] **Step 5: Styles des cases à cocher**
+- [x] **Step 5: Styles des cases à cocher**
 
 Dans `public/style.css`, repérer la règle `.add-error{` et ajouter juste avant :
 
@@ -163,7 +163,7 @@ Dans `public/style.css`, repérer la règle `.add-error{` et ajouter juste avant
 
 ```
 
-- [ ] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -177,7 +177,7 @@ par :
 const CACHE_NAME = "carnet-cache-v46";
 ```
 
-- [ ] **Step 7: Vérifier dans le navigateur**
+- [x] **Step 7: Vérifier dans le navigateur**
 
 Lancer un serveur local sur `public/`, recharger deux fois. Aucune erreur console. DevTools → Application → Cache Storage doit montrer `carnet-cache-v46`.
 
@@ -192,7 +192,7 @@ console.log(mod.ALLERGENS.length, mod.ALLERGENS[0]);
 
 Le formulaire d'ajout/édition est derrière l'écran de connexion — si une session authentifiée est disponible : ouvrir "Nouvelle recette", vérifier que le champ "Allergènes" affiche 14 cases à cocher (pas un champ texte) ; en cocher 2-3, enregistrer une recette de test, rouvrir son édition → les mêmes cases sont cochées. Si aucune session n'est disponible dans cet environnement, relecture statique attentive du diff et le signaler dans le rapport (DONE_WITH_CONCERNS) plutôt que de bloquer sur cette étape.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add public/js/recipes-data.js public/js/add-form.js public/style.css supabase/schema.sql public/sw.js
@@ -211,7 +211,7 @@ git commit -m "Remplacer le champ allergenes en texte libre par une liste fixe a
 **Interfaces:**
 - Consumes: `ALLERGENS` de `public/js/recipes-data.js` (Task 1).
 
-- [ ] **Step 1: Afficher les libellés des allergènes cochés**
+- [x] **Step 1: Afficher les libellés des allergènes cochés**
 
 Dans `public/js/detail.js`, remplacer :
 
@@ -240,7 +240,7 @@ par :
 
 Note pour l'implémenteur : `?.label || key` protège l'affichage même si une ancienne valeur ne correspond à aucune clé connue (ne devrait plus arriver après la migration de la Task 1, mais évite un `undefined` affiché si jamais).
 
-- [ ] **Step 2: Retirer l'allergène extrait par l'IA du scan**
+- [x] **Step 2: Retirer l'allergène extrait par l'IA du scan**
 
 Dans `public/js/scan-recipe.js`, repérer la fonction `sanitizeExtractedRecipe` et remplacer :
 
@@ -275,7 +275,7 @@ par :
 
 Note pour l'implémenteur : le texte libre extrait par l'IA (`raw.allergens`, une chaîne) n'est plus compatible avec le nouveau format en tableau de clés fixes — on ne tente pas de le faire correspondre automatiquement (hors scope, voir le design). Le formulaire pré-rempli après un scan n'aura donc aucune case pré-cochée ; c'est le comportement attendu, pas une régression.
 
-- [ ] **Step 3: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 3: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -289,7 +289,7 @@ par :
 const CACHE_NAME = "carnet-cache-v47";
 ```
 
-- [ ] **Step 4: Vérifier dans le navigateur**
+- [x] **Step 4: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois. DevTools → Application → Cache Storage doit montrer `carnet-cache-v47`. Aucune erreur console au chargement.
 
@@ -299,7 +299,7 @@ Si une session authentifiée est disponible : ouvrir une recette dont l'édition
 
 Si aucune session n'est disponible, relecture statique attentive du diff et le signaler dans le rapport (DONE_WITH_CONCERNS) plutôt que de bloquer sur cette étape.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add public/js/detail.js public/js/scan-recipe.js public/sw.js
@@ -323,7 +323,7 @@ git commit -m "Afficher les libelles d'allergenes sur la fiche recette, retirer 
 - Produces: `renderAllergenFilterPanel()`, exporté depuis `public/js/grid.js` — consommé par `public/js/main.js` (appelé une fois au démarrage, la liste des 14 allergènes ne dépendant pas des données de recettes).
 - `state.excludedAllergens` (nouveau, un `Set<string>`) dans `public/js/dom.js`.
 
-- [ ] **Step 1: Nouvel état persistant et éléments du DOM**
+- [x] **Step 1: Nouvel état persistant et éléments du DOM**
 
 Dans `public/js/dom.js`, remplacer :
 
@@ -356,7 +356,7 @@ export const state = {
 };
 ```
 
-- [ ] **Step 2: Bouton et panneau dans le HTML**
+- [x] **Step 2: Bouton et panneau dans le HTML**
 
 Dans `public/index.html`, remplacer :
 
@@ -389,7 +389,7 @@ par :
 
 Note pour l'implémenteur : la classe `cart-toggle`/`cart-badge` (déjà stylée pour le bouton panier) est réutilisée telle quelle pour le bouton et son badge — même apparence de bouton rond avec pastille, pas besoin de nouvelles règles CSS pour ça.
 
-- [ ] **Step 3: Panneau et filtrage dans `grid.js`**
+- [x] **Step 3: Panneau et filtrage dans `grid.js`**
 
 Dans `public/js/grid.js`, remplacer :
 
@@ -476,7 +476,7 @@ Notes pour l'implémenteur :
 - `r.allergens?.some(...)` gère le cas où `allergens` est `undefined` (recette sans allergène renseigné) sans lever d'erreur — cette recette n'est jamais exclue par ce filtre, conforme au design.
 - `renderAllergenFilterPanel()` ne dépend d'aucune donnée de recette (seulement de `ALLERGENS`, une liste statique, et de `state.excludedAllergens`) — elle peut donc être appelée une seule fois au démarrage de l'app, indépendamment du chargement des recettes (câblée dans `main.js` au Step 4 ci-dessous).
 
-- [ ] **Step 4: Ouvrir/fermer le panneau, l'initialiser au démarrage**
+- [x] **Step 4: Ouvrir/fermer le panneau, l'initialiser au démarrage**
 
 Dans `public/js/main.js`, remplacer :
 
@@ -538,7 +538,7 @@ document.addEventListener("keydown", (e) => {
 });
 ```
 
-- [ ] **Step 5: Styles de la rangée de recherche et du panneau**
+- [x] **Step 5: Styles de la rangée de recherche et du panneau**
 
 Dans `public/style.css`, remplacer :
 
@@ -586,7 +586,7 @@ Puis, dans le même fichier, repérer la règle `.chip-row{` et ajouter juste av
 
 ```
 
-- [ ] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 6: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -600,7 +600,7 @@ par :
 const CACHE_NAME = "carnet-cache-v48";
 ```
 
-- [ ] **Step 7: Vérifier dans le navigateur**
+- [x] **Step 7: Vérifier dans le navigateur**
 
 Lancer un serveur local, recharger deux fois. DevTools → Application → Cache Storage doit montrer `carnet-cache-v48`. Aucune erreur console au chargement — le bouton "Filtres" et son panneau (vide de recettes, mais avec les 14 cases) doivent apparaître même sans être connecté, puisque `renderAllergenFilterPanel()` ne dépend pas des données de recettes.
 
@@ -656,7 +656,7 @@ Recharger la page (sans rien recocher) et vérifier `JSON.parse(localStorage.get
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add public/js/dom.js public/index.html public/js/grid.js public/js/main.js public/style.css public/sw.js

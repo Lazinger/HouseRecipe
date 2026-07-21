@@ -31,7 +31,7 @@
 - `openPhotoEditor(blob, aspectRatio)` : signature et type de retour (`Promise<Blob|null>`) inchangés — comportement observable pour les appelants existants inchangé pour ce qui est de la forme finale de l'image (toujours `aspectRatio` si fourni), seul le mécanisme d'interaction utilisateur change.
 - `closePhotoEditor()` : inchangé.
 
-- [ ] **Step 1: Remplacer tout le contenu du fichier**
+- [x] **Step 1: Remplacer tout le contenu du fichier**
 
 Remplacer l'intégralité de `public/js/photo-editor.js` par :
 
@@ -338,7 +338,7 @@ Notes pour l'implémenteur :
 - L'export calcule d'abord le rectangle source correspondant au cadre en pixels de `rotatedCanvas` (`srcX/srcY/srcW/srcH`, pouvant déborder de `[0, rotatedCanvas.width]`/`[0, rotatedCanvas.height]`), puis n'affiche que l'intersection avec les pixels réels de la photo (`clippedX/Y/W/H`) à la position correspondante dans le canevas de sortie — le reste du canevas de sortie garde son remplissage de fond neutre initial, ce qui reproduit exactement les marges vues dans l'aperçu.
 - La fonction `drawFrame` de l'ancienne version, ainsi que tout l'état `zoom/panX/panY`, disparaissent entièrement — ne pas les conserver.
 
-- [ ] **Step 2: Retirer le curseur cursor grab/grabbing devenu inexact**
+- [x] **Step 2: Retirer le curseur cursor grab/grabbing devenu inexact**
 
 Dans `public/style.css`, remplacer :
 
@@ -359,7 +359,7 @@ par :
 
 Note : le curseur "main" (`grab`/`grabbing`) suggérait un déplacement global de la photo, ce qui ne correspond plus au nouveau mécanisme (déplacer le cadre ou redimensionner une poignée, pas déplacer la photo elle-même). On retire ces règles plutôt que d'en ajouter de nouvelles par zone (coin vs intérieur du cadre) — non demandé par le design, curseur par défaut du navigateur suffisant.
 
-- [ ] **Step 3: Bump `CACHE_NAME` dans `public/sw.js`**
+- [x] **Step 3: Bump `CACHE_NAME` dans `public/sw.js`**
 
 Dans `public/sw.js`, remplacer :
 
@@ -373,7 +373,7 @@ par :
 const CACHE_NAME = "carnet-cache-v41";
 ```
 
-- [ ] **Step 4: Vérifier dans le navigateur**
+- [x] **Step 4: Vérifier dans le navigateur**
 
 Lancer un serveur local sur `public/`, recharger deux fois. Aucune erreur console au chargement. DevTools → Application → Cache Storage doit montrer `carnet-cache-v41`.
 
@@ -432,7 +432,7 @@ Tester le débordement (cadre plus grand que la photo) et la rotation :
 
 Aucune erreur console sur l'ensemble de ces parcours.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add public/js/photo-editor.js public/style.css public/sw.js
