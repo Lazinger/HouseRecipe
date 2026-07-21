@@ -862,8 +862,8 @@ body.auth-locked #addFab{ display:none; }
    IMPRESSION — fiche recette uniquement
    ========================================================= */
 @media print{
-  body *{ visibility:hidden; }
-  #detailView, #detailView *{ visibility:visible; }
+  body > *{ display:none !important; }
+  body > #detailView{ display:flex !important; }
   #detailView{
     position:static; inset:auto; transform:none; opacity:1;
     overflow:visible; width:auto; max-height:none; border-radius:0; box-shadow:none;
