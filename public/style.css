@@ -860,3 +860,19 @@ button:focus-visible, input:focus-visible{
 
 body.auth-locked .site-header,
 body.auth-locked #addFab{ display:none; }
+
+/* =========================================================
+   IMPRESSION — fiche recette uniquement
+   ========================================================= */
+@media print{
+  body *{ visibility:hidden; }
+  #detailView, #detailView *{ visibility:visible; }
+  #detailView{
+    position:static; inset:auto; transform:none; opacity:1;
+    overflow:visible; width:auto; max-height:none; border-radius:0; box-shadow:none;
+  }
+  #detailScroll{ overflow:visible; height:auto; }
+  .detail-hero, .detail-actions-row, .timer-panel, .detail-sub-toggle, .step-photo, .add-to-cart-btn, .step-btn{ display:none; }
+  .detail-sub{ -webkit-line-clamp:unset; overflow:visible; }
+  .detail-body{ grid-template-columns: 1fr; }
+}

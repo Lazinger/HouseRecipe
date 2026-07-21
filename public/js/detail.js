@@ -42,6 +42,9 @@ export function openDetail(id){
         <button type="button" class="detail-sub-toggle" id="detailSubToggle" hidden>Voir plus</button>
       </div>
       <div class="detail-actions-row">
+        <button class="detail-fav" id="detailPrintBtn" type="button" aria-label="Imprimer la recette">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </button>
         <button class="detail-fav" id="detailEditBtn" type="button" aria-label="Modifier la recette">
           <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </button>
@@ -96,6 +99,7 @@ export function openDetail(id){
     </div>
   `;
 
+  detailScroll.querySelector("#detailPrintBtn").addEventListener("click", () => window.print());
   detailScroll.querySelector("#detailFavBtn").addEventListener("click", () => toggleFavorite(r.id));
   detailScroll.querySelector("#detailCartBtn").addEventListener("click", goToPanierFromDetail);
   detailScroll.querySelector("#detailMenuBtn").addEventListener("click", openDrawer);
