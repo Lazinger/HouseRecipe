@@ -3,7 +3,7 @@ import { CATEGORY_ICON } from "./recipes-data.js";
 import { openPhotoEditor } from "./photo-editor.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
-import { savePhoto, saveStepPhoto } from "./photos.js";
+import { savePhoto, saveStepPhoto, removePhoto, getMainPhoto } from "./photos.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { openDetail } from "./detail.js";
 import { render } from "./grid.js";
@@ -143,6 +143,10 @@ function renderAddForm(editingRecipe, prefillData){
       </div>
       <div class="field">
         <label for="addPhoto">Photo (optionnel)${editingRecipe ? " — laisse vide pour garder la photo actuelle" : ""}</label>
+        <div class="scan-photo-thumb" id="addPhotoCurrent" hidden>
+          <img id="addPhotoCurrentImg" alt="Photo actuelle">
+          <button type="button" class="scan-photo-remove" id="addPhotoRemoveBtn" aria-label="Supprimer la photo actuelle">✕</button>
+        </div>
         <input id="addPhoto" type="file" accept="image/*">
       </div>
       <div class="field">
@@ -183,6 +187,23 @@ function renderAddForm(editingRecipe, prefillData){
     dt.items.add(new File([prefillData.photoBlob], "scan.jpg", { type: prefillData.photoBlob.type || "image/jpeg" }));
     addForm.querySelector("#addPhoto").files = dt.files;
   }
+
+  const addPhotoCurrent = addForm.querySelector("#addPhotoCurrent");
+  const addPhotoCurrentImg = addForm.querySelector("#addPhotoCurrentImg");
+  let mainPhotoRemoved = false;
+
+  if (editingRecipe) {
+    getMainPhoto(editingRecipe.id).then(blob => {
+      if (!blob) return;
+      addPhotoCurrentImg.src = URL.createObjectURL(blob);
+      addPhotoCurrent.hidden = false;
+    }).catch(() => {});
+  }
+
+  addForm.querySelector("#addPhotoRemoveBtn").addEventListener("click", () => {
+    mainPhotoRemoved = true;
+    addPhotoCurrent.hidden = true;
+  });
 
   addForm.querySelector("#addCategory").value = data?.category || "";
   addForm.querySelector("#addDifficulty").value = data?.difficulty || "Facile";
@@ -230,6 +251,8 @@ function renderAddForm(editingRecipe, prefillData){
     const dt = new DataTransfer();
     dt.items.add(new File([edited], "photo.jpg", { type: "image/jpeg" }));
     e.target.files = dt.files;
+    mainPhotoRemoved = false;
+    addPhotoCurrent.hidden = true;
   });
 
   addForm.addEventListener("submit", async (e) => {
@@ -287,6 +310,7 @@ function renderAddForm(editingRecipe, prefillData){
     await saveRecipe(recipe);
 
     if (photoFile) await savePhoto(recipe.id, photoFile);
+    else if (mainPhotoRemoved) await removePhoto(recipe.id);
     for (let i = 0; i < stepPhotoFiles.length; i++) {
       if (stepPhotoFiles[i]) await saveStepPhoto(recipe.id, i, stepPhotoFiles[i]);
     }
