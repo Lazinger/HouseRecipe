@@ -3,7 +3,7 @@ import { CATEGORY_ICON } from "./recipes-data.js";
 import { openPhotoEditor } from "./photo-editor.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
-import { savePhoto, saveStepPhoto, removePhoto, getMainPhoto } from "./photos.js";
+import { savePhoto, saveStepPhoto, removePhoto, removeStepPhoto, getMainPhoto, getStepPhoto } from "./photos.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { openDetail } from "./detail.js";
 import { render } from "./grid.js";
@@ -24,11 +24,15 @@ function createIngredientRow(container, name = "", qty = ""){
   return row;
 }
 
-function createStepRow(container, text = ""){
+function createStepRow(container, text = "", recipeId, originalIndex){
   const row = document.createElement("div");
   row.className = "dyn-row dyn-row-step";
   row.innerHTML = `
     <input type="text" class="step-input" placeholder="Décrivez l'étape…" value="${escapeAttr(text)}">
+    <div class="step-photo-thumb" hidden>
+      <img alt="Photo actuelle">
+      <button type="button" class="step-photo-remove" aria-label="Supprimer la photo actuelle">✕</button>
+    </div>
     <input type="file" class="step-photo-input" accept="image/*" title="Photo de l'étape (optionnel)">
     <button type="button" class="dyn-remove" aria-label="Supprimer cette étape">✕</button>
   `;
@@ -36,6 +40,20 @@ function createStepRow(container, text = ""){
     row.remove();
     updateRemoveButtons(container);
   });
+
+  const thumb = row.querySelector(".step-photo-thumb");
+  if (recipeId !== undefined && originalIndex !== undefined) {
+    getStepPhoto(recipeId, originalIndex).then(blob => {
+      if (!blob) return;
+      thumb.querySelector("img").src = URL.createObjectURL(blob);
+      thumb.hidden = false;
+    }).catch(() => {});
+  }
+  thumb.querySelector(".step-photo-remove").addEventListener("click", () => {
+    row.dataset.photoRemoved = "1";
+    thumb.hidden = true;
+  });
+
   row.querySelector(".step-photo-input").addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -45,6 +63,8 @@ function createStepRow(container, text = ""){
     const dt = new DataTransfer();
     dt.items.add(new File([edited], "step.jpg", { type: "image/jpeg" }));
     e.target.files = dt.files;
+    row.dataset.photoRemoved = "";
+    thumb.hidden = true;
   });
   return row;
 }
@@ -219,7 +239,7 @@ function renderAddForm(editingRecipe, prefillData){
     ustensilRowsEl.appendChild(createUstensileRow(ustensilRowsEl));
   }
   if (data?.steps?.length) {
-    data.steps.forEach(text => stepRowsEl.appendChild(createStepRow(stepRowsEl, text)));
+    data.steps.forEach((text, i) => stepRowsEl.appendChild(createStepRow(stepRowsEl, text, editingRecipe?.id, i)));
   } else {
     stepRowsEl.appendChild(createStepRow(stepRowsEl));
   }
@@ -286,6 +306,7 @@ function renderAddForm(editingRecipe, prefillData){
     const filledStepRows = stepRowEls.filter(row => row.querySelector(".step-input").value.trim());
     const steps = filledStepRows.map(row => row.querySelector(".step-input").value.trim());
     const stepPhotoFiles = filledStepRows.map(row => row.querySelector(".step-photo-input").files[0] || null);
+    const stepPhotoRemovals = filledStepRows.map(row => row.dataset.photoRemoved === "1");
 
     const errorMsg = validateNewRecipe({ title, category, ingredients, steps });
     if (errorMsg) {
@@ -313,6 +334,7 @@ function renderAddForm(editingRecipe, prefillData){
     else if (mainPhotoRemoved) await removePhoto(recipe.id);
     for (let i = 0; i < stepPhotoFiles.length; i++) {
       if (stepPhotoFiles[i]) await saveStepPhoto(recipe.id, i, stepPhotoFiles[i]);
+      else if (stepPhotoRemovals[i]) await removeStepPhoto(recipe.id, i);
     }
 
     closeAddForm();
