@@ -46,6 +46,7 @@ function getFilteredRecipes(){
 /* ---- rendu de la grille ---- */
 function renderGrid(){
   const list = getFilteredRecipes();
+  heroSlot.hidden = state.query.trim() !== "";
   resultTitle.textContent = CATEGORY_LABELS[state.filter] || "Recettes";
   resultCount.textContent = list.length + (list.length > 1 ? " recettes" : " recette");
 
