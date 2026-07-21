@@ -125,11 +125,28 @@ export async function savePhoto(recipeId, file){
   await photoWriteHandler({ op: "upload", key: recipeId, blob: file }).catch(() => enqueue("photo", recipeId, { op: "upload", key: recipeId, blob: file }));
 }
 
+export async function getMainPhoto(recipeId){
+  return getPhotoWithFallback(recipeId);
+}
+
+export async function removePhoto(recipeId){
+  await deletePhoto(recipeId);
+  confirmedMissing.add(recipeId);
+  await photoWriteHandler({ op: "delete", key: recipeId }).catch(() => enqueue("photo", recipeId, { op: "delete", key: recipeId }));
+}
+
 export async function saveStepPhoto(recipeId, index, file){
   const key = stepPhotoKey(recipeId, index);
   await cachePhotoLocally(key, file);
   confirmedMissing.delete(key);
   await photoWriteHandler({ op: "upload", key, blob: file }).catch(() => enqueue("photo", key, { op: "upload", key, blob: file }));
+}
+
+export async function removeStepPhoto(recipeId, index){
+  const key = stepPhotoKey(recipeId, index);
+  await deletePhoto(key);
+  confirmedMissing.add(key);
+  await photoWriteHandler({ op: "delete", key }).catch(() => enqueue("photo", key, { op: "delete", key }));
 }
 
 export async function getStepPhoto(recipeId, index){
