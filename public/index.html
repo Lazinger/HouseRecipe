@@ -134,6 +134,12 @@
   <div class="detail-scroll" id="scanScroll"></div>
 </section>
 
+<!-- ===== VUE IMPORT URL (saisie d'un lien pour pré-remplir une recette) ===== -->
+<section id="importUrlView" class="detail-view add-view" aria-hidden="true">
+  <button class="detail-close" id="importUrlCloseBtn" type="button" aria-label="Fermer">✕</button>
+  <div class="detail-scroll" id="importUrlScroll"></div>
+</section>
+
 <!-- ===== VUE ÉDITEUR PHOTO (recadrage/rotation avant sauvegarde) ===== -->
 <section id="photoEditorView" class="detail-view add-view" aria-hidden="true">
   <button class="detail-close" id="photoEditorCloseBtn" type="button" aria-label="Fermer">✕</button>
@@ -171,6 +177,10 @@
     <button class="drawer-item" id="navScanBtn" type="button">
       <span class="drawer-item-icon"><svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A1 1 0 0 1 8.96 4h6.08a1 1 0 0 1 .86.5L16.8 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg></span>
       Scanner une recette
+    </button>
+    <button class="drawer-item" id="navImportUrlBtn" type="button">
+      <span class="drawer-item-icon"><svg viewBox="0 0 24 24" width="19" height="19"><path d="M10.5 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M13.5 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1.5-1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></span>
+      Importer depuis une URL
     </button>
     <div class="drawer-divider"></div>
     <button class="drawer-item" id="navLogoutBtn" type="button">
