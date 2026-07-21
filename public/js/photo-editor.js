@@ -13,7 +13,7 @@ function loadImage(blob){
   });
 }
 
-function drawFrame(ctx, canvasW, canvasH, img, rotation, zoom, panX, panY){
+function drawFrame(ctx, canvasW, canvasH, img, rotation, zoom, panX, panY, enhanced){
   ctx.save();
   ctx.fillStyle = "#FBFAF6";
   ctx.fillRect(0, 0, canvasW, canvasH);
@@ -26,6 +26,7 @@ function drawFrame(ctx, canvasW, canvasH, img, rotation, zoom, panX, panY){
 
   ctx.translate(canvasW / 2 + panX, canvasH / 2 + panY);
   ctx.rotate(rotation * Math.PI / 180);
+  ctx.filter = enhanced ? "brightness(1.15) contrast(1.1) saturate(1.05)" : "none";
   ctx.drawImage(
     img,
     -img.naturalWidth * scale / 2,
@@ -56,13 +57,15 @@ export function openPhotoEditor(blob, aspectRatio){
     pendingResolve = resolve;
     loadImage(blob).then((img) => {
       if (!pendingResolve) return;
+      const ratio = aspectRatio || (img.naturalWidth / img.naturalHeight);
       let rotation = 0;
       let zoom = 1;
       let panX = 0;
       let panY = 0;
+      let enhanced = false;
 
       const previewW = Math.min(photoEditorScroll.clientWidth - 40, 400) || 320;
-      const previewH = Math.round(previewW / aspectRatio);
+      const previewH = Math.round(previewW / ratio);
 
       photoEditorScroll.innerHTML = `
         <div class="add-topbar">
@@ -76,7 +79,10 @@ export function openPhotoEditor(blob, aspectRatio){
             <label for="photoEditorZoom">Zoom</label>
             <input type="range" id="photoEditorZoom" min="1" max="3" step="0.01" value="1">
           </div>
-          <button type="button" class="dyn-add" id="photoEditorRotateBtn">Pivoter</button>
+          <div class="photo-editor-tools">
+            <button type="button" class="dyn-add" id="photoEditorRotateBtn">Pivoter</button>
+            <button type="button" class="dyn-add" id="photoEditorEnhanceBtn">Améliorer</button>
+          </div>
           <div class="add-actions">
             <button type="button" class="btn-secondary" id="photoEditorCancelBtn">Annuler</button>
             <button type="button" class="btn-primary" id="photoEditorConfirmBtn">Valider</button>
@@ -87,9 +93,10 @@ export function openPhotoEditor(blob, aspectRatio){
       const canvas = photoEditorScroll.querySelector("#photoEditorCanvas");
       const ctx = canvas.getContext("2d");
       const zoomInput = photoEditorScroll.querySelector("#photoEditorZoom");
+      const enhanceBtn = photoEditorScroll.querySelector("#photoEditorEnhanceBtn");
 
       function render(){
-        drawFrame(ctx, previewW, previewH, img, rotation, zoom, panX, panY);
+        drawFrame(ctx, previewW, previewH, img, rotation, zoom, panX, panY, enhanced);
       }
       render();
 
@@ -126,17 +133,23 @@ export function openPhotoEditor(blob, aspectRatio){
         render();
       });
 
+      enhanceBtn.addEventListener("click", () => {
+        enhanced = !enhanced;
+        enhanceBtn.classList.toggle("is-active", enhanced);
+        render();
+      });
+
       photoEditorCloseBtn.onclick = () => settle(null);
       photoEditorScroll.querySelector("#photoEditorCancelBtn").addEventListener("click", () => settle(null));
       photoEditorScroll.querySelector("#photoEditorConfirmBtn").addEventListener("click", () => {
         const outputW = 1200;
-        const outputH = Math.round(outputW / aspectRatio);
+        const outputH = Math.round(outputW / ratio);
         const outputCanvas = document.createElement("canvas");
         outputCanvas.width = outputW;
         outputCanvas.height = outputH;
         const outputCtx = outputCanvas.getContext("2d");
-        const ratio = outputW / previewW;
-        drawFrame(outputCtx, outputW, outputH, img, rotation, zoom, panX * ratio, panY * ratio);
+        const scaleRatio = outputW / previewW;
+        drawFrame(outputCtx, outputW, outputH, img, rotation, zoom, panX * scaleRatio, panY * scaleRatio, enhanced);
         outputCanvas.toBlob((outBlob) => settle(outBlob), "image/jpeg", 0.85);
       });
 
