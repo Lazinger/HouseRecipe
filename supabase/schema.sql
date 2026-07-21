@@ -12,7 +12,7 @@ create table public.recipes (
   ingredients jsonb not null default '[]',
   steps jsonb not null default '[]',
   nutrition jsonb,
-  allergens text,
+  allergens jsonb,
   utensils jsonb,
   created_by uuid references auth.users(id),
   updated_at timestamptz not null default now()
@@ -181,3 +181,8 @@ begin
   return affected > 0;
 end;
 $$;
+
+-- ===== Migration : allergens passe de texte libre à une liste fixe (jsonb) =====
+-- Réinitialise le champ à vide pour les recettes existantes (le texte libre
+-- n'est pas reconvertible en clés fixes) — décision validée avec l'utilisateur.
+alter table public.recipes alter column allergens type jsonb using '[]'::jsonb;

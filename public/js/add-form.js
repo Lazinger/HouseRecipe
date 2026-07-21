@@ -1,5 +1,5 @@
 import { escapeAttr } from "./utils.js";
-import { CATEGORY_ICON } from "./recipes-data.js";
+import { CATEGORY_ICON, ALLERGENS } from "./recipes-data.js";
 import { openPhotoEditor } from "./photo-editor.js";
 import { addScroll, addView, chips, state, searchInput } from "./dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
@@ -158,8 +158,15 @@ function renderAddForm(editingRecipe, prefillData){
         </div>
       </div>
       <div class="field">
-        <label for="addAllergens">Allergènes (optionnel)</label>
-        <input id="addAllergens" type="text" placeholder="Ex. Gluten, blé, lait" value="${escapeAttr(data?.allergens || "")}">
+        <label>Allergènes (optionnel)</label>
+        <div class="allergen-checks" id="addAllergenChecks">
+          ${ALLERGENS.map(a => `
+            <label class="allergen-check">
+              <input type="checkbox" value="${a.key}" ${data?.allergens?.includes(a.key) ? "checked" : ""}>
+              ${a.label}
+            </label>
+          `).join("")}
+        </div>
       </div>
       <div class="field">
         <label for="addPhoto">Photo (optionnel)${editingRecipe ? " — laisse vide pour garder la photo actuelle" : ""}</label>
@@ -291,7 +298,8 @@ function renderAddForm(editingRecipe, prefillData){
     const nutrition = (caloriesVal && proteinVal)
       ? { calories: parseFloat(caloriesVal), protein: parseFloat(proteinVal) }
       : undefined;
-    const allergens = addForm.querySelector("#addAllergens").value.trim() || undefined;
+    const allergensChecked = [...addForm.querySelectorAll("#addAllergenChecks input:checked")].map(cb => cb.value);
+    const allergens = allergensChecked.length ? allergensChecked : undefined;
 
     const ingredients = [...ingredientRowsEl.querySelectorAll(".dyn-row")]
       .map(row => [row.querySelector(".ing-name-input").value.trim(), row.querySelector(".ing-qty-input").value.trim()])

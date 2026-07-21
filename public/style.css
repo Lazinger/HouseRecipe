@@ -715,6 +715,9 @@ input{ font-family: inherit; }
 .photo-editor-frame canvas{ touch-action:none; border-radius:6px; border:1px solid var(--line); max-width:100%; }
 .photo-editor-tools{ display:flex; gap:8px; }
 
+.allergen-checks{ display:flex; flex-wrap:wrap; gap:8px 18px; }
+.allergen-check{ display:flex; align-items:center; gap:6px; font-size:.86rem; color: var(--ink); }
+
 .add-error{
   background: var(--terracotta-tint); color: var(--terracotta-dark); font-weight:600; font-size:.84rem;
   border-radius:4px; padding:10px 14px; margin:0;
