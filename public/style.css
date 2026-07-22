@@ -577,6 +577,7 @@ input{ font-family: inherit; }
   display:flex; align-items:center; gap:10px;
   padding: 9px 2px;
   border-bottom: 1px solid var(--line);
+  min-width:0;
 }
 .ing-icon{
   flex:none; width:30px; height:30px; border-radius:50%;
