@@ -137,6 +137,7 @@ initAuth(async () => {
 });
 
 navLogoutBtn.addEventListener("click", () => {
+  closeAnyOpenSheet();
   closeDrawer();
   clearFavoritesLocal();
   clearCartLocal();
