@@ -437,6 +437,7 @@ input{ font-family: inherit; }
   }
   .detail-view.is-open{ transform: translate(-50%,-50%) scale(1); opacity:1; }
   .detail-close{ display:flex; }
+  .detail-topbar-right{ margin-right:44px; }
 
   .auth-view{
     inset:0;
@@ -470,6 +471,7 @@ input{ font-family: inherit; }
 }
 .detail-topbar{ position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; width:100%; max-width:1080px; margin:0 auto; }
 .detail-topbar-left{ display:flex; align-items:center; gap:8px; }
+.detail-topbar-right{ display:flex; align-items:center; gap:8px; }
 .detail-actions-row{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .detail-fav{
   background: var(--surface); border:1px solid var(--line);
