@@ -437,7 +437,6 @@ input{ font-family: inherit; }
   }
   .detail-view.is-open{ transform: translate(-50%,-50%) scale(1); opacity:1; }
   .detail-close{ display:flex; }
-  .detail-topbar-right{ margin-right:44px; }
 
   .auth-view{
     inset:0;
