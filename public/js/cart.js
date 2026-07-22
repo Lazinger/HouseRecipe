@@ -26,6 +26,7 @@ function saveCheckedItems(){
 
 export const cart = loadCart();
 const checkedItems = loadCheckedItems();
+const expandedRecipes = new Set();
 
 async function currentUserId(){
   const { data } = await supabase.auth.getUser();
@@ -108,6 +109,7 @@ export function addRecipeToCart(recipe, servings, ingredients){
 export function removeRecipeFromCart(recipeId){
   const idx = cart.findIndex(e => e.recipeId === recipeId);
   if (idx >= 0) cart.splice(idx, 1);
+  expandedRecipes.delete(recipeId);
   saveCart();
   updateCartBadge();
   syncCartRemote();
@@ -117,6 +119,7 @@ export function removeRecipeFromCart(recipeId){
 function clearCart(){
   cart.length = 0;
   checkedItems.clear();
+  expandedRecipes.clear();
   saveCart();
   saveCheckedItems();
   updateCartBadge();
@@ -145,17 +148,23 @@ function renderPanier(){
   const body = cart.length === 0
     ? `<p class="empty-state">Votre panier est vide. Ouvrez une recette et cliquez sur "Ajouter au panier".</p>`
     : `
-      ${cart.map(entry => `
-        <div class="recipe-section cat-${entry.category}">
+      ${cart.map(entry => {
+        const isExpanded = expandedRecipes.has(entry.recipeId);
+        return `
+        <div class="recipe-section cat-${entry.category} ${isExpanded ? "is-expanded" : ""}">
           <div class="recipe-section-head">
-            <span class="tag">${entry.title} · ${entry.servings} pers.</span>
+            <button class="recipe-toggle" type="button" data-toggleid="${escapeAttr(entry.recipeId)}" aria-expanded="${isExpanded}">
+              <svg class="chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="tag">${entry.title} · ${entry.servings} pers.</span>
+            </button>
             <button class="remove-btn" type="button" data-removeid="${escapeAttr(entry.recipeId)}">Retirer</button>
           </div>
           <div class="ing-lines">
             ${entry.ingredients.map(([name, qty]) => `<div class="ing-line"><span>${name}</span><span>${qty}</span></div>`).join("")}
           </div>
         </div>
-      `).join("")}
+      `;
+      }).join("")}
       <h3 class="acheter-title"><span class="dot"></span> À acheter</h3>
       <div class="check-list">
         ${merged.map(m => `
@@ -183,6 +192,13 @@ function renderPanier(){
   panierScroll.querySelector("#panierMenuBtn").addEventListener("click", openDrawer);
   panierScroll.querySelectorAll("[data-removeid]").forEach(btn => {
     btn.addEventListener("click", () => removeRecipeFromCart(btn.dataset.removeid));
+  });
+  panierScroll.querySelectorAll("[data-toggleid]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.toggleid;
+      if (expandedRecipes.has(id)) expandedRecipes.delete(id); else expandedRecipes.add(id);
+      renderPanier();
+    });
   });
   panierScroll.querySelectorAll(".checkbox[data-key]").forEach(box => {
     box.addEventListener("click", (e) => {
