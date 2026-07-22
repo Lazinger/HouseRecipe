@@ -10,7 +10,7 @@ import {
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn, navImportUrlBtn,
   navLogoutBtn, accountToggle,
   detailView, addView, panierView, profileView, scanView, importUrlView, sheetBackdrop,
-  detailCloseBtn, addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, brandHomeBtn,
+  addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, brandHomeBtn,
   allergenFilterToggle, allergenFilterPanel
 } from "./dom.js";
 import { render, renderAllergenFilterPanel } from "./grid.js";
@@ -57,7 +57,6 @@ window.addEventListener("popstate", () => {
 });
 
 sheetBackdrop.addEventListener("click", requestCloseSheet);
-detailCloseBtn.addEventListener("click", requestCloseSheet);
 addCloseBtn.addEventListener("click", requestCloseSheet);
 panierCloseBtn.addEventListener("click", requestCloseSheet);
 profileCloseBtn.addEventListener("click", requestCloseSheet);
