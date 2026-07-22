@@ -13,20 +13,61 @@ const FETCH_TIMEOUT_MS = 10000;
 const MAX_PAGE_BYTES = 5 * 1024 * 1024; // 5 Mo
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 Mo
 
+const MAX_REDIRECTS = 5;
+
 async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS){
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, {
-      signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; LeCarnetBot/1.0; +https://lecarnet.app)" }
-    });
+    let currentUrl = url;
+    for (let redirectCount = 0; ; redirectCount++) {
+      const res = await fetch(currentUrl, {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; LeCarnetBot/1.0; +https://lecarnet.app)" }
+      });
+
+      const isRedirect = res.type === "opaqueredirect" ||
+        [301, 302, 303, 307, 308].includes(res.status);
+      if (!isRedirect) return res;
+
+      if (redirectCount >= MAX_REDIRECTS) {
+        throw new Error("Trop de redirections");
+      }
+
+      const location = res.headers.get("location");
+      if (!location) throw new Error("Redirection sans destination");
+
+      const nextUrl = new URL(location, currentUrl);
+      if (nextUrl.protocol !== "http:" && nextUrl.protocol !== "https:") {
+        throw new Error("Redirection vers un protocole invalide");
+      }
+      if (isBlockedHost(nextUrl.hostname)) {
+        throw new Error("Redirection vers un hôte interdit");
+      }
+
+      currentUrl = nextUrl.toString();
+    }
   } finally {
     clearTimeout(timer);
   }
 }
 
 /* ---- garde anti-SSRF : refuse les hôtes internes/privés ---- */
+function isBlockedIpv4(host){
+  const ipv4Match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!ipv4Match) return false;
+  const octets = ipv4Match.slice(1, 5).map(Number);
+  if (octets.some(o => o > 255)) return false;
+  const [a, b] = octets;
+  if (a === 127) return true; // boucle locale 127.0.0.0/8
+  if (a === 10) return true; // privé 10.0.0.0/8
+  if (a === 172 && b >= 16 && b <= 31) return true; // privé 172.16.0.0/12
+  if (a === 192 && b === 168) return true; // privé 192.168.0.0/16
+  if (a === 169 && b === 254) return true; // link-local 169.254.0.0/16
+  return false;
+}
+
 function isBlockedHost(hostname){
   let host = (hostname || "").toLowerCase().replace(/\.$/, "");
   // une adresse IPv6 littérale issue de URL#hostname est entourée de crochets, ex. "[::1]"
@@ -37,23 +78,17 @@ function isBlockedHost(hostname){
   if (host === "localhost" || host === "0.0.0.0" || host === "::1") return true;
   if (host.endsWith(".local") || host.endsWith(".internal")) return true;
 
-  const ipv4Match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (ipv4Match) {
-    const octets = ipv4Match.slice(1, 5).map(Number);
-    if (octets.some(o => o > 255)) return false;
-    const [a, b] = octets;
-    if (a === 127) return true; // boucle locale 127.0.0.0/8
-    if (a === 10) return true; // privé 10.0.0.0/8
-    if (a === 172 && b >= 16 && b <= 31) return true; // privé 172.16.0.0/12
-    if (a === 192 && b === 168) return true; // privé 192.168.0.0/16
-    if (a === 169 && b === 254) return true; // link-local 169.254.0.0/16
-    return false;
-  }
+  if (isBlockedIpv4(host)) return true;
 
   if (host.includes(":")) {
     // adresse IPv6 littérale
     if (/^fc/.test(host) || /^fd/.test(host)) return true; // unique-local fc00::/7
     if (/^fe[89ab]/.test(host)) return true; // link-local fe80::/10
+
+    // forme IPv4-mappée : ::ffff:a.b.c.d, ou la forme pleinement développée
+    // 0000:0000:0000:0000:0000:ffff:a.b.c.d / 0:0:0:0:0:ffff:a.b.c.d
+    const mappedMatch = host.match(/(?:^::ffff:|^(?:0{1,4}:){5}ffff:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+    if (mappedMatch && isBlockedIpv4(mappedMatch[1])) return true;
   }
 
   return false;
