@@ -10,6 +10,8 @@ const corsHeaders = {
 };
 
 const FETCH_TIMEOUT_MS = 10000;
+const MAX_PAGE_BYTES = 5 * 1024 * 1024; // 5 Mo
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 Mo
 
 async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS){
   const controller = new AbortController();
@@ -22,6 +24,76 @@ async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS){
   } finally {
     clearTimeout(timer);
   }
+}
+
+/* ---- garde anti-SSRF : refuse les hôtes internes/privés ---- */
+function isBlockedHost(hostname){
+  let host = (hostname || "").toLowerCase().replace(/\.$/, "");
+  // une adresse IPv6 littérale issue de URL#hostname est entourée de crochets, ex. "[::1]"
+  if (host.startsWith("[") && host.endsWith("]")) {
+    host = host.slice(1, -1);
+  }
+
+  if (host === "localhost" || host === "0.0.0.0" || host === "::1") return true;
+  if (host.endsWith(".local") || host.endsWith(".internal")) return true;
+
+  const ipv4Match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4Match) {
+    const octets = ipv4Match.slice(1, 5).map(Number);
+    if (octets.some(o => o > 255)) return false;
+    const [a, b] = octets;
+    if (a === 127) return true; // boucle locale 127.0.0.0/8
+    if (a === 10) return true; // privé 10.0.0.0/8
+    if (a === 172 && b >= 16 && b <= 31) return true; // privé 172.16.0.0/12
+    if (a === 192 && b === 168) return true; // privé 192.168.0.0/16
+    if (a === 169 && b === 254) return true; // link-local 169.254.0.0/16
+    return false;
+  }
+
+  if (host.includes(":")) {
+    // adresse IPv6 littérale
+    if (/^fc/.test(host) || /^fd/.test(host)) return true; // unique-local fc00::/7
+    if (/^fe[89ab]/.test(host)) return true; // link-local fe80::/10
+  }
+
+  return false;
+}
+
+/* ---- lecture bornée d'un corps de réponse, pour éviter un pic mémoire ---- */
+async function readWithLimit(res, maxBytes){
+  if (!res.body) {
+    const buffer = await res.arrayBuffer();
+    if (buffer.byteLength > maxBytes) throw new Error("Réponse trop volumineuse");
+    return new Uint8Array(buffer);
+  }
+
+  const reader = res.body.getReader();
+  const chunks = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      total += value.byteLength;
+      if (total > maxBytes) {
+        try {
+          await reader.cancel();
+        } catch {
+          // on ignore l'erreur d'annulation, on va throw de toute façon
+        }
+        throw new Error("Réponse trop volumineuse");
+      }
+      chunks.push(value);
+    }
+  }
+
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return result;
 }
 
 /* ---- recherche et mapping du JSON-LD schema.org/Recipe ---- */
@@ -219,12 +291,15 @@ async function extractRecipeWithAi(pageText){
 async function downloadImageAsBase64(imageUrl){
   if (!imageUrl) return null;
   try {
-    const res = await fetchWithTimeout(imageUrl);
+    const parsedImageUrl = new URL(imageUrl);
+    if (parsedImageUrl.protocol !== "http:" && parsedImageUrl.protocol !== "https:") return null;
+    if (isBlockedHost(parsedImageUrl.hostname)) return null;
+
+    const res = await fetchWithTimeout(parsedImageUrl.toString());
     if (!res.ok) return null;
     const mimeType = res.headers.get("content-type") || "image/jpeg";
     if (!mimeType.startsWith("image/")) return null;
-    const buffer = await res.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
+    const bytes = await readWithLimit(res, MAX_IMAGE_BYTES);
     let binary = "";
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return { mimeType, data: btoa(binary) };
@@ -263,6 +338,7 @@ Deno.serve(async (req) => {
     try {
       pageUrl = new URL(url);
       if (pageUrl.protocol !== "http:" && pageUrl.protocol !== "https:") throw new Error("protocole invalide");
+      if (isBlockedHost(pageUrl.hostname)) throw new Error("hôte interdit");
     } catch {
       return new Response(JSON.stringify({ error: "URL invalide" }), {
         status: 400,
@@ -274,7 +350,8 @@ Deno.serve(async (req) => {
     try {
       const pageRes = await fetchWithTimeout(pageUrl.toString());
       if (!pageRes.ok) throw new Error(`statut ${pageRes.status}`);
-      html = await pageRes.text();
+      const pageBytes = await readWithLimit(pageRes, MAX_PAGE_BYTES);
+      html = new TextDecoder().decode(pageBytes);
     } catch {
       return new Response(JSON.stringify({ error: "Impossible de récupérer cette page" }), {
         status: 502,
