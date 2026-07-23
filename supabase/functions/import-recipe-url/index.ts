@@ -257,7 +257,7 @@ function mapJsonLdToRecipe(node){
     servings: firstNumber(node.recipeYield),
     calories: firstNumber(node.nutrition?.calories),
     protein: firstNumber(node.nutrition?.proteinContent),
-    allergens: null,
+    allergens: [],
     ingredients: toStringArray(node.recipeIngredient).map(text => [stripHtmlTags(text), ""]),
     utensils: toStringArray(node.tool || node.recipeEquipment).map(stripHtmlTags),
     steps: toStringArray(node.recipeInstructions).map(stripHtmlTags),
@@ -291,7 +291,7 @@ const TEXT_EXTRACTION_PROMPT = `Tu regardes le texte extrait d'une page web de r
   "servings": number,
   "calories": number | null,
   "protein": number | null,
-  "allergens": string | null,
+  "allergens": string[],
   "ingredients": [string, string][],
   "utensils": string[],
   "steps": string[]
@@ -301,6 +301,7 @@ Règles :
 - "ingredients" est une liste de paires [nom, quantité], ex. ["Oignon jaune", "1"].
 - "steps" est la liste des étapes dans l'ordre, texte intégral de chaque étape.
 - "category" doit être la plus proche possible parmi "entrée", "plat", "dessert".
+- "allergens" est un tableau ne contenant QUE des clés parmi cette liste fixe : "gluten", "crustaces", "oeufs", "poisson", "arachides", "soja", "lait", "fruits-a-coque", "celeri", "moutarde", "sesame", "sulfites", "lupin", "mollusques". N'inclue une clé que si un ingrédient de la recette la contient clairement (ex. farine/pâte → "gluten" ; beurre/crème/lait → "lait" ; œufs → "oeufs" ; amandes/noisettes/noix → "fruits-a-coque"). Tableau vide si aucun allergène identifié ou en cas de doute — ne jamais deviner.
 - Si une info n'est pas présente dans le texte (ex. calories), utilise null pour les champs numériques/texte optionnels, ou un tableau vide pour les listes.
 - N'invente aucune information absente du texte. Si le texte ne décrit pas une recette de cuisine, renvoie des champs vides/null.`;
 
@@ -350,7 +351,7 @@ async function extractRecipeWithAi(pageText){
     servings: typeof extracted.servings === "number" ? extracted.servings : undefined,
     calories: typeof extracted.calories === "number" ? extracted.calories : undefined,
     protein: typeof extracted.protein === "number" ? extracted.protein : undefined,
-    allergens: typeof extracted.allergens === "string" ? extracted.allergens : null,
+    allergens: Array.isArray(extracted.allergens) ? extracted.allergens : [],
     ingredients: Array.isArray(extracted.ingredients) ? extracted.ingredients : [],
     utensils: Array.isArray(extracted.utensils) ? extracted.utensils : [],
     steps: Array.isArray(extracted.steps) ? extracted.steps : [],

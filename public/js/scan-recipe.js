@@ -1,13 +1,14 @@
 import { scanView, scanScroll } from "./dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { supabase, SUPABASE_URL } from "./supabase-client.js";
-import { CATEGORY_ICON } from "./recipes-data.js";
+import { CATEGORY_ICON, ALLERGENS } from "./recipes-data.js";
 import { openAddForm } from "./add-form.js";
 import { openPhotoEditor } from "./photo-editor.js";
 import { splitLeadingQuantity } from "./quantity.js";
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_ICON));
 const VALID_DIFFICULTIES = new Set(["Facile", "Intermédiaire", "Difficile"]);
+const VALID_ALLERGEN_KEYS = new Set(ALLERGENS.map(a => a.key));
 
 function blobToBase64(blob){
   return new Promise((resolve, reject) => {
@@ -62,6 +63,9 @@ export function sanitizeExtractedRecipe(raw, photoBlob){
   const nutrition = (typeof raw?.calories === "number" && typeof raw?.protein === "number")
     ? { calories: raw.calories, protein: raw.protein }
     : undefined;
+  const allergens = Array.isArray(raw?.allergens)
+    ? raw.allergens.filter(key => VALID_ALLERGEN_KEYS.has(key))
+    : undefined;
 
   return {
     title: typeof raw?.title === "string" ? raw.title : "",
@@ -71,6 +75,7 @@ export function sanitizeExtractedRecipe(raw, photoBlob){
     servings: typeof raw?.servings === "number" ? raw.servings : undefined,
     nutrition,
     ingredients, utensils, steps,
+    allergens: allergens?.length ? allergens : undefined,
     photoBlob
   };
 }

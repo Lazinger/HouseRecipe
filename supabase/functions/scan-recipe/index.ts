@@ -20,7 +20,7 @@ const EXTRACTION_PROMPT = `Tu regardes une ou plusieurs photos d'une carte de re
   "servings": number,
   "calories": number | null,
   "protein": number | null,
-  "allergens": string | null,
+  "allergens": string[],
   "ingredients": [string, string][],
   "utensils": string[],
   "steps": string[]
@@ -30,6 +30,7 @@ Règles :
 - "ingredients" est une liste de paires [nom, quantité], ex. ["Oignon jaune", "1"].
 - "steps" est la liste des étapes dans l'ordre, texte intégral de chaque étape.
 - "category" doit être la plus proche possible parmi "entrée", "plat", "dessert" (la grande majorité des cartes HelloFresh sont des "plat").
+- "allergens" est un tableau ne contenant QUE des clés parmi cette liste fixe : "gluten", "crustaces", "oeufs", "poisson", "arachides", "soja", "lait", "fruits-a-coque", "celeri", "moutarde", "sesame", "sulfites", "lupin", "mollusques". N'inclue une clé que si un ingrédient de la recette la contient clairement (ex. farine/pâte → "gluten" ; beurre/crème/lait → "lait" ; œufs → "oeufs" ; amandes/noisettes/noix → "fruits-a-coque"). Tableau vide si aucun allergène identifié ou en cas de doute — ne jamais deviner.
 - Si une info n'est pas présente sur la carte (ex. calories), utilise null pour les champs numériques/texte optionnels, ou un tableau vide pour les listes.
 - N'invente aucune information absente de la photo.`;
 
