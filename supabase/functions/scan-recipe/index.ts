@@ -75,14 +75,17 @@ Deno.serve(async (req) => {
     }
 
     const imageParts = images.map(img => ({
-      inlineData: { mimeType: img.mimeType, data: img.data }
+      inline_data: { mime_type: img.mimeType, data: img.data }
     }));
 
     // IMPORTANT : vérifier le format exact de requête/réponse actuel sur
     // https://ai.google.dev/gemini-api/docs avant de figer ce code — l'API Gemini
     // a changé plusieurs fois de format courant 2026. Le code ci-dessous cible
     // generateContent sur gemini-3.5-flash (entrée multimodale, sortie texte),
-    // avec generationConfig.responseMimeType pour forcer une sortie JSON.
+    // avec generationConfig.response_mime_type pour forcer une sortie JSON.
+    // Champs en snake_case (inline_data/mime_type/response_mime_type) : c'est le
+    // format actuel de l'API REST Gemini, confirmé le 2026-07-23 après un 502 en
+    // production causé par l'ancien camelCase (inlineData/mimeType/responseMimeType).
     const geminiRes = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
       {
@@ -93,12 +96,14 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: EXTRACTION_PROMPT }, ...imageParts] }],
-          generationConfig: { responseMimeType: "application/json" }
+          generationConfig: { response_mime_type: "application/json" }
         })
       }
     );
 
     if (!geminiRes.ok) {
+      const errBody = await geminiRes.text().catch(() => "");
+      console.error(`scan-recipe: Gemini a répondu ${geminiRes.status} — ${errBody.slice(0, 500)}`);
       return new Response(JSON.stringify({ error: "Échec de l'analyse de la recette" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" }

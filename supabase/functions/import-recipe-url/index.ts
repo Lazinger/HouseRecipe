@@ -203,6 +203,35 @@ function toStringArray(value){
   }).filter(Boolean);
 }
 
+const HTML_ENTITIES = {
+  amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", nbsp: " ",
+  eacute: "é", egrave: "è", ecirc: "ê", euml: "ë",
+  agrave: "à", acirc: "â", ccedil: "ç",
+  ocirc: "ô", oelig: "œ", ucirc: "û", ugrave: "ù",
+  icirc: "î", iuml: "ï",
+  deg: "°", hellip: "…", mdash: "—", ndash: "–",
+  rsquo: "'", lsquo: "'", rdquo: "\"", ldquo: "\"",
+  frac12: "½", frac14: "¼", frac34: "¾", times: "×"
+};
+function decodeHtmlEntities(str){
+  return str.replace(/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, entity) => {
+    if (entity[0] === "#") {
+      const isHex = entity[1] === "x" || entity[1] === "X";
+      const code = parseInt(isHex ? entity.slice(2) : entity.slice(1), isHex ? 16 : 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+    }
+    return HTML_ENTITIES[entity] ?? match;
+  });
+}
+/* ---- nettoyage des champs issus du JSON-LD : certains sites y laissent des
+   balises/entités HTML brutes (contenu venant d'un éditeur riche non
+   assaini avant sérialisation) — trouvé en production le 2026-07-23. ---- */
+function stripHtmlTags(str){
+  if (typeof str !== "string") return str;
+  const noTags = str.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return decodeHtmlEntities(noTags);
+}
+
 function extractImageUrl(image){
   if (!image) return undefined;
   if (typeof image === "string") return image;
@@ -220,18 +249,18 @@ function mapJsonLdToRecipe(node){
   const totalMinutes = parseIsoDurationToMinutes(node.totalTime) ?? sumIsoDurations(node.prepTime, node.cookTime);
 
   return {
-    title: typeof node.name === "string" ? node.name : "",
+    title: stripHtmlTags(typeof node.name === "string" ? node.name : ""),
     category: guessCategory(node.recipeCategory, node.name),
     difficulty: undefined,
-    desc: typeof node.description === "string" ? node.description : "",
+    desc: stripHtmlTags(typeof node.description === "string" ? node.description : ""),
     time: totalMinutes,
     servings: firstNumber(node.recipeYield),
     calories: firstNumber(node.nutrition?.calories),
     protein: firstNumber(node.nutrition?.proteinContent),
     allergens: null,
-    ingredients: toStringArray(node.recipeIngredient).map(text => [text, ""]),
-    utensils: toStringArray(node.tool || node.recipeEquipment),
-    steps: toStringArray(node.recipeInstructions),
+    ingredients: toStringArray(node.recipeIngredient).map(text => [stripHtmlTags(text), ""]),
+    utensils: toStringArray(node.tool || node.recipeEquipment).map(stripHtmlTags),
+    steps: toStringArray(node.recipeInstructions).map(stripHtmlTags),
     imageUrl: extractImageUrl(node.image)
   };
 }
@@ -277,7 +306,10 @@ Règles :
 
 // IMPORTANT : vérifier le format exact de requête/réponse actuel sur
 // https://ai.google.dev/gemini-api/docs avant de figer ce code — l'API Gemini
-// a déjà changé plusieurs fois de format courant 2026.
+// a déjà changé plusieurs fois de format courant 2026. Champ en snake_case
+// (response_mime_type) : format actuel de l'API REST Gemini, confirmé le
+// 2026-07-23 après un 502 en production causé par l'ancien camelCase
+// (responseMimeType) dans cette même fonction et dans scan-recipe.
 async function extractRecipeWithAi(pageText){
   const geminiRes = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
@@ -289,12 +321,16 @@ async function extractRecipeWithAi(pageText){
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: TEXT_EXTRACTION_PROMPT }, { text: pageText }] }],
-        generationConfig: { responseMimeType: "application/json" }
+        generationConfig: { response_mime_type: "application/json" }
       })
     }
   );
 
-  if (!geminiRes.ok) throw new Error("Échec de l'analyse de la page");
+  if (!geminiRes.ok) {
+    const errBody = await geminiRes.text().catch(() => "");
+    console.error(`import-recipe-url (secours IA): Gemini a répondu ${geminiRes.status} — ${errBody.slice(0, 500)}`);
+    throw new Error("Échec de l'analyse de la page");
+  }
 
   const geminiData = await geminiRes.json();
   const parts = geminiData?.candidates?.[0]?.content?.parts || [];
