@@ -186,3 +186,20 @@ $$;
 -- Réinitialise le champ à vide pour les recettes existantes (le texte libre
 -- n'est pas reconvertible en clés fixes) — décision validée avec l'utilisateur.
 alter table public.recipes alter column allergens type jsonb using '[]'::jsonb;
+
+-- ===== meal_plan : planning de repas, strictement personnel (un compte = un planning) =====
+create table public.meal_plan (
+  user_id uuid not null references auth.users(id),
+  date date not null,
+  slot text not null check (slot in ('midi', 'soir')),
+  recipe_id text not null references public.recipes(id) on delete cascade,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, date, slot)
+);
+
+alter table public.meal_plan enable row level security;
+
+create policy "Users manage their own meal plan"
+  on public.meal_plan for all
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
