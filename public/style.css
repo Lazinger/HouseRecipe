@@ -663,6 +663,8 @@ input{ font-family: inherit; }
 #planBarCount{ font-size:.86rem; font-weight:600; color: var(--ink); }
 #planAddBtn:disabled{ opacity:.4; cursor:not-allowed; }
 
+body.is-planning{ padding-bottom: 90px; }
+
 /* =========================================================
    VUE AJOUT — formulaire plein écran
    ========================================================= */
