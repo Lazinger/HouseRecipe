@@ -1,4 +1,4 @@
-import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView } from "./dom.js";
+import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView, mealPlanView } from "./dom.js";
 import { closeDetail } from "./detail.js";
 import { closeAddForm, openAddForm } from "./add-form.js";
 import { closePanier, openPanier } from "./cart.js";
@@ -6,6 +6,7 @@ import { closeProfile } from "./profile.js";
 import { closeScanRecipe, openScanRecipe } from "./scan-recipe.js";
 import { closeImportUrl, openImportUrl } from "./import-url.js";
 import { closePhotoEditor } from "./photo-editor.js";
+import { closeMealPlan, openMealPlan } from "./meal-plan.js";
 import { render } from "./grid.js";
 
 /* ---- toast ---- */
@@ -24,6 +25,7 @@ export function syncBodyScrollLock(){
     || panierView.classList.contains("is-open")
     || scanView.classList.contains("is-open")
     || importUrlView.classList.contains("is-open")
+    || mealPlanView.classList.contains("is-open")
     || photoEditorView.classList.contains("is-open")
     || drawer.classList.contains("is-open");
   document.body.style.overflow = anyOpen ? "hidden" : "";
@@ -83,6 +85,7 @@ function closeAllOverlays(){
   closeProfile();
   closeScanRecipe();
   closeImportUrl();
+  closeMealPlan();
   closePhotoEditor();
 }
 
@@ -127,4 +130,9 @@ export function goToImportUrl(){
   closeAllOverlays();
   closeDrawer();
   openImportUrl();
+}
+export function goToMealPlan(){
+  closeAllOverlays();
+  closeDrawer();
+  openMealPlan();
 }
