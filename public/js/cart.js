@@ -106,6 +106,12 @@ export function addRecipeToCart(recipe, servings, ingredients){
   syncCartRemote();
 }
 
+export function addRecipesToCartBatch(recipes){
+  recipes.forEach(r => addRecipeToCart(r, r.servings, r.ingredients));
+  const count = recipes.length;
+  showToast(`${count} recette${count > 1 ? "s" : ""} ajoutée${count > 1 ? "s" : ""} au panier`);
+}
+
 export function removeRecipeFromCart(recipeId){
   const idx = cart.findIndex(e => e.recipeId === recipeId);
   if (idx >= 0) cart.splice(idx, 1);
