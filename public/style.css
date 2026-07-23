@@ -486,7 +486,7 @@ input{ font-family: inherit; }
   width:100%; max-width:760px; margin:0 auto; padding: 18px 20px 0;
   display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
 }
-.detail-heading-text{ min-width:0; }
+.detail-heading-text{ flex:1; min-width:0; }
 .detail-eyebrow{ font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color: var(--accent-dark); }
 .detail-heading h2{ font-family: var(--font-display); font-style: italic; color: var(--ink); font-size: clamp(1.8rem,4vw,2.5rem); margin-top:8px; font-weight:600; }
 @media (max-width: 640px){
