@@ -53,17 +53,11 @@ export const allergenFilterToggle = document.getElementById("allergenFilterToggl
 export const allergenFilterBadge = document.getElementById("allergenFilterBadge");
 export const allergenFilterPanel = document.getElementById("allergenFilterPanel");
 export const allergenFilterList = document.getElementById("allergenFilterList");
-export const planBtn = document.getElementById("planBtn");
-export const planBar = document.getElementById("planBar");
-export const planBarCount = document.getElementById("planBarCount");
-export const planAddBtn = document.getElementById("planAddBtn");
 
 /* ---- état de l'application ---- */
 export const state = {
   query: "",
   filter: "tout",
   favorites: new Set(JSON.parse(localStorage.getItem("carnet-favoris") || "[]")),
-  excludedAllergens: new Set(JSON.parse(localStorage.getItem("carnet-allergenes-exclus") || "[]")),
-  isPlanning: false,
-  plannedRecipes: new Set()
+  excludedAllergens: new Set(JSON.parse(localStorage.getItem("carnet-allergenes-exclus") || "[]"))
 };

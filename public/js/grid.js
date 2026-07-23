@@ -1,6 +1,6 @@
 import { CATEGORY_LABELS, ALLERGENS } from "./recipes-data.js";
 import { ICONS } from "./icons.js";
-import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList, planBar, planBarCount, planAddBtn } from "./dom.js";
+import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList } from "./dom.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
 import { applyCardPhoto } from "./photos.js";
 import { openDetail } from "./detail.js";
@@ -77,24 +77,6 @@ export function renderAllergenFilterPanel(){
 }
 
 /* ---- rendu de la grille ---- */
-function planCheckboxHtml(r){
-  const isPlanned = state.plannedRecipes.has(r.id);
-  return `
-    <button class="card-plan" type="button" aria-pressed="${isPlanned}" aria-label="Sélectionner pour le panier" data-planid="${r.id}">
-      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="${isPlanned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8"/>${isPlanned ? '<path d="m8 12 3 3 5-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' : ""}</svg>
-    </button>
-  `;
-}
-
-function updatePlanBar(){
-  planBar.hidden = !state.isPlanning;
-  const count = state.plannedRecipes.size;
-  planBarCount.textContent = count === 0
-    ? "Aucune recette sélectionnée"
-    : `${count} recette${count > 1 ? "s" : ""} sélectionnée${count > 1 ? "s" : ""}`;
-  planAddBtn.disabled = count === 0;
-}
-
 function renderGrid(){
   const list = getFilteredRecipes();
   heroSlot.hidden = state.query.trim() !== "";
@@ -113,7 +95,6 @@ function renderGrid(){
     card.innerHTML = `
       <div class="card-photo">
         <span class="card-icon">${ICONS[r.icon]}</span>
-        ${state.isPlanning ? planCheckboxHtml(r) : ""}
         <button class="card-fav" type="button" aria-pressed="${isFav}" aria-label="Ajouter aux favoris" data-favid="${r.id}">
           <svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-10-9.4C.4 7.6 2 4 5.6 3.4 8 3 10.2 4.2 12 6.6 13.8 4.2 16 3 18.4 3.4 22 4 23.6 7.6 22 11.1c-2.5 4.8-10 9.4-10 9.4Z" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </button>
@@ -130,26 +111,16 @@ function renderGrid(){
       </div>
     `;
     card.addEventListener("click", (e) => {
-      if (e.target.closest(".card-fav") || e.target.closest(".card-plan")) return;
+      if (e.target.closest(".card-fav")) return;
       openDetail(r.id);
     });
     card.querySelector(".card-fav").addEventListener("click", (e) => {
       e.stopPropagation();
       toggleFavorite(r.id);
     });
-    if (state.isPlanning) {
-      card.querySelector(".card-plan").addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (state.plannedRecipes.has(r.id)) state.plannedRecipes.delete(r.id);
-        else state.plannedRecipes.add(r.id);
-        render();
-      });
-    }
     grid.appendChild(card);
     applyCardPhoto(r.id, card.querySelector(".card-icon"));
   });
-
-  updatePlanBar();
 }
 
 export function render(){

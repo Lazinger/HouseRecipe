@@ -11,13 +11,13 @@ import {
   navLogoutBtn, accountToggle,
   detailView, addView, panierView, profileView, scanView, importUrlView, sheetBackdrop,
   addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, brandHomeBtn,
-  allergenFilterToggle, allergenFilterPanel, planBtn, planAddBtn
+  allergenFilterToggle, allergenFilterPanel
 } from "./dom.js";
 import { render, renderAllergenFilterPanel } from "./grid.js";
 import { closeDetail } from "./detail.js";
 import { openAddForm, closeAddForm } from "./add-form.js";
-import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal, addRecipesToCartBatch } from "./cart.js";
-import { initRecipesSync, initFavoritesSync, clearFavoritesLocal, ALL_RECIPES } from "./recipes-store.js";
+import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./cart.js";
+import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
 import { initPhotosSync } from "./photos.js";
 import { closeScanRecipe } from "./scan-recipe.js";
 import { closeImportUrl } from "./import-url.js";
@@ -95,25 +95,6 @@ document.addEventListener("keydown", (e) => {
 
 addFab.addEventListener("click", () => openAddForm());
 cartToggle.addEventListener("click", openPanier);
-
-planBtn.addEventListener("click", () => {
-  state.isPlanning = !state.isPlanning;
-  state.plannedRecipes.clear();
-  document.body.classList.toggle("is-planning", state.isPlanning);
-  planBtn.setAttribute("aria-pressed", String(state.isPlanning));
-  render();
-});
-
-planAddBtn.addEventListener("click", () => {
-  const recipes = ALL_RECIPES.filter(r => state.plannedRecipes.has(r.id));
-  if (!recipes.length) return;
-  addRecipesToCartBatch(recipes);
-  state.plannedRecipes.clear();
-  state.isPlanning = false;
-  document.body.classList.remove("is-planning");
-  planBtn.setAttribute("aria-pressed", "false");
-  render();
-});
 
 menuToggle.addEventListener("click", openDrawer);
 drawerCloseBtn.addEventListener("click", closeDrawer);
