@@ -11,7 +11,7 @@ import {
   navLogoutBtn, accountToggle,
   detailView, addView, panierView, profileView, scanView, importUrlView, sheetBackdrop,
   addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, brandHomeBtn,
-  allergenFilterToggle, allergenFilterPanel
+  allergenFilterToggle, allergenFilterPanel, planBtn
 } from "./dom.js";
 import { render, renderAllergenFilterPanel } from "./grid.js";
 import { closeDetail } from "./detail.js";
@@ -95,6 +95,14 @@ document.addEventListener("keydown", (e) => {
 
 addFab.addEventListener("click", () => openAddForm());
 cartToggle.addEventListener("click", openPanier);
+
+planBtn.addEventListener("click", () => {
+  state.isPlanning = !state.isPlanning;
+  state.plannedRecipes.clear();
+  document.body.classList.toggle("is-planning", state.isPlanning);
+  planBtn.setAttribute("aria-pressed", String(state.isPlanning));
+  render();
+});
 
 menuToggle.addEventListener("click", openDrawer);
 drawerCloseBtn.addEventListener("click", closeDrawer);

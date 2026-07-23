@@ -196,6 +196,7 @@ input{ font-family: inherit; }
 }
 .cart-toggle:hover{ border-color: var(--emerald); color: var(--emerald-dark); }
 .cart-toggle:active{ transform: scale(.94); }
+.cart-toggle[aria-pressed="true"]{ background: var(--emerald); color:#fff; border-color: var(--emerald); }
 .cart-badge{
   position:absolute; top:-5px; right:-5px;
   width:18px; height:18px; border-radius:50%;
@@ -381,6 +382,15 @@ input{ font-family: inherit; }
 }
 .card-fav[aria-pressed="true"]{ color: var(--terracotta-dark); }
 .card-fav svg{ width:16px; height:16px; }
+.card-plan{
+  position:absolute; top:10px; left:10px; z-index:1;
+  background: rgba(255,255,255,.92); border:none; color: var(--ink-faint); padding:8px;
+  display:flex; border-radius: 999px;
+  box-shadow: var(--shadow-raised);
+  transition: color .15s ease;
+}
+.card-plan[aria-pressed="true"]{ color: var(--emerald-dark); }
+.card-plan svg{ width:16px; height:16px; }
 
 .card-body{ display:flex; flex-direction:column; gap:12px; padding:14px 16px 16px; }
 
@@ -643,6 +653,16 @@ input{ font-family: inherit; }
 .fab:hover{ transform: translateY(-2px); background: var(--emerald-dark); }
 .fab:active{ transform: scale(.94); }
 
+.plan-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:45;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  background: var(--surface); border-top:1px solid var(--line);
+  padding: 14px 20px; box-shadow: var(--shadow-raised);
+}
+.plan-bar[hidden]{ display:none; }
+#planBarCount{ font-size:.86rem; font-weight:600; color: var(--ink); }
+#planAddBtn:disabled{ opacity:.4; cursor:not-allowed; }
+
 /* =========================================================
    VUE AJOUT — formulaire plein écran
    ========================================================= */
@@ -866,6 +886,7 @@ button:focus-visible, input:focus-visible{
 
 body.auth-locked .site-header,
 body.auth-locked #addFab{ display:none; }
+body.is-planning #addFab{ display:none; }
 
 /* =========================================================
    IMPRESSION — fiche recette uniquement
