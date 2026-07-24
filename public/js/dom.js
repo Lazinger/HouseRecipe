@@ -57,11 +57,13 @@ export const allergenFilterToggle = document.getElementById("allergenFilterToggl
 export const allergenFilterBadge = document.getElementById("allergenFilterBadge");
 export const allergenFilterPanel = document.getElementById("allergenFilterPanel");
 export const allergenFilterList = document.getElementById("allergenFilterList");
+export const seasonalFilterChip = document.getElementById("seasonalFilterChip");
 
 /* ---- état de l'application ---- */
 export const state = {
   query: "",
   filter: "tout",
   favorites: new Set(JSON.parse(localStorage.getItem("carnet-favoris") || "[]")),
-  excludedAllergens: new Set(JSON.parse(localStorage.getItem("carnet-allergenes-exclus") || "[]"))
+  excludedAllergens: new Set(JSON.parse(localStorage.getItem("carnet-allergenes-exclus") || "[]")),
+  seasonalFilter: null
 };

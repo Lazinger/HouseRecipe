@@ -338,6 +338,16 @@ input{ font-family: inherit; }
    GRILLE DE RECETTES
    ========================================================= */
 .grid-section{ max-width:1080px; margin: 36px auto 0; padding: 0 20px; }
+.seasonal-filter-chip{
+  display:inline-flex; align-items:center; gap:8px;
+  background: var(--emerald-tint); color: var(--emerald-dark); border-radius:999px;
+  padding:6px 8px 6px 14px; font-size:.84rem; font-weight:700; margin-bottom:14px;
+}
+.seasonal-filter-chip[hidden]{ display:none; }
+.seasonal-filter-chip button{
+  background: rgba(0,0,0,.08); border:none; border-radius:50%; width:20px; height:20px;
+  color: inherit; font-size:.7rem; line-height:1; cursor:pointer;
+}
 .grid-heading{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
 .grid-heading h2{ font-size:1.2rem; font-weight:700; }
 .result-count{ font-size:.78rem; color: var(--ink-faint); font-weight:500; }

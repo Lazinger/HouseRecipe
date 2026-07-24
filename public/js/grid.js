@@ -1,6 +1,7 @@
 import { CATEGORY_LABELS, ALLERGENS } from "./recipes-data.js";
 import { ICONS } from "./icons.js";
-import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList } from "./dom.js";
+import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList, seasonalFilterChip } from "./dom.js";
+import { produceMatchesRecipe } from "./season-data.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
 import { applyCardPhoto } from "./photos.js";
 import { openDetail } from "./detail.js";
@@ -44,9 +45,28 @@ function getFilteredRecipes(){
       r.category === state.filter;
     if (!matchesFilter) return false;
     if (state.excludedAllergens.size && r.allergens?.some(a => state.excludedAllergens.has(a))) return false;
+    if (state.seasonalFilter && !produceMatchesRecipe(state.seasonalFilter, r)) return false;
     if (!q) return true;
     const haystack = (r.title + " " + r.desc + " " + r.ingredients.map(i => i[0]).join(" ")).toLowerCase();
     return haystack.includes(q);
+  });
+}
+
+/* ---- chip de filtre saisonnier ---- */
+function renderSeasonalFilterChip(){
+  if (!state.seasonalFilter) {
+    seasonalFilterChip.hidden = true;
+    seasonalFilterChip.innerHTML = "";
+    return;
+  }
+  seasonalFilterChip.hidden = false;
+  seasonalFilterChip.innerHTML = `
+    <span>${state.seasonalFilter.label}</span>
+    <button type="button" id="seasonalFilterClear" aria-label="Retirer le filtre de saison">✕</button>
+  `;
+  seasonalFilterChip.querySelector("#seasonalFilterClear").addEventListener("click", () => {
+    state.seasonalFilter = null;
+    render();
   });
 }
 
@@ -82,6 +102,7 @@ function renderGrid(){
   heroSlot.hidden = state.query.trim() !== "";
   resultTitle.textContent = CATEGORY_LABELS[state.filter] || "Recettes";
   resultCount.textContent = list.length + (list.length > 1 ? " recettes" : " recette");
+  renderSeasonalFilterChip();
 
   grid.innerHTML = "";
   emptyState.hidden = list.length !== 0;
