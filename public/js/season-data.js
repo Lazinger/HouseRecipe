@@ -56,18 +56,38 @@ function normalizeForMatch(str){
     .split("").filter(ch => ch.codePointAt(0) < 0x300 || ch.codePointAt(0) > 0x36f).join("");
 }
 
-// "Pomme de terre"/"Patate" contiennent "pomme" en tête de mot : sans cette
-// exclusion, toute recette avec des pommes de terre serait aussi comptée
-// dans le fruit "Pomme" — seule collision connue de ce jeu de données,
-// corrigée ici plutôt que de complexifier le matching général (substring
-// simple, volontairement pas de découpage par mot).
+function tokenize(str){
+  return normalizeForMatch(str).split(/[^a-z]+/).filter(Boolean);
+}
+
+// Un alias (un ou plusieurs mots) doit apparaitre comme une sequence de mots
+// EXACTS et contigus dans l'ingredient - jamais un simple sous-texte - pour
+// eviter qu'un mot ne soit reconnu a tort parce qu'il est prefixe d'un autre
+// (ex. "poireau" ne doit jamais matcher l'alias "poire", "courgette" ne doit
+// jamais matcher "courge"). C'est pour ca que chaque forme singulier/pluriel
+// figure explicitement dans les alias de SEASONAL_PRODUCE plutot que d'etre
+// devinee par une regle de pluriel ici.
+function ingredientContainsAliasWords(ingredientTokens, aliasTokens){
+  for (let i = 0; i <= ingredientTokens.length - aliasTokens.length; i++) {
+    if (aliasTokens.every((word, j) => ingredientTokens[i + j] === word)) return true;
+  }
+  return false;
+}
+
+// "Pomme de terre"/"Patate" contiennent le mot "pomme" en tete : meme avec un
+// matching par mot entier, "pomme" (fruit) matcherait aussi ces ingredients
+// puisque "pommes" y est un mot valide a part entiere - seule collision qui
+// necessite une exclusion explicite en plus du matching par mot (le mot de
+// tete d'un nom compose reste un mot valide isole, la tokenisation seule ne
+// peut pas distinguer ce cas).
 const POMME_DE_TERRE_PATTERN = /pommes?\s+de\s+terre/;
 
 export function produceMatchesRecipe(produce, recipe){
   return recipe.ingredients.some(([name]) => {
     const normName = normalizeForMatch(name);
     if (produce.id === "pomme" && POMME_DE_TERRE_PATTERN.test(normName)) return false;
-    return produce.aliases.some(alias => normName.includes(normalizeForMatch(alias)));
+    const ingredientTokens = tokenize(name);
+    return produce.aliases.some(alias => ingredientContainsAliasWords(ingredientTokens, tokenize(alias)));
   });
 }
 
