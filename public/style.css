@@ -332,6 +332,10 @@ input{ font-family: inherit; }
   .hero-card{ grid-template-columns: 1fr; }
   .hero-art{ order:-1; min-height:140px; }
   .detail-actions-row{ float:none; justify-content:flex-end; margin-left:0; margin-top:12px; }
+  .meal-plan-days{ flex-direction:column; gap:14px; }
+  .meal-plan-day{ padding:12px 16px; }
+  .meal-plan-slot{ flex-direction:row; align-items:center; gap:10px; }
+  .meal-plan-slot-label{ flex:none; width:44px; }
 }
 
 /* =========================================================
@@ -758,18 +762,18 @@ input{ font-family: inherit; }
    ========================================================= */
 .panier-body{ max-width:760px; margin:0 auto; padding: 12px 20px 100px; }
 
-.meal-plan-body{ max-width:760px; margin:0 auto; padding:12px 20px 100px; }
+.meal-plan-body{ max-width:1080px; margin:0 auto; padding:12px 20px 100px; }
 .week-nav{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:12px; }
 .week-nav button{ background:none; border:none; font-size:1.4rem; color: var(--ink); cursor:pointer; padding:4px 10px; }
 #weekLabel{ font-weight:700; font-size:1rem; min-width:170px; text-align:center; }
 #weekTodayBtn{ display:block; margin:0 auto 20px; }
 
-.meal-plan-days{ display:flex; flex-direction:column; gap:14px; margin-bottom:20px; }
-.meal-plan-day{ background: var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 16px; }
+.meal-plan-days{ display:flex; flex-direction:row; gap:10px; margin-bottom:20px; align-items:flex-start; }
+.meal-plan-day{ background: var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 10px; flex:1; min-width:0; }
 .meal-plan-day-title{ font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color: var(--accent-dark); margin-bottom:10px; }
 .meal-plan-slots{ display:flex; flex-direction:column; gap:8px; }
-.meal-plan-slot{ display:flex; align-items:center; gap:10px; }
-.meal-plan-slot-label{ flex:none; width:44px; font-size:.78rem; color: var(--ink-soft); font-weight:600; }
+.meal-plan-slot{ display:flex; flex-direction:column; align-items:stretch; gap:4px; }
+.meal-plan-slot-label{ width:auto; font-size:.78rem; color: var(--ink-soft); font-weight:600; }
 .slot-add{ flex:1; text-align:left; background: var(--bg); border:1px dashed var(--line); border-radius:6px; padding:8px 12px; color: var(--ink-faint); font-size:.86rem; }
 .slot-recipe{ flex:1; min-width:0; text-align:left; background:none; border:none; padding:8px 0; color: var(--ink); font-weight:600; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .slot-remove{ flex:none; background: var(--terracotta-tint); color: var(--terracotta-dark); border:none; border-radius:50%; width:26px; height:26px; font-size:.75rem; }
