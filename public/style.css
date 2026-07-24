@@ -456,6 +456,8 @@ input{ font-family: inherit; }
     transition: transform .32s cubic-bezier(.32,.72,0,1);
   }
   .auth-view.is-open{ transform: translateX(0); }
+
+  #mealPlanView{ width: min(1080px, calc(100vw - 48px)); }
 }
 
 .sheet-backdrop{
@@ -764,9 +766,9 @@ input{ font-family: inherit; }
 #weekLabel{ font-weight:700; font-size:1rem; min-width:170px; text-align:center; }
 #weekTodayBtn{ display:block; margin:0 auto 20px; }
 
-.meal-plan-days{ display:flex; flex-direction:row; gap:10px; margin-bottom:20px; align-items:flex-start; }
+.meal-plan-days{ display:flex; flex-direction:row; gap:10px; margin-bottom:20px; align-items:stretch; }
 .meal-plan-day{ background: var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 10px; flex:1; min-width:0; }
-.meal-plan-day-title{ font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color: var(--accent-dark); margin-bottom:10px; }
+.meal-plan-day-title{ font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color: var(--accent-dark); line-height:1.3; min-height:2.6em; margin-bottom:10px; }
 .meal-plan-slots{ display:flex; flex-direction:column; gap:8px; }
 .meal-plan-slot{ display:flex; flex-direction:column; align-items:stretch; gap:4px; }
 .meal-plan-slot-label{ width:auto; font-size:.78rem; color: var(--ink-soft); font-weight:600; }
@@ -777,7 +779,10 @@ input{ font-family: inherit; }
   .meal-plan-slot-label{ flex:none; width:44px; }
 }
 .slot-add{ flex:1; text-align:left; background: var(--bg); border:1px dashed var(--line); border-radius:6px; padding:8px 12px; color: var(--ink-faint); font-size:.86rem; }
-.slot-recipe{ flex:1; min-width:0; text-align:left; background:none; border:none; padding:8px 0; color: var(--ink); font-weight:600; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slot-recipe{
+  flex:1; min-width:0; text-align:left; background:none; border:none; padding:8px 0; color: var(--ink); font-weight:600; font-size:.9rem;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
 .slot-remove{ flex:none; background: var(--terracotta-tint); color: var(--terracotta-dark); border:none; border-radius:50%; width:26px; height:26px; font-size:.75rem; }
 
 .recipe-picker-backdrop{ position:fixed; inset:0; background: rgba(0,0,0,.4); z-index:70; }
