@@ -80,33 +80,76 @@ export function sanitizeExtractedRecipe(raw, photoBlob){
   };
 }
 
-/* ---- vue scan (capture de 1 à 4 photos pour pré-remplir une recette) ---- */
-let capturedFiles = [];
+/* ---- vue scan (4 lignes de capture : plat, titre, ingrédients, étapes) ---- */
+const SCAN_ROWS = [
+  { key: "dish", label: "Photo de la recette", required: false, allowSkip: true, aspectRatio: 16 / 9 },
+  { key: "title", label: "Photo du titre", required: true },
+  { key: "ingredients", label: "Photo des ingrédients", required: true },
+  { key: "steps", label: "Photo des étapes", required: true }
+];
 
-function renderPhotoThumbs(){
-  const container = scanScroll.querySelector("#scanPhotos");
-  container.innerHTML = capturedFiles.map((file, i) => `
-    <div class="scan-photo-thumb">
-      <img src="${URL.createObjectURL(file)}" alt="Photo ${i + 1}">
-      <button type="button" class="scan-photo-remove" data-index="${i}" aria-label="Supprimer cette photo">✕</button>
-    </div>
-  `).join("");
+let scanSlots = {};
+let noDishPhoto = false;
+let pendingRowKey = null;
+
+function renderScanRows(){
+  const container = scanScroll.querySelector("#scanRows");
+  container.innerHTML = SCAN_ROWS.map(row => {
+    const file = scanSlots[row.key];
+    const skipped = row.allowSkip && noDishPhoto;
+    const photoHtml = file
+      ? `<div class="scan-photo-thumb">
+           <img src="${URL.createObjectURL(file)}" alt="${row.label}">
+           <button type="button" class="scan-photo-remove" data-row="${row.key}" aria-label="Supprimer cette photo">✕</button>
+         </div>`
+      : `<button type="button" class="dyn-add scan-row-add" data-row="${row.key}" ${skipped ? "disabled" : ""}>+ Ajouter une photo</button>`;
+    return `
+      <div class="scan-row${skipped ? " is-skipped" : ""}">
+        <div class="scan-row-label">${row.label}${row.required ? "" : " (optionnelle)"}</div>
+        <div class="scan-row-photo">${photoHtml}</div>
+        ${row.allowSkip ? `
+          <label class="scan-row-skip">
+            <input type="checkbox" id="scanNoDishPhoto" ${noDishPhoto ? "checked" : ""}>
+            Je n'ai pas de photo
+          </label>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+
+  container.querySelectorAll(".scan-row-add").forEach(btn => {
+    btn.addEventListener("click", () => {
+      pendingRowKey = btn.dataset.row;
+      scanScroll.querySelector("#scanCameraInput").click();
+    });
+  });
   container.querySelectorAll(".scan-photo-remove").forEach(btn => {
     btn.addEventListener("click", () => {
-      capturedFiles.splice(Number(btn.dataset.index), 1);
-      renderPhotoThumbs();
+      scanSlots[btn.dataset.row] = null;
+      renderScanRows();
       updateScanButtons();
     });
   });
+  const skipCheckbox = container.querySelector("#scanNoDishPhoto");
+  if (skipCheckbox) {
+    skipCheckbox.addEventListener("change", () => {
+      noDishPhoto = skipCheckbox.checked;
+      if (noDishPhoto) scanSlots.dish = null;
+      renderScanRows();
+      updateScanButtons();
+    });
+  }
 }
 
 function updateScanButtons(){
-  scanScroll.querySelector("#scanAddPhotoBtn").disabled = capturedFiles.length >= 4;
-  scanScroll.querySelector("#scanExtractBtn").disabled = capturedFiles.length === 0;
+  const ready = SCAN_ROWS.every(row => !row.required || scanSlots[row.key]);
+  scanScroll.querySelector("#scanExtractBtn").disabled = !ready;
 }
 
 function renderScanCapture(){
-  capturedFiles = [];
+  scanSlots = {};
+  noDishPhoto = false;
+  pendingRowKey = null;
   scanScroll.innerHTML = `
     <div class="add-topbar">
       <div class="add-topbar-left">
@@ -117,10 +160,8 @@ function renderScanCapture(){
       <h2>Scanner une recette</h2>
     </div>
     <div class="add-form">
-      <p class="scan-hint">Prends une ou plusieurs photos de la carte (recto, verso…), jusqu'à 4.</p>
-      <div id="scanPhotos" class="scan-photos"></div>
+      <div id="scanRows" class="scan-rows"></div>
       <input type="file" accept="image/*" capture="environment" id="scanCameraInput" hidden>
-      <button type="button" class="dyn-add" id="scanAddPhotoBtn">+ Ajouter une photo</button>
       <p id="scanError" class="add-error" hidden></p>
       <div class="add-actions">
         <button type="button" class="btn-secondary" id="scanCancelBtn">Annuler</button>
@@ -129,23 +170,23 @@ function renderScanCapture(){
     </div>
   `;
 
-  renderPhotoThumbs();
+  renderScanRows();
   updateScanButtons();
 
   scanScroll.querySelector("#scanMenuBtn").addEventListener("click", openDrawer);
   scanScroll.querySelector("#scanCancelBtn").addEventListener("click", requestCloseSheet);
-  scanScroll.querySelector("#scanAddPhotoBtn").addEventListener("click", () => {
-    scanScroll.querySelector("#scanCameraInput").click();
-  });
   scanScroll.querySelector("#scanCameraInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
     e.target.value = "";
-    if (!file) return;
-    const aspectRatio = capturedFiles.length === 0 ? 16 / 9 : undefined;
-    const edited = await openPhotoEditor(file, aspectRatio);
+    const rowKey = pendingRowKey;
+    pendingRowKey = null;
+    if (!file || !rowKey) return;
+    const rowDef = SCAN_ROWS.find(r => r.key === rowKey);
+    const edited = await openPhotoEditor(file, rowDef.aspectRatio);
     if (!edited) return;
-    capturedFiles.push(edited);
-    renderPhotoThumbs();
+    scanSlots[rowKey] = edited;
+    if (rowKey === "dish") noDishPhoto = false;
+    renderScanRows();
     updateScanButtons();
   });
 
@@ -154,11 +195,12 @@ function renderScanCapture(){
     const scanError = scanScroll.querySelector("#scanError");
     scanError.hidden = true;
     extractBtn.disabled = true;
-    scanScroll.querySelector("#scanAddPhotoBtn").disabled = true;
+    scanScroll.querySelectorAll("#scanRows button, #scanRows input").forEach(el => el.disabled = true);
     extractBtn.textContent = "Analyse en cours…";
     try {
-      const raw = await scanRecipeImages(capturedFiles);
-      const prefillData = sanitizeExtractedRecipe(raw, capturedFiles[0]);
+      const files = SCAN_ROWS.map(row => scanSlots[row.key]).filter(Boolean);
+      const raw = await scanRecipeImages(files);
+      const prefillData = sanitizeExtractedRecipe(raw, scanSlots.dish || undefined);
       closeScanRecipe();
       openAddForm(null, prefillData);
     } catch (err) {
@@ -166,6 +208,7 @@ function renderScanCapture(){
       scanError.textContent = "Impossible d'analyser ces photos : " + (err.message || "erreur inconnue") + " (réessaie)";
       scanError.hidden = false;
       extractBtn.textContent = "Extraire";
+      renderScanRows();
       updateScanButtons();
     }
   });

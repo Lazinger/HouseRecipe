@@ -709,7 +709,12 @@ input{ font-family: inherit; }
 .dyn-add.is-active{ background: var(--emerald); color:#fff; border-color: var(--emerald); }
 
 .scan-hint{ font-size:.86rem; color: var(--ink-soft); margin:0; }
-.scan-photos{ display:flex; flex-wrap:wrap; gap:10px; }
+.scan-rows{ display:flex; flex-direction:column; gap:16px; }
+.scan-row{ display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.scan-row-label{ flex:1 1 auto; min-width:140px; font-size:.9rem; font-weight:600; color: var(--ink); }
+.scan-row-photo{ flex:none; }
+.scan-row-skip{ flex:1 1 100%; display:flex; align-items:center; gap:6px; font-size:.82rem; color: var(--ink-soft); }
+.scan-row.is-skipped .scan-row-label{ color: var(--ink-soft); }
 .scan-photo-thumb{ position:relative; width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px solid var(--line); }
 .scan-photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
 .scan-photo-remove{
