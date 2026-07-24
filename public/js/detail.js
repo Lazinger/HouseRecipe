@@ -41,12 +41,6 @@ export function openDetail(id){
       </div>
     </div>
     <div class="detail-heading">
-      <div class="detail-heading-text">
-        <span class="detail-eyebrow">${r.category}</span>
-        <h2>${r.title}</h2>
-        <p class="detail-sub" id="detailSub">${r.desc}</p>
-        <button type="button" class="detail-sub-toggle" id="detailSubToggle" hidden>Voir plus</button>
-      </div>
       <div class="detail-actions-row">
         <button class="detail-fav" id="detailPrintBtn" type="button" aria-label="Imprimer la recette">
           <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6v-7Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
@@ -60,6 +54,12 @@ export function openDetail(id){
         <button class="detail-fav" id="detailFavBtn" type="button" aria-pressed="${isFav}" aria-label="Ajouter aux favoris">
           <svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 20.5s-7.5-4.6-10-9.4C.4 7.6 2 4 5.6 3.4 8 3 10.2 4.2 12 6.6 13.8 4.2 16 3 18.4 3.4 22 4 23.6 7.6 22 11.1c-2.5 4.8-10 9.4-10 9.4Z" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </button>
+      </div>
+      <div class="detail-heading-text">
+        <span class="detail-eyebrow">${r.category}</span>
+        <h2>${r.title}</h2>
+        <p class="detail-sub" id="detailSub">${r.desc}</p>
+        <button type="button" class="detail-sub-toggle" id="detailSubToggle" hidden>Voir plus</button>
       </div>
     </div>
     <div class="detail-info">

@@ -331,8 +331,7 @@ input{ font-family: inherit; }
 @media (max-width: 640px){
   .hero-card{ grid-template-columns: 1fr; }
   .hero-art{ order:-1; min-height:140px; }
-  .detail-heading{ flex-direction:column; align-items:stretch; gap:12px; }
-  .detail-actions-row{ justify-content:flex-end; }
+  .detail-actions-row{ float:none; justify-content:flex-end; margin-left:0; margin-top:12px; }
 }
 
 /* =========================================================
@@ -471,7 +470,7 @@ input{ font-family: inherit; }
 .detail-topbar{ position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; width:100%; max-width:1080px; margin:0 auto; }
 .detail-topbar-left{ display:flex; align-items:center; gap:8px; }
 .detail-topbar-right{ display:flex; align-items:center; gap:8px; }
-.detail-actions-row{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.detail-actions-row{ display:flex; align-items:center; gap:8px; float:right; margin-left:16px; }
 .detail-fav{
   background: var(--surface); border:1px solid var(--line);
   color: var(--ink); border-radius:50%; width:38px; height:38px;
@@ -484,16 +483,16 @@ input{ font-family: inherit; }
 
 .detail-heading{
   width:100%; max-width:760px; margin:0 auto; padding: 18px 20px 0;
-  display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
 }
-.detail-heading-text{ flex:1; min-width:0; }
+.detail-heading::after{ content:""; display:block; clear:both; }
+.detail-heading-text{ min-width:0; }
 .detail-eyebrow{ font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color: var(--accent-dark); }
 .detail-heading h2{ font-family: var(--font-display); font-style: italic; color: var(--ink); font-size: clamp(1.8rem,4vw,2.5rem); margin-top:8px; font-weight:600; }
 @media (max-width: 640px){
   .detail-heading h2{ font-size: clamp(1.4rem, 6vw, 2rem); }
 }
 .detail-sub{
-  color: var(--ink-soft); font-size:.9rem; margin-top:10px; max-width:60ch;
+  color: var(--ink-soft); font-size:.9rem; margin-top:10px;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 .detail-sub.is-expanded{ -webkit-line-clamp:unset; overflow:visible; }
