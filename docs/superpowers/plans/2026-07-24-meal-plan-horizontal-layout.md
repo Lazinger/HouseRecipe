@@ -65,25 +65,14 @@ par :
 
 Note pour l'implémenteur : `.meal-plan-body` passe de `max-width:760px` à `1080px` (comme `.grid-section`, la grille de recettes principale) pour laisser assez de place à 7 colonnes lisibles — cette valeur plus large ne change rien sur mobile puisque l'écran y est de toute façon plus étroit que les deux valeurs. `.meal-plan-days` passe de `column` à `row` avec chaque `.meal-plan-day` en `flex:1; min-width:0` pour des colonnes de largeur égale. `.meal-plan-slot` passe de `row` (étiquette et contenu côte à côte) à `column` (étiquette au-dessus) pour rester lisible dans une colonne étroite ; `.meal-plan-slot-label` perd sa largeur fixe de 44px (plus nécessaire en disposition colonne).
 
-- [ ] **Step 2: Ajouter les règles mobile qui restaurent la disposition actuelle**
+- [ ] **Step 2: Ajouter un nouveau bloc media query mobile qui restaure la disposition actuelle**
 
-Dans `public/style.css`, repérer le bloc media query mobile existant et remplacer :
+**Correction post-implémentation (2026-07-24) :** la version initiale de ce step demandait d'ajouter les 4 règles ci-dessous dans le bloc media query mobile existant en haut du fichier (celui avec `.hero-card`/`.hero-art`/`.detail-actions-row`, situé *avant* les règles de base de la Step 1 dans le fichier). C'est un bug de cascade CSS : à spécificité égale, une règle plus tôt dans le fichier perd toujours face à une règle identique plus tard, peu importe qu'elle soit dans un media query — donc les règles de base (Step 1, plus bas) gagnaient systématiquement, y compris sur mobile. Trouvé et corrigé par la revue de tâche. Le texte ci-dessous reflète la version corrigée : un **nouveau** bloc media query, séparé, ajouté **après** les règles de base de la Step 1.
 
-```css
-@media (max-width: 640px){
-  .hero-card{ grid-template-columns: 1fr; }
-  .hero-art{ order:-1; min-height:140px; }
-  .detail-actions-row{ float:none; justify-content:flex-end; margin-left:0; margin-top:12px; }
-}
-```
-
-par :
+Dans `public/style.css`, juste après la règle `.meal-plan-slot-label{ width:auto; font-size:.78rem; color: var(--ink-soft); font-weight:600; }` ajoutée à la Step 1, ajouter :
 
 ```css
 @media (max-width: 640px){
-  .hero-card{ grid-template-columns: 1fr; }
-  .hero-art{ order:-1; min-height:140px; }
-  .detail-actions-row{ float:none; justify-content:flex-end; margin-left:0; margin-top:12px; }
   .meal-plan-days{ flex-direction:column; gap:14px; }
   .meal-plan-day{ padding:12px 16px; }
   .meal-plan-slot{ flex-direction:row; align-items:center; gap:10px; }
@@ -91,7 +80,9 @@ par :
 }
 ```
 
-Note pour l'implémenteur : ces 4 règles ramènent exactement le rendu mobile à l'identique d'avant ce changement (jours empilés verticalement, étiquette de créneau côte à côte avec son contenu, padding d'origine) — rien d'autre ne doit changer sur mobile.
+Le bloc media query mobile existant en haut du fichier (`.hero-card`/`.hero-art`/`.detail-actions-row`) reste inchangé — ne pas y toucher.
+
+Note pour l'implémenteur : ces 4 règles ramènent exactement le rendu mobile à l'identique d'avant ce changement (jours empilés verticalement, étiquette de créneau côte à côte avec son contenu, padding d'origine) — rien d'autre ne doit changer sur mobile. Le fichier contient déjà plusieurs blocs `@media (max-width: 640px)` distincts (un par section du site) : ajouter un nouveau bloc plutôt que de consolider est cohérent avec cette convention existante.
 
 - [ ] **Step 3: Bump `CACHE_NAME`**
 
