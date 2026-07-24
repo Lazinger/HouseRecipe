@@ -1,4 +1,4 @@
-import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView, mealPlanView } from "./dom.js";
+import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView, mealPlanView, seasonView } from "./dom.js";
 import { closeDetail } from "./detail.js";
 import { closeAddForm, openAddForm } from "./add-form.js";
 import { closePanier, openPanier } from "./cart.js";
@@ -7,6 +7,7 @@ import { closeScanRecipe, openScanRecipe } from "./scan-recipe.js";
 import { closeImportUrl, openImportUrl } from "./import-url.js";
 import { closePhotoEditor } from "./photo-editor.js";
 import { closeMealPlan, openMealPlan } from "./meal-plan.js";
+import { closeSeason, openSeason } from "./season.js";
 import { render } from "./grid.js";
 
 /* ---- toast ---- */
@@ -26,6 +27,7 @@ export function syncBodyScrollLock(){
     || scanView.classList.contains("is-open")
     || importUrlView.classList.contains("is-open")
     || mealPlanView.classList.contains("is-open")
+    || seasonView.classList.contains("is-open")
     || photoEditorView.classList.contains("is-open")
     || drawer.classList.contains("is-open");
   document.body.style.overflow = anyOpen ? "hidden" : "";
@@ -86,6 +88,7 @@ function closeAllOverlays(){
   closeScanRecipe();
   closeImportUrl();
   closeMealPlan();
+  closeSeason();
   closePhotoEditor();
 }
 
@@ -135,4 +138,20 @@ export function goToMealPlan(){
   closeAllOverlays();
   closeDrawer();
   openMealPlan();
+}
+export function goToSeason(){
+  closeAllOverlays();
+  closeDrawer();
+  openSeason();
+}
+export function goToSeasonalRecipes(produce){
+  closeAllOverlays();
+  requestCloseSheet();
+  closeDrawer();
+  chips.forEach(c => c.classList.remove("is-active"));
+  document.querySelector('.chip[data-filter="tout"]').classList.add("is-active");
+  favToggleHeader.setAttribute("aria-pressed", "false");
+  state.filter = "tout";
+  state.seasonalFilter = produce;
+  render();
 }

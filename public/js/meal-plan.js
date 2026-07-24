@@ -8,7 +8,7 @@ import { addRecipesToCartBatch } from "./cart.js";
 
 /* ---- semaine : calculs de dates (fonctions pures, aucune dépendance à Supabase) ---- */
 export const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-const MONTH_NAMES = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+export const MONTH_NAMES = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
 export function getWeekStart(date){
   const d = new Date(date);
