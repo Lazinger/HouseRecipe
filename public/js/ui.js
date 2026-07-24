@@ -101,6 +101,7 @@ export function goToAllRecipes(){
   favToggleHeader.setAttribute("aria-pressed", "false");
   state.filter = "tout";
   state.query = "";
+  state.seasonalFilter = null;
   searchInput.value = "";
   render();
 }
