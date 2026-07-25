@@ -43,6 +43,7 @@ const GEMINI_RETRY_DELAY_MS = 1500;
    intermittence. Ni l'un ni l'autre n'est evitable cote requete : on reessaie. */
 async function callGeminiForJson(requestBody, logPrefix){
   let lastError = "erreur inconnue";
+  let lastCode = "unknown";
   for (let attempt = 1; attempt <= MAX_GEMINI_ATTEMPTS; attempt++) {
     try {
       const geminiRes = await fetch(
@@ -60,6 +61,7 @@ async function callGeminiForJson(requestBody, logPrefix){
       if (!geminiRes.ok) {
         const errBody = await geminiRes.text().catch(() => "");
         lastError = `Gemini a répondu ${geminiRes.status} — ${errBody.slice(0, 500)}`;
+        lastCode = geminiRes.status === 429 ? "rate_limited" : "upstream_error";
         console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError}`);
         if (geminiRes.status === 429 && attempt < MAX_GEMINI_ATTEMPTS) {
           await new Promise(r => setTimeout(r, GEMINI_RETRY_DELAY_MS));
@@ -72,6 +74,7 @@ async function callGeminiForJson(requestBody, logPrefix){
       const textPart = parts.find(p => typeof p.text === "string");
       if (!textPart) {
         lastError = "réponse Gemini sans texte";
+        lastCode = "malformed_response";
         console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError} — ${JSON.stringify(geminiData).slice(0, 500)}`);
         continue;
       }
@@ -81,11 +84,13 @@ async function callGeminiForJson(requestBody, logPrefix){
         extracted = JSON.parse(textPart.text);
       } catch (e) {
         lastError = `JSON illisible (${e.message})`;
+        lastCode = "malformed_response";
         console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError} — texte reçu : ${textPart.text.slice(0, 500)}`);
         continue;
       }
       if (!extracted || typeof extracted !== "object" || Array.isArray(extracted)) {
         lastError = "réponse Gemini invalide (pas un objet)";
+        lastCode = "malformed_response";
         console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError}`);
         continue;
       }
@@ -93,10 +98,27 @@ async function callGeminiForJson(requestBody, logPrefix){
       return extracted;
     } catch (err) {
       lastError = String(err);
+      lastCode = "network";
       console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): exception — ${lastError}`);
     }
   }
-  throw new Error(lastError);
+  const error = new Error(lastError);
+  error.code = lastCode;
+  throw error;
+}
+
+function geminiFailureResponse(err, corsHeaders){
+  const code = err?.code;
+  const message = code === "rate_limited"
+    ? "Le service d'analyse est très sollicité, réessaie dans une minute."
+    : code === "malformed_response"
+    ? "Le service d'analyse a renvoyé une réponse incomplète, réessaie."
+    : "Échec de l'analyse, réessaie.";
+  const status = code === "rate_limited" ? 429 : 502;
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" }
+  });
 }
 
 Deno.serve(async (req) => {
@@ -158,11 +180,8 @@ Deno.serve(async (req) => {
         contents: [{ parts: [{ text: EXTRACTION_PROMPT }, ...imageParts] }],
         generationConfig: { response_mime_type: "application/json" }
       }, "scan-recipe");
-    } catch {
-      return new Response(JSON.stringify({ error: "Échec de l'analyse de la recette" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+    } catch (err) {
+      return geminiFailureResponse(err, corsHeaders);
     }
 
     return new Response(JSON.stringify(extracted), {
