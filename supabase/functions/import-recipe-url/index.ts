@@ -305,6 +305,71 @@ Règles :
 - Si une info n'est pas présente dans le texte (ex. calories), utilise null pour les champs numériques/texte optionnels, ou un tableau vide pour les listes.
 - N'invente aucune information absente du texte. Si le texte ne décrit pas une recette de cuisine, renvoie des champs vides/null.`;
 
+const MAX_GEMINI_ATTEMPTS = 3;
+const GEMINI_RETRY_DELAY_MS = 1500;
+
+/* Gemini 3.5 Flash (mode "thinking") tronque parfois sa sortie JSON en plein
+   milieu tout en renvoyant finishReason "STOP" (confirmé par diagnostic en
+   prod le 2026-07-25, ~1 appel sur 4). Egalement sujet a un 429 (quota) par
+   intermittence. Ni l'un ni l'autre n'est evitable cote requete : on reessaie. */
+async function callGeminiForJson(requestBody, logPrefix){
+  let lastError = "erreur inconnue";
+  for (let attempt = 1; attempt <= MAX_GEMINI_ATTEMPTS; attempt++) {
+    try {
+      const geminiRes = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      if (!geminiRes.ok) {
+        const errBody = await geminiRes.text().catch(() => "");
+        lastError = `Gemini a répondu ${geminiRes.status} — ${errBody.slice(0, 500)}`;
+        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError}`);
+        if (geminiRes.status === 429 && attempt < MAX_GEMINI_ATTEMPTS) {
+          await new Promise(r => setTimeout(r, GEMINI_RETRY_DELAY_MS));
+        }
+        continue;
+      }
+
+      const geminiData = await geminiRes.json();
+      const parts = geminiData?.candidates?.[0]?.content?.parts || [];
+      const textPart = parts.find(p => typeof p.text === "string");
+      if (!textPart) {
+        lastError = "réponse Gemini sans texte";
+        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError} — ${JSON.stringify(geminiData).slice(0, 500)}`);
+        continue;
+      }
+
+      let extracted;
+      try {
+        extracted = JSON.parse(textPart.text);
+      } catch (e) {
+        lastError = `JSON illisible (${e.message})`;
+        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError} — texte reçu : ${textPart.text.slice(0, 500)}`);
+        continue;
+      }
+      if (!extracted || typeof extracted !== "object" || Array.isArray(extracted)) {
+        lastError = "réponse Gemini invalide (pas un objet)";
+        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError}`);
+        continue;
+      }
+
+      return extracted;
+    } catch (err) {
+      lastError = String(err);
+      console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): exception — ${lastError}`);
+    }
+  }
+  throw new Error(lastError);
+}
+
 // IMPORTANT : vérifier le format exact de requête/réponse actuel sur
 // https://ai.google.dev/gemini-api/docs avant de figer ce code — l'API Gemini
 // a déjà changé plusieurs fois de format courant 2026. Champ en snake_case
@@ -312,36 +377,10 @@ Règles :
 // 2026-07-23 après un 502 en production causé par l'ancien camelCase
 // (responseMimeType) dans cette même fonction et dans scan-recipe.
 async function extractRecipeWithAi(pageText){
-  const geminiRes = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": GEMINI_API_KEY
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: TEXT_EXTRACTION_PROMPT }, { text: pageText }] }],
-        generationConfig: { response_mime_type: "application/json" }
-      })
-    }
-  );
-
-  if (!geminiRes.ok) {
-    const errBody = await geminiRes.text().catch(() => "");
-    console.error(`import-recipe-url (secours IA): Gemini a répondu ${geminiRes.status} — ${errBody.slice(0, 500)}`);
-    throw new Error("Échec de l'analyse de la page");
-  }
-
-  const geminiData = await geminiRes.json();
-  const parts = geminiData?.candidates?.[0]?.content?.parts || [];
-  const textPart = parts.find(p => typeof p.text === "string");
-  if (!textPart) throw new Error("Réponse Gemini invalide");
-
-  const extracted = JSON.parse(textPart.text);
-  if (!extracted || typeof extracted !== "object" || Array.isArray(extracted)) {
-    throw new Error("Réponse Gemini invalide");
-  }
+  const extracted = await callGeminiForJson({
+    contents: [{ parts: [{ text: TEXT_EXTRACTION_PROMPT }, { text: pageText }] }],
+    generationConfig: { response_mime_type: "application/json" }
+  }, "import-recipe-url (secours IA)");
   return {
     title: typeof extracted.title === "string" ? extracted.title : "",
     category: extracted.category,

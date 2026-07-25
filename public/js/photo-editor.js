@@ -7,7 +7,7 @@ let pendingResolve = null;
 const HANDLE_SIZE = 14;
 const HANDLE_HIT = 22;
 const MIN_CROP = 40;
-const ENHANCE_FILTER = "brightness(1.5) contrast(1.4) saturate(1.25)";
+const ENHANCE_FILTER = "brightness(1.12) contrast(1.15) saturate(1.1)";
 
 function clamp(v, min, max){
   return Math.min(Math.max(v, min), max);
