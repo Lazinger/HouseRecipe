@@ -173,7 +173,7 @@ function renderPanier(){
       }).join("")}
       <h3 class="acheter-title"><span class="dot"></span> À acheter</h3>
       <div class="check-list">
-        ${merged.map(m => `
+        ${merged.slice().sort((a, b) => (checkedItems.has(a.key) ? 1 : 0) - (checkedItems.has(b.key) ? 1 : 0)).map(m => `
           <label class="check-line ${checkedItems.has(m.key) ? "done" : ""}">
             <span class="checkbox ${checkedItems.has(m.key) ? "checked" : ""}" data-key="${escapeAttr(m.key)}">${checkedItems.has(m.key) ? "✓" : ""}</span>
             ${m.name} — ${m.qty}
