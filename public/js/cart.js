@@ -51,6 +51,28 @@ function syncCartRemote(){
   cartWriteHandler(payload).catch(() => enqueue("cart", "main", payload));
 }
 
+/* Coche/décoche rapides (ex. pendant les courses) déclenchaient un upsert
+   Supabase par clic ; on regroupe ces écritures et on force l'envoi si
+   l'onglet passe en arrière-plan avant la fin du délai. */
+const CART_SYNC_DEBOUNCE_MS = 800;
+let pendingCartSync = null;
+
+function scheduleCartSync(){
+  clearTimeout(pendingCartSync);
+  pendingCartSync = setTimeout(() => {
+    pendingCartSync = null;
+    syncCartRemote();
+  }, CART_SYNC_DEBOUNCE_MS);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && pendingCartSync) {
+    clearTimeout(pendingCartSync);
+    pendingCartSync = null;
+    syncCartRemote();
+  }
+});
+
 export async function initCartSync(){
   try {
     const userId = await currentUserId();
@@ -212,7 +234,7 @@ function renderPanier(){
       const key = box.dataset.key;
       if (checkedItems.has(key)) checkedItems.delete(key); else checkedItems.add(key);
       saveCheckedItems();
-      syncCartRemote();
+      scheduleCartSync();
       renderPanier();
     });
   });
