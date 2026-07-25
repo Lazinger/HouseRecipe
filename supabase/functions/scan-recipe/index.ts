@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callGeminiForJson, geminiFailureMessage, geminiFailureStatus } from "../_shared/gemini.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -33,93 +34,6 @@ Règles :
 - "allergens" est un tableau ne contenant QUE des clés parmi cette liste fixe : "gluten", "crustaces", "oeufs", "poisson", "arachides", "soja", "lait", "fruits-a-coque", "celeri", "moutarde", "sesame", "sulfites", "lupin", "mollusques". N'inclue une clé que si un ingrédient de la recette la contient clairement (ex. farine/pâte → "gluten" ; beurre/crème/lait → "lait" ; œufs → "oeufs" ; amandes/noisettes/noix → "fruits-a-coque"). Tableau vide si aucun allergène identifié ou en cas de doute — ne jamais deviner.
 - Si une info n'est pas présente sur la carte (ex. calories), utilise null pour les champs numériques/texte optionnels, ou un tableau vide pour les listes.
 - N'invente aucune information absente de la photo.`;
-
-const MAX_GEMINI_ATTEMPTS = 3;
-const GEMINI_RETRY_DELAY_MS = 1500;
-
-/* Gemini 3.5 Flash (mode "thinking") tronque parfois sa sortie JSON en plein
-   milieu tout en renvoyant finishReason "STOP" (confirmé par diagnostic en
-   prod le 2026-07-25, ~1 appel sur 4). Egalement sujet a un 429 (quota) par
-   intermittence. Ni l'un ni l'autre n'est evitable cote requete : on reessaie. */
-async function callGeminiForJson(requestBody, logPrefix){
-  let lastError = "erreur inconnue";
-  let lastCode = "unknown";
-  for (let attempt = 1; attempt <= MAX_GEMINI_ATTEMPTS; attempt++) {
-    try {
-      const geminiRes = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": GEMINI_API_KEY
-          },
-          body: JSON.stringify(requestBody)
-        }
-      );
-
-      if (!geminiRes.ok) {
-        const errBody = await geminiRes.text().catch(() => "");
-        lastError = `Gemini a répondu ${geminiRes.status} — ${errBody.slice(0, 500)}`;
-        lastCode = geminiRes.status === 429 ? "rate_limited" : "upstream_error";
-        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError}`);
-        if (geminiRes.status === 429 && attempt < MAX_GEMINI_ATTEMPTS) {
-          await new Promise(r => setTimeout(r, GEMINI_RETRY_DELAY_MS));
-        }
-        continue;
-      }
-
-      const geminiData = await geminiRes.json();
-      const parts = geminiData?.candidates?.[0]?.content?.parts || [];
-      const textPart = parts.find(p => typeof p.text === "string");
-      if (!textPart) {
-        lastError = "réponse Gemini sans texte";
-        lastCode = "malformed_response";
-        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError} — ${JSON.stringify(geminiData).slice(0, 500)}`);
-        continue;
-      }
-
-      let extracted;
-      try {
-        extracted = JSON.parse(textPart.text);
-      } catch (e) {
-        lastError = `JSON illisible (${e.message})`;
-        lastCode = "malformed_response";
-        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError} — texte reçu : ${textPart.text.slice(0, 500)}`);
-        continue;
-      }
-      if (!extracted || typeof extracted !== "object" || Array.isArray(extracted)) {
-        lastError = "réponse Gemini invalide (pas un objet)";
-        lastCode = "malformed_response";
-        console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): ${lastError}`);
-        continue;
-      }
-
-      return extracted;
-    } catch (err) {
-      lastError = String(err);
-      lastCode = "network";
-      console.error(`${logPrefix} (tentative ${attempt}/${MAX_GEMINI_ATTEMPTS}): exception — ${lastError}`);
-    }
-  }
-  const error = new Error(lastError);
-  error.code = lastCode;
-  throw error;
-}
-
-function geminiFailureResponse(err, corsHeaders){
-  const code = err?.code;
-  const message = code === "rate_limited"
-    ? "Le service d'analyse est très sollicité, réessaie dans une minute."
-    : code === "malformed_response"
-    ? "Le service d'analyse a renvoyé une réponse incomplète, réessaie."
-    : "Échec de l'analyse, réessaie.";
-  const status = code === "rate_limited" ? 429 : 502;
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" }
-  });
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -181,7 +95,10 @@ Deno.serve(async (req) => {
         generationConfig: { response_mime_type: "application/json" }
       }, "scan-recipe");
     } catch (err) {
-      return geminiFailureResponse(err, corsHeaders);
+      return new Response(JSON.stringify({ error: geminiFailureMessage(err) }), {
+        status: geminiFailureStatus(err),
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
     return new Response(JSON.stringify(extracted), {
