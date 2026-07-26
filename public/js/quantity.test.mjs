@@ -16,7 +16,9 @@ const cases = [
   { input: ["Vanille", "1 c. à café"], expected: ["Vanille", "1 CC"] },
   { input: ["Huile d'olive", "1 cs"], expected: ["Huile d'olive", "1 CS"] },
   { input: ["Beurre", "2 cc"], expected: ["Beurre", "2 CC"] },
-  { input: ["Noix de muscade", "1 pincée(s)"], expected: ["Noix de muscade", "1 pinc."] }
+  { input: ["Noix de muscade", "1 pincée(s)"], expected: ["Noix de muscade", "1 pinc."] },
+  { input: ["1 pincée(s) de sel", ""], expected: ["Sel", "1 pinc."] },
+  { input: ["1 cs de miel", ""], expected: ["Miel", "1 CS"] }
 ];
 
 let failures = 0;

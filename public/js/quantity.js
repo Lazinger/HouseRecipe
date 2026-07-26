@@ -27,15 +27,27 @@ export function scaleQuantity(qty, ratio){
 }
 
 /* ---- normalisation des ingredients extraits par IA (scan photo / import URL) :
-   majuscule initiale sur le nom, unites courantes abregees (CS/CC/pinc.) ---- */
-const UNIT_ABBREVIATIONS = [
-  { pattern: /^(?:(?:cuill[eè]res?|c\.?)\s*à\s*(?:soupe|s\.?)|cs)$/i, replacement: "CS" },
-  { pattern: /^(?:(?:cuill[eè]res?|c\.?)\s*à\s*(?:café|c\.?)|cc)$/i, replacement: "CC" },
-  { pattern: /^pincée(?:s|\(s\))?$/i, replacement: "pinc." },
-  { pattern: /^gousses?$/i, replacement: null }
+   majuscule initiale sur le nom, unites courantes abregees (CS/CC/pinc.).
+   Source unique des motifs d'unite : reutilise a la fois pour la
+   correspondance exacte (UNIT_ABBREVIATIONS) et pour l'extraction d'une
+   quantite collee en tete du nom (LEADING_QUANTITY_UNIT_RE), pour eviter
+   que les deux divergent silencieusement (deja arrive une fois). ---- */
+const UNIT_PATTERNS = [
+  { source: "(?:cuill[eè]res?|c\\.?)\\s*à\\s*(?:soupe|s\\.?)|cs", replacement: "CS" },
+  { source: "(?:cuill[eè]res?|c\\.?)\\s*à\\s*(?:café|c\\.?)|cc", replacement: "CC" },
+  { source: "pincée(?:s|\\(s\\))?", replacement: "pinc." },
+  { source: "gousses?", replacement: null }
 ];
 
-const LEADING_QUANTITY_UNIT_RE = /^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+((?:cuill[eè]res?|c\.?)\s*à\s*(?:soupe|s\.?)|(?:cuill[eè]res?|c\.?)\s*à\s*(?:café|c\.?)|pincées?|gousses?)\s+(?:de\s+|d')(.+)$/i;
+const UNIT_ABBREVIATIONS = UNIT_PATTERNS.map(({ source, replacement }) => ({
+  pattern: new RegExp(`^(?:${source})$`, "i"),
+  replacement
+}));
+
+const LEADING_QUANTITY_UNIT_RE = new RegExp(
+  `^([\\d½¼¾⅓⅔]+(?:[.,]\\d+)?)\\s+(${UNIT_PATTERNS.map(p => p.source).join("|")})\\s+(?:de\\s+|d')(.+)$`,
+  "i"
+);
 
 function abbreviateUnit(unit, value){
   const trimmedUnit = unit.trim();
