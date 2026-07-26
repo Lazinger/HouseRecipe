@@ -29,9 +29,9 @@ export function scaleQuantity(qty, ratio){
 /* ---- normalisation des ingredients extraits par IA (scan photo / import URL) :
    majuscule initiale sur le nom, unites courantes abregees (CS/CC/pinc.) ---- */
 const UNIT_ABBREVIATIONS = [
-  { pattern: /^(?:(?:cuill[eè]res?|c\.?)\s*à\s*(?:soupe|s\.?))$/i, replacement: "CS" },
-  { pattern: /^(?:(?:cuill[eè]res?|c\.?)\s*à\s*(?:café|c\.?))$/i, replacement: "CC" },
-  { pattern: /^pincées?$/i, replacement: "pinc." },
+  { pattern: /^(?:(?:cuill[eè]res?|c\.?)\s*à\s*(?:soupe|s\.?)|cs)$/i, replacement: "CS" },
+  { pattern: /^(?:(?:cuill[eè]res?|c\.?)\s*à\s*(?:café|c\.?)|cc)$/i, replacement: "CC" },
+  { pattern: /^pincée(?:s|\(s\))?$/i, replacement: "pinc." },
   { pattern: /^gousses?$/i, replacement: null }
 ];
 

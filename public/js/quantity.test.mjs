@@ -13,7 +13,10 @@ const cases = [
   { input: ["poivre", ""], expected: ["Poivre", ""] },
   { input: ["1 pièce(s) Poireau", ""], expected: ["Poireau", "1 pièce(s)"] },
   { input: ["1 c. à soupe de miel", ""], expected: ["Miel", "1 CS"] },
-  { input: ["Vanille", "1 c. à café"], expected: ["Vanille", "1 CC"] }
+  { input: ["Vanille", "1 c. à café"], expected: ["Vanille", "1 CC"] },
+  { input: ["Huile d'olive", "1 cs"], expected: ["Huile d'olive", "1 CS"] },
+  { input: ["Beurre", "2 cc"], expected: ["Beurre", "2 CC"] },
+  { input: ["Noix de muscade", "1 pincée(s)"], expected: ["Noix de muscade", "1 pinc."] }
 ];
 
 let failures = 0;
