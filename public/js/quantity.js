@@ -25,3 +25,55 @@ export function scaleQuantity(qty, ratio){
   const scaled = formatScaledNumber(parsed.value * ratio);
   return parsed.unit ? `${scaled} ${parsed.unit}` : scaled;
 }
+
+/* ---- normalisation des ingredients extraits par IA (scan photo / import URL) :
+   majuscule initiale sur le nom, unites courantes abregees (CS/CC/pinc.) ---- */
+const UNIT_ABBREVIATIONS = [
+  { pattern: /^(?:cuill[eè]res?\s+à\s+soupe|c\.?\s*à\s*s\.?|càs)$/i, replacement: "CS" },
+  { pattern: /^(?:cuill[eè]res?\s+à\s+café|c\.?\s*à\s*c\.?|càc)$/i, replacement: "CC" },
+  { pattern: /^pincées?$/i, replacement: "pinc." },
+  { pattern: /^gousses?$/i, replacement: null }
+];
+
+const LEADING_QUANTITY_UNIT_RE = /^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(cuill[eè]res?\s+à\s+soupe|cuill[eè]res?\s+à\s+café|c\.?\s*à\s*s\.?|c\.?\s*à\s*c\.?|càs|càc|pincées?|gousses?)\s+(?:de\s+|d')(.+)$/i;
+
+function abbreviateUnit(unit, value){
+  const trimmedUnit = unit.trim();
+  for (const { pattern, replacement } of UNIT_ABBREVIATIONS) {
+    if (pattern.test(trimmedUnit)) {
+      if (replacement) return replacement;
+      const numeric = parseFloat(String(value).replace(",", "."));
+      return numeric > 1 ? "gousses" : "gousse";
+    }
+  }
+  return trimmedUnit;
+}
+
+function capitalizeFirst(str){
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function normalizeIngredientPair(name, qty){
+  const trimmedName = String(name ?? "").trim();
+  const trimmedQty = String(qty ?? "").trim();
+
+  if (!trimmedQty) {
+    const leadingMatch = trimmedName.match(LEADING_QUANTITY_UNIT_RE);
+    if (leadingMatch) {
+      const [, value, unit, rest] = leadingMatch;
+      return [capitalizeFirst(rest.trim()), `${value} ${abbreviateUnit(unit, value)}`];
+    }
+    const split = splitLeadingQuantity(trimmedName);
+    if (split) return [capitalizeFirst(split.name), split.qty];
+    return [capitalizeFirst(trimmedName), trimmedQty];
+  }
+
+  const qtyMatch = trimmedQty.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(.+)$/);
+  if (qtyMatch) {
+    const [, value, unit] = qtyMatch;
+    return [capitalizeFirst(trimmedName), `${value} ${abbreviateUnit(unit, value)}`];
+  }
+
+  return [capitalizeFirst(trimmedName), trimmedQty];
+}
