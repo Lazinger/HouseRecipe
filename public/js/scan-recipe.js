@@ -48,11 +48,28 @@ async function scanRecipeImages(files){
 export function sanitizeExtractedRecipe(raw, photoBlob){
   const category = VALID_CATEGORIES.has(raw?.category) ? raw.category : "";
   const difficulty = VALID_DIFFICULTIES.has(raw?.difficulty) ? raw.difficulty : "Facile";
-  const ingredients = Array.isArray(raw?.ingredients)
-    ? raw.ingredients.filter(pair => Array.isArray(pair) && pair[0]).map(([name, qty]) => normalizeIngredientPair(name, qty))
+  const rawIngredientPairs = Array.isArray(raw?.ingredients)
+    ? raw.ingredients.filter(pair => Array.isArray(pair) && pair[0])
     : [];
+  const ingredients = rawIngredientPairs.map(([name, qty]) => normalizeIngredientPair(name, qty));
+
+  /* Gemini reprend dans les reperes {{qty:Nom}} des etapes le nom brut qu'il
+     a lui-meme ecrit dans "ingredients" (ex. "2 gousses d'ail" en un seul
+     bloc) — mais normalizeIngredientPair peut renommer cet ingredient (ici
+     en "Ail"). Sans ce mapping, le repere ne correspondrait plus a aucun
+     ingredient une fois normalise et s'afficherait tel quel dans l'etape. */
+  const nameRenameMap = new Map();
+  rawIngredientPairs.forEach(([rawName], i) => {
+    nameRenameMap.set(String(rawName).trim().toLowerCase(), ingredients[i][0]);
+  });
+
   const utensils = Array.isArray(raw?.utensils) ? raw.utensils.filter(Boolean).map(String) : [];
-  const steps = Array.isArray(raw?.steps) ? raw.steps.filter(Boolean).map(String) : [];
+  const steps = Array.isArray(raw?.steps)
+    ? raw.steps.filter(Boolean).map(String).map(step => step.replace(/\{\{qty:([^}]+)\}\}/g, (match, rawRef) => {
+        const renamed = nameRenameMap.get(rawRef.trim().toLowerCase());
+        return renamed ? `{{qty:${renamed}}}` : match;
+      }))
+    : [];
   const nutrition = (typeof raw?.calories === "number" && typeof raw?.protein === "number")
     ? { calories: raw.calories, protein: raw.protein }
     : undefined;
