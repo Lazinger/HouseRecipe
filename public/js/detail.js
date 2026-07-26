@@ -3,7 +3,7 @@ import { ALLERGENS } from "./recipes-data.js";
 import { state, detailView, detailScroll } from "./dom.js";
 import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "./recipes-store.js";
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
-import { scaleQuantity } from "./quantity.js";
+import { scaleQuantity, resolveStepQuantities } from "./quantity.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "./photos.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
 import { renderTimerPanel } from "./timer.js";
@@ -13,6 +13,10 @@ import { openAddForm } from "./add-form.js";
 /* ---- vue détail ---- */
 function ingredientRowHtml(name, qty){
   return `<li><span class="ing-icon">${ING_ICON}</span><span class="ing-text"><span class="ing-name">${name}</span><span class="ing-qty">${qty}</span></span></li>`;
+}
+
+function stepRowHtml(step, index, ingredients){
+  return `<li data-step-index="${index}"><span class="step-num">${index + 1}</span><p>${resolveStepQuantities(step, ingredients)}</p></li>`;
 }
 
 export let currentOpenRecipe = null;
@@ -94,7 +98,7 @@ export function openDetail(id){
       <div>
         <h3 class="panel-title">Préparation</h3>
         <ol class="step-list" id="stepList">
-          ${r.steps.map((s, i) => `<li data-step-index="${i}"><span class="step-num">${i + 1}</span><p>${s}</p></li>`).join("")}
+          ${r.steps.map((s, i) => stepRowHtml(s, i, r.ingredients)).join("")}
         </ol>
       </div>
       <div class="timer-panel" id="timerPanel"></div>
@@ -124,18 +128,21 @@ export function openDetail(id){
   renderTimerPanel(detailScroll.querySelector("#timerPanel"), r);
   applyDetailPhoto(r.id, detailScroll.querySelector("#detailHero"));
   const stepListEl = detailScroll.querySelector("#stepList");
-  r.steps.forEach((_, i) => {
-    getStepPhoto(r.id, i).then(blob => {
-      if (!blob) return;
-      const li = stepListEl.querySelector(`li[data-step-index="${i}"]`);
-      if (!li) return;
-      const img = document.createElement("img");
-      img.className = "step-photo";
-      img.src = URL.createObjectURL(blob);
-      img.alt = "";
-      li.querySelector(".step-num").after(img);
-    }).catch(() => {});
-  });
+  function attachStepPhotos(){
+    r.steps.forEach((_, i) => {
+      getStepPhoto(r.id, i).then(blob => {
+        if (!blob) return;
+        const li = stepListEl.querySelector(`li[data-step-index="${i}"]`);
+        if (!li) return;
+        const img = document.createElement("img");
+        img.className = "step-photo";
+        img.src = URL.createObjectURL(blob);
+        img.alt = "";
+        li.querySelector(".step-num").after(img);
+      }).catch(() => {});
+    });
+  }
+  attachStepPhotos();
 
   let currentServings = r.servings;
   const servingsValueEl = detailScroll.querySelector("#servingsValue");
@@ -152,18 +159,25 @@ export function openDetail(id){
       .map(([name, qty]) => ingredientRowHtml(name, qty))
       .join("");
   }
+  function renderScaledSteps(){
+    const ingredients = currentIngredients();
+    stepListEl.innerHTML = r.steps.map((s, i) => stepRowHtml(s, i, ingredients)).join("");
+    attachStepPhotos();
+  }
   minusBtn.addEventListener("click", () => {
     if (currentServings <= 1) return;
     currentServings--;
     servingsValueEl.textContent = currentServings;
     minusBtn.disabled = currentServings <= 1;
     renderScaledIngredients();
+    renderScaledSteps();
   });
   plusBtn.addEventListener("click", () => {
     currentServings++;
     servingsValueEl.textContent = currentServings;
     minusBtn.disabled = currentServings <= 1;
     renderScaledIngredients();
+    renderScaledSteps();
   });
   detailScroll.querySelector("#addToCartBtn").addEventListener("click", () => {
     addRecipeToCart(r, currentServings, currentIngredients());
