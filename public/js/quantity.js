@@ -89,3 +89,16 @@ export function normalizeIngredientPair(name, qty){
 
   return [capitalizeFirst(trimmedName), trimmedQty];
 }
+
+/* ---- resolution des reperes de quantite dynamique dans une etape
+   (ex. "Ajoutez {{qty:Farine}} de farine") : remplace chaque repere par la
+   quantite de l'ingredient correspondant (deja mise a l'echelle par
+   l'appelant). Si aucun ingredient ne correspond, le repere reste affiche
+   tel quel plutot que de disparaitre silencieusement. ---- */
+export function resolveStepQuantities(step, ingredients){
+  return String(step ?? "").replace(/\{\{qty:([^}]+)\}\}/g, (match, rawName) => {
+    const target = rawName.trim().toLowerCase();
+    const found = ingredients.find(([name]) => String(name).trim().toLowerCase() === target);
+    return found ? found[1] : match;
+  });
+}

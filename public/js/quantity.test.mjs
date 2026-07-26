@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -37,3 +37,43 @@ if (failures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${cases.length} cas passes.`);
+
+const stepCases = [
+  {
+    step: "Ajoutez {{qty:Farine}} de farine et mélangez.",
+    ingredients: [["Farine", "400 g"], ["Sel", "1 pinc."]],
+    expected: "Ajoutez 400 g de farine et mélangez."
+  },
+  {
+    step: "Versez {{qty:huile d'olive}} puis {{qty:Sel}}.",
+    ingredients: [["Huile d'olive", "2 CS"], ["Sel", "1 pinc."]],
+    expected: "Versez 2 CS puis 1 pinc.."
+  },
+  {
+    step: "Cuire 20 minutes à 180°C.",
+    ingredients: [["Farine", "400 g"]],
+    expected: "Cuire 20 minutes à 180°C."
+  },
+  {
+    step: "Ajoutez {{qty:Beurre}} fondu.",
+    ingredients: [["Farine", "400 g"]],
+    expected: "Ajoutez {{qty:Beurre}} fondu."
+  }
+];
+
+let stepFailures = 0;
+for (const { step, ingredients, expected } of stepCases) {
+  const result = resolveStepQuantities(step, ingredients);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    stepFailures++;
+    console.error(`FAIL: resolveStepQuantities(${JSON.stringify(step)}, ...) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (stepFailures > 0) {
+  console.error(`${stepFailures}/${stepCases.length} cas resolveStepQuantities en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${stepCases.length} cas resolveStepQuantities passes.`);
