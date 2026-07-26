@@ -33,7 +33,8 @@ Règles :
 - "category" doit être la plus proche possible parmi "entrée", "plat", "dessert" (la grande majorité des cartes HelloFresh sont des "plat").
 - "allergens" est un tableau ne contenant QUE des clés parmi cette liste fixe : "gluten", "crustaces", "oeufs", "poisson", "arachides", "soja", "lait", "fruits-a-coque", "celeri", "moutarde", "sesame", "sulfites", "lupin", "mollusques". N'inclue une clé que si un ingrédient de la recette la contient clairement (ex. farine/pâte → "gluten" ; beurre/crème/lait → "lait" ; œufs → "oeufs" ; amandes/noisettes/noix → "fruits-a-coque"). Tableau vide si aucun allergène identifié ou en cas de doute — ne jamais deviner.
 - Si une info n'est pas présente sur la carte (ex. calories), utilise null pour les champs numériques/texte optionnels, ou un tableau vide pour les listes.
-- N'invente aucune information absente de la photo.`;
+- N'invente aucune information absente de la photo.
+- Dans "steps", quand une phrase mentionne la quantité d'un ingrédient qui figure dans "ingredients", remplace cette quantité dans le texte par {{qty:NomExactDeLIngredient}} en reprenant le nom exactement comme il apparaît dans "ingredients" (ex. si ingredients contient ["Farine", "400 g"], écris "Ajoutez {{qty:Farine}} de farine" au lieu de "Ajoutez 400 g de farine"). Ne fais JAMAIS ça pour un temps de cuisson, une température, une taille de plat/moule, ou toute quantité qui ne correspond à aucun ingrédient de la liste — ces nombres restent en texte normal.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
