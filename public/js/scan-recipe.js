@@ -4,7 +4,7 @@ import { supabase, SUPABASE_URL } from "./supabase-client.js";
 import { CATEGORY_ICON, ALLERGENS } from "./recipes-data.js";
 import { openAddForm } from "./add-form.js";
 import { openPhotoEditor } from "./photo-editor.js";
-import { splitLeadingQuantity } from "./quantity.js";
+import { normalizeIngredientPair } from "./quantity.js";
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_ICON));
 const VALID_DIFFICULTIES = new Set(["Facile", "Intermédiaire", "Difficile"]);
@@ -49,14 +49,7 @@ export function sanitizeExtractedRecipe(raw, photoBlob){
   const category = VALID_CATEGORIES.has(raw?.category) ? raw.category : "";
   const difficulty = VALID_DIFFICULTIES.has(raw?.difficulty) ? raw.difficulty : "Facile";
   const ingredients = Array.isArray(raw?.ingredients)
-    ? raw.ingredients.filter(pair => Array.isArray(pair) && pair[0]).map(([name, qty]) => {
-        const trimmedQty = String(qty ?? "").trim();
-        if (!trimmedQty) {
-          const split = splitLeadingQuantity(name);
-          if (split) return [split.name, split.qty];
-        }
-        return [String(name), trimmedQty];
-      })
+    ? raw.ingredients.filter(pair => Array.isArray(pair) && pair[0]).map(([name, qty]) => normalizeIngredientPair(name, qty))
     : [];
   const utensils = Array.isArray(raw?.utensils) ? raw.utensils.filter(Boolean).map(String) : [];
   const steps = Array.isArray(raw?.steps) ? raw.steps.filter(Boolean).map(String) : [];
