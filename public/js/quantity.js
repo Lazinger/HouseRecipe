@@ -5,12 +5,24 @@ export function parseQuantity(qty){
   return { value: parseFloat(m[1].replace(",", ".")), unit: m[2].trim() };
 }
 
-/* ---- extraction d'une quantité collée en tête du nom d'un ingrédient
-   (ex. "1 pièce(s) Poireau" au lieu de ["Poireau", "1 pièce(s)"]) ---- */
+/* ---- extraction d'une quantité collée en tête du nom d'un ingrédient.
+   Trois formes reelles rencontrees a l'import, essayees de la plus specifique
+   a la plus generale :
+   1. "150 g de pistaches" / "120 g d'eau" -> unite + connecteur a retirer.
+   2. "1 pièce(s) Poireau" -> unite directement suivie du nom, sans connecteur.
+   3. "3 oeufs" -> pas d'unite separee, le mot final EST le nom. ---- */
 export function splitLeadingQuantity(name){
   const text = String(name).trim();
-  const numeric = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(.+)$/);
-  if (numeric) return { qty: `${numeric[1]} ${numeric[2]}`, name: numeric[3].trim() };
+
+  const withConnector = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(?:de\s+|d')(.+)$/);
+  if (withConnector) return { qty: `${withConnector[1]} ${withConnector[2]}`, name: withConnector[3].trim() };
+
+  const unitAndName = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(.+)$/);
+  if (unitAndName) return { qty: `${unitAndName[1]} ${unitAndName[2]}`, name: unitAndName[3].trim() };
+
+  const countOnly = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)$/);
+  if (countOnly) return { qty: countOnly[1], name: countOnly[2].trim() };
+
   const toTaste = text.match(/^(selon (?:le|votre|vos) goûts?)\s+(.+)$/i);
   if (toTaste) return { qty: toTaste[1], name: toTaste[2].trim() };
   return null;
