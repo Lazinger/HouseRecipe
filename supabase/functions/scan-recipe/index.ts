@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callGeminiForJson, geminiFailureMessage, geminiFailureStatus } from "../_shared/gemini.ts";
+import { stripHtmlTags } from "../_shared/sanitize.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -102,7 +103,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify(extracted), {
+    const sanitized = {
+      ...extracted,
+      title: stripHtmlTags(extracted.title),
+      desc: stripHtmlTags(extracted.desc),
+      ingredients: Array.isArray(extracted.ingredients)
+        ? extracted.ingredients.map(pair => Array.isArray(pair) ? pair.map(stripHtmlTags) : pair)
+        : extracted.ingredients,
+      utensils: Array.isArray(extracted.utensils) ? extracted.utensils.map(stripHtmlTags) : extracted.utensils,
+      steps: Array.isArray(extracted.steps) ? extracted.steps.map(stripHtmlTags) : extracted.steps
+    };
+
+    return new Response(JSON.stringify(sanitized), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });

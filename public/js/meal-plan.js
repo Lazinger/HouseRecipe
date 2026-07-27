@@ -1,4 +1,5 @@
 import { supabase } from "./supabase-client.js";
+import { escapeHtml } from "./utils.js";
 import { enqueue, registerHandler } from "./write-queue.js";
 import { mealPlanView, mealPlanScroll } from "./dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
@@ -114,7 +115,7 @@ function slotHtml(dateKey, slot, label){
   return `
     <div class="meal-plan-slot is-filled">
       <span class="meal-plan-slot-label">${label}</span>
-      <button class="slot-recipe" type="button" data-date="${dateKey}" data-slot="${slot}" data-recipeid="${recipe.id}">${recipe.title}</button>
+      <button class="slot-recipe" type="button" data-date="${dateKey}" data-slot="${slot}" data-recipeid="${recipe.id}">${escapeHtml(recipe.title)}</button>
       <button class="slot-remove" type="button" data-date="${dateKey}" data-slot="${slot}" aria-label="Retirer">✕</button>
     </div>
   `;
@@ -225,7 +226,7 @@ function renderRecipePickerList(query){
   const list = ALL_RECIPES.filter(r => !q || r.title.toLowerCase().includes(q));
   const listEl = mealPlanScroll.querySelector("#recipePickerList");
   listEl.innerHTML = list.length
-    ? list.map(r => `<button class="recipe-picker-item" type="button" data-recipeid="${r.id}">${r.title}</button>`).join("")
+    ? list.map(r => `<button class="recipe-picker-item" type="button" data-recipeid="${r.id}">${escapeHtml(r.title)}</button>`).join("")
     : `<p class="empty-state">Aucune recette trouvée.</p>`;
   listEl.querySelectorAll(".recipe-picker-item").forEach(btn => {
     btn.addEventListener("click", async () => {

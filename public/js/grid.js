@@ -1,5 +1,6 @@
 import { CATEGORY_LABELS, ALLERGENS } from "./recipes-data.js";
 import { ICONS } from "./icons.js";
+import { escapeHtml } from "./utils.js";
 import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList, seasonalFilterChip } from "./dom.js";
 import { produceMatchesRecipe } from "./season-data.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
@@ -20,8 +21,8 @@ export function renderHero(){
     <button class="hero-card cat-${featured.category}" data-id="${featured.id}" type="button">
       <div class="hero-copy">
         <span class="hero-eyebrow">La recette du jour</span>
-        <h2>${featured.title}</h2>
-        <p>${featured.desc}</p>
+        <h2>${escapeHtml(featured.title)}</h2>
+        <p>${escapeHtml(featured.desc)}</p>
         <div class="hero-meta">
           <span>⏱ ${featured.time} min</span>
           <span>${featured.servings} pers.</span>
@@ -122,8 +123,8 @@ function renderGrid(){
       </div>
       <div class="card-body">
         <span class="card-cat">${r.category}</span>
-        <h3 class="card-title">${r.title}</h3>
-        <p class="card-desc">${r.desc}</p>
+        <h3 class="card-title">${escapeHtml(r.title)}</h3>
+        <p class="card-desc">${escapeHtml(r.desc)}</p>
         <div class="card-meta">
           <span>⏱ ${r.time} min</span>
           <span>${r.servings} pers.</span>

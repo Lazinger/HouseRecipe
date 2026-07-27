@@ -1,5 +1,6 @@
 import { ING_ICON } from "./icons.js";
 import { ALLERGENS } from "./recipes-data.js";
+import { escapeHtml } from "./utils.js";
 import { state, detailView, detailScroll } from "./dom.js";
 import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "./recipes-store.js";
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "./cart.js";
@@ -12,11 +13,11 @@ import { openAddForm } from "./add-form.js";
 
 /* ---- vue détail ---- */
 function ingredientRowHtml(name, qty){
-  return `<li><span class="ing-icon">${ING_ICON}</span><span class="ing-text"><span class="ing-name">${name}</span><span class="ing-qty">${qty}</span></span></li>`;
+  return `<li><span class="ing-icon">${ING_ICON}</span><span class="ing-text"><span class="ing-name">${escapeHtml(name)}</span><span class="ing-qty">${escapeHtml(qty)}</span></span></li>`;
 }
 
 function stepRowHtml(step, index, ingredients){
-  return `<li data-step-index="${index}"><span class="step-num">${index + 1}</span><p>${resolveStepQuantities(step, ingredients)}</p></li>`;
+  return `<li data-step-index="${index}"><span class="step-num">${index + 1}</span><p>${escapeHtml(resolveStepQuantities(step, ingredients))}</p></li>`;
 }
 
 export let currentOpenRecipe = null;
@@ -61,8 +62,8 @@ export function openDetail(id){
       </div>
       <div class="detail-heading-text">
         <span class="detail-eyebrow">${r.category}</span>
-        <h2>${r.title}</h2>
-        <p class="detail-sub" id="detailSub">${r.desc}</p>
+        <h2>${escapeHtml(r.title)}</h2>
+        <p class="detail-sub" id="detailSub">${escapeHtml(r.desc)}</p>
         <button type="button" class="detail-sub-toggle" id="detailSubToggle" hidden>Voir plus</button>
       </div>
     </div>
@@ -80,8 +81,8 @@ export function openDetail(id){
         <div class="cell is-nutri"><span class="l">Protéines</span><span class="v">${r.nutrition.protein} g</span></div>
         ` : ""}
       </div>
-      ${r.allergens && r.allergens.length ? `<p class="allergen-line"><b>Allergènes :</b> ${r.allergens.map(key => ALLERGENS.find(a => a.key === key)?.label || key).join(", ")}</p>` : ""}
-      ${r.utensils && r.utensils.length ? `<p class="tool-line">${r.utensils.map(u => `<span>${u}</span>`).join("")}</p>` : ""}
+      ${r.allergens && r.allergens.length ? `<p class="allergen-line"><b>Allergènes :</b> ${r.allergens.map(key => escapeHtml(ALLERGENS.find(a => a.key === key)?.label || key)).join(", ")}</p>` : ""}
+      ${r.utensils && r.utensils.length ? `<p class="tool-line">${r.utensils.map(u => `<span>${escapeHtml(u)}</span>`).join("")}</p>` : ""}
     </div>
     <div class="detail-body">
       <div>
@@ -93,7 +94,7 @@ export function openDetail(id){
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           Ajouter au panier
         </button>
-        ${r.note ? `<div class="note-box"><b>Astuce.</b> ${r.note}</div>` : ""}
+        ${r.note ? `<div class="note-box"><b>Astuce.</b> ${escapeHtml(r.note)}</div>` : ""}
       </div>
       <div>
         <h3 class="panel-title">Préparation</h3>

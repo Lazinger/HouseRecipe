@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callGeminiForJson, geminiFailureMessage, geminiFailureStatus } from "../_shared/gemini.ts";
+import { stripHtmlTags } from "../_shared/sanitize.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -204,35 +205,6 @@ function toStringArray(value){
   }).filter(Boolean);
 }
 
-const HTML_ENTITIES = {
-  amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", nbsp: " ",
-  eacute: "é", egrave: "è", ecirc: "ê", euml: "ë",
-  agrave: "à", acirc: "â", ccedil: "ç",
-  ocirc: "ô", oelig: "œ", ucirc: "û", ugrave: "ù",
-  icirc: "î", iuml: "ï",
-  deg: "°", hellip: "…", mdash: "—", ndash: "–",
-  rsquo: "'", lsquo: "'", rdquo: "\"", ldquo: "\"",
-  frac12: "½", frac14: "¼", frac34: "¾", times: "×"
-};
-function decodeHtmlEntities(str){
-  return str.replace(/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, entity) => {
-    if (entity[0] === "#") {
-      const isHex = entity[1] === "x" || entity[1] === "X";
-      const code = parseInt(isHex ? entity.slice(2) : entity.slice(1), isHex ? 16 : 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
-    }
-    return HTML_ENTITIES[entity] ?? match;
-  });
-}
-/* ---- nettoyage des champs issus du JSON-LD : certains sites y laissent des
-   balises/entités HTML brutes (contenu venant d'un éditeur riche non
-   assaini avant sérialisation) — trouvé en production le 2026-07-23. ---- */
-function stripHtmlTags(str){
-  if (typeof str !== "string") return str;
-  const noTags = str.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return decodeHtmlEntities(noTags);
-}
-
 function extractImageUrl(image){
   if (!image) return undefined;
   if (typeof image === "string") return image;
@@ -319,18 +291,20 @@ async function extractRecipeWithAi(pageText){
     generationConfig: { response_mime_type: "application/json" }
   }, "import-recipe-url (secours IA)");
   return {
-    title: typeof extracted.title === "string" ? extracted.title : "",
+    title: stripHtmlTags(typeof extracted.title === "string" ? extracted.title : ""),
     category: extracted.category,
     difficulty: extracted.difficulty,
-    desc: typeof extracted.desc === "string" ? extracted.desc : "",
+    desc: stripHtmlTags(typeof extracted.desc === "string" ? extracted.desc : ""),
     time: typeof extracted.time === "number" ? extracted.time : undefined,
     servings: typeof extracted.servings === "number" ? extracted.servings : undefined,
     calories: typeof extracted.calories === "number" ? extracted.calories : undefined,
     protein: typeof extracted.protein === "number" ? extracted.protein : undefined,
     allergens: Array.isArray(extracted.allergens) ? extracted.allergens : [],
-    ingredients: Array.isArray(extracted.ingredients) ? extracted.ingredients : [],
-    utensils: Array.isArray(extracted.utensils) ? extracted.utensils : [],
-    steps: Array.isArray(extracted.steps) ? extracted.steps : [],
+    ingredients: Array.isArray(extracted.ingredients)
+      ? extracted.ingredients.map(pair => Array.isArray(pair) ? pair.map(stripHtmlTags) : pair)
+      : [],
+    utensils: Array.isArray(extracted.utensils) ? extracted.utensils.map(stripHtmlTags) : [],
+    steps: Array.isArray(extracted.steps) ? extracted.steps.map(stripHtmlTags) : [],
     imageUrl: undefined
   };
 }

@@ -1,7 +1,7 @@
 import { supabase } from "./supabase-client.js";
 import { parseQuantity, formatScaledNumber } from "./quantity.js";
 import { cartBadge, panierView, panierScroll } from "./dom.js";
-import { escapeAttr } from "./utils.js";
+import { escapeAttr, escapeHtml } from "./utils.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
 import { enqueue, registerHandler } from "./write-queue.js";
 
@@ -179,16 +179,16 @@ function renderPanier(){
       ${cart.map(entry => {
         const isExpanded = expandedRecipes.has(entry.recipeId);
         return `
-        <div class="recipe-section cat-${entry.category} ${isExpanded ? "is-expanded" : ""}">
+        <div class="recipe-section cat-${escapeAttr(entry.category)} ${isExpanded ? "is-expanded" : ""}">
           <div class="recipe-section-head">
             <button class="recipe-toggle" type="button" data-toggleid="${escapeAttr(entry.recipeId)}" aria-expanded="${isExpanded}">
               <svg class="chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span class="tag">${entry.title} · ${entry.servings} pers.</span>
+              <span class="tag">${escapeHtml(entry.title)} · ${entry.servings} pers.</span>
             </button>
             <button class="remove-btn" type="button" data-removeid="${escapeAttr(entry.recipeId)}">Retirer</button>
           </div>
           <div class="ing-lines">
-            ${entry.ingredients.map(([name, qty]) => `<div class="ing-line"><span>${name}</span><span>${qty}</span></div>`).join("")}
+            ${entry.ingredients.map(([name, qty]) => `<div class="ing-line"><span>${escapeHtml(name)}</span><span>${escapeHtml(qty)}</span></div>`).join("")}
           </div>
         </div>
       `;
@@ -198,7 +198,7 @@ function renderPanier(){
         ${merged.slice().sort((a, b) => (checkedItems.has(a.key) ? 1 : 0) - (checkedItems.has(b.key) ? 1 : 0)).map(m => `
           <label class="check-line ${checkedItems.has(m.key) ? "done" : ""}">
             <span class="checkbox ${checkedItems.has(m.key) ? "checked" : ""}" data-key="${escapeAttr(m.key)}">${checkedItems.has(m.key) ? "✓" : ""}</span>
-            ${m.name} — ${m.qty}
+            ${escapeHtml(m.name)} — ${escapeHtml(m.qty)}
           </label>
         `).join("")}
       </div>
