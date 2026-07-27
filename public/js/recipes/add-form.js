@@ -1,10 +1,10 @@
-import { escapeAttr } from "./utils.js";
-import { CATEGORY_ICON, ALLERGENS } from "./recipes-data.js";
-import { openPhotoEditor } from "./photo-editor.js";
-import { addScroll, addView, chips, state, searchInput } from "./dom.js";
+import { escapeAttr } from "../core/utils.js";
+import { CATEGORY_ICON, ALLERGENS } from "../data/recipes-data.js";
+import { openPhotoEditor } from "../photos/photo-editor.js";
+import { addScroll, addView, chips, state, searchInput } from "../core/dom.js";
 import { saveRecipe, generateRecipeId } from "./recipes-store.js";
-import { savePhoto, saveStepPhoto, removePhoto, removeStepPhoto, getMainPhoto } from "./photos.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
+import { savePhoto, saveStepPhoto, removePhoto, removeStepPhoto, getMainPhoto } from "../photos/photos.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "../core/ui.js";
 import { openDetail } from "./detail.js";
 import { render } from "./grid.js";
 import { createIngredientRow, createStepRow, createUstensileRow, updateRemoveButtons } from "./dyn-rows.js";

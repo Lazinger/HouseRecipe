@@ -1,8 +1,8 @@
-import { supabase } from "./supabase-client.js";
+import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { loadCachedRecipes, pullRecipes, cacheRecipe, uncacheRecipe, recipeToRow } from "./sync.js";
-import { enqueue, registerHandler } from "./write-queue.js";
-import { state, detailView } from "./dom.js";
-import { showToast } from "./ui.js";
+import { enqueue, registerHandler } from "../core/write-queue.js";
+import { state, detailView } from "../core/dom.js";
+import { showToast } from "../core/ui.js";
 import { render, renderHero } from "./grid.js";
 import { syncDetailFavButton } from "./detail.js";
 
@@ -69,11 +69,6 @@ export function generateRecipeId(title){
 /* ---- persistance des favoris (Supabase, avec cache localStorage) ---- */
 export function saveFavorites(){
   localStorage.setItem("carnet-favoris", JSON.stringify([...state.favorites]));
-}
-
-async function currentUserId(){
-  const { data } = await supabase.auth.getUser();
-  return data?.user?.id || null;
 }
 
 async function favoriteWriteHandler({ recipeId, isFavorite }){

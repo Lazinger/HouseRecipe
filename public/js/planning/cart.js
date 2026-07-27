@@ -1,9 +1,9 @@
-import { supabase } from "./supabase-client.js";
-import { parseQuantity, formatScaledNumber } from "./quantity.js";
-import { cartBadge, panierView, panierScroll } from "./dom.js";
-import { escapeAttr, escapeHtml } from "./utils.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
-import { enqueue, registerHandler } from "./write-queue.js";
+import { supabase, currentUserId } from "../auth/supabase-client.js";
+import { parseQuantity, formatScaledNumber } from "../recipes/quantity.js";
+import { cartBadge, panierView, panierScroll } from "../core/dom.js";
+import { escapeAttr, escapeHtml } from "../core/utils.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
+import { enqueue, registerHandler } from "../core/write-queue.js";
 
 /* ---- panier de courses (persisté) ---- */
 const CART_KEY = "carnet-panier";
@@ -27,11 +27,6 @@ function saveCheckedItems(){
 export const cart = loadCart();
 const checkedItems = loadCheckedItems();
 const expandedRecipes = new Set();
-
-async function currentUserId(){
-  const { data } = await supabase.auth.getUser();
-  return data?.user?.id || null;
-}
 
 async function cartWriteHandler({ items, checked }){
   const userId = await currentUserId();

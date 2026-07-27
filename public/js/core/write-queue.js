@@ -1,4 +1,4 @@
-import { openSyncDB, QUEUE_STORE } from "./sync.js";
+import { openSyncDB, QUEUE_STORE } from "../recipes/sync.js";
 
 const listeners = new Set();
 const failureListeners = new Set();

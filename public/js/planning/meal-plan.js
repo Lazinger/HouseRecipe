@@ -1,10 +1,10 @@
-import { supabase } from "./supabase-client.js";
-import { escapeHtml } from "./utils.js";
-import { enqueue, registerHandler } from "./write-queue.js";
-import { mealPlanView, mealPlanScroll } from "./dom.js";
-import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "./ui.js";
-import { ALL_RECIPES } from "./recipes-store.js";
-import { openDetail } from "./detail.js";
+import { supabase, currentUserId } from "../auth/supabase-client.js";
+import { escapeHtml } from "../core/utils.js";
+import { enqueue, registerHandler } from "../core/write-queue.js";
+import { mealPlanView, mealPlanScroll } from "../core/dom.js";
+import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
+import { ALL_RECIPES } from "../recipes/recipes-store.js";
+import { openDetail } from "../recipes/detail.js";
 import { addRecipesToCartBatch } from "./cart.js";
 
 /* ---- semaine : calculs de dates (fonctions pures, aucune dépendance à Supabase) ---- */
@@ -38,11 +38,6 @@ export function formatWeekLabel(weekStart){
 
 /* ---- chargement/sauvegarde d'une semaine (Supabase + file d'attente hors ligne) ---- */
 let weekPlan = new Map(); // clé `${dateKey}:${slot}` -> recipeId
-
-async function currentUserId(){
-  const { data } = await supabase.auth.getUser();
-  return data?.user?.id || null;
-}
 
 async function mealPlanWriteHandler(payload){
   if (payload.action === "clear") {

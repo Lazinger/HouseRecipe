@@ -305,30 +305,50 @@ async function extractRecipeWithAi(pageText){
   };
 }
 
-/* ---- reperage des quantites dans les etapes issues du JSON-LD (pas d'IA
-   impliquee dans ce chemin sinon) : appel Gemini dedie, uniquement pour
-   inserer les reperes {{qty:Nom}}, sans reformuler ni re-extraire quoi que
-   ce soit d'autre. Echec de cet appel = degradation gracieuse (etapes non
-   reperees), jamais un echec de l'import lui-meme. ---- */
-function buildStepTaggingPrompt(ingredients, steps){
-  return `Tu reçois une liste d'ingrédients (paires [nom, quantité]) et les étapes de préparation d'une recette. Réponds UNIQUEMENT avec un objet JSON valide de la forme {"steps": string[]}, où "steps" reprend EXACTEMENT le texte de chaque étape donnée en entrée, dans le même ordre et en même nombre, sans changer le contenu — sauf pour remplacer, quand une phrase mentionne la quantité d'un ingrédient qui figure dans la liste d'ingrédients, cette quantité par {{qty:NomExactDeLIngredient}} en reprenant le nom exactement comme il apparaît dans la liste d'ingrédients. Ne fais JAMAIS ça pour un temps de cuisson, une température, une taille de plat/moule, ou toute quantité qui ne correspond à aucun ingrédient de la liste — ces nombres restent en texte normal. Si une étape ne mentionne aucune quantité d'ingrédient, renvoie-la inchangée.
+/* ---- reperage local des quantites dans les etapes issues du JSON-LD : les
+   noms d'ingredients ne sont pas encore scindes a ce stade (ex. "400 g de
+   farine" en un seul bloc, cote client normalizeIngredientPair les separera
+   et reecrira les reperes ensuite) — on extrait juste la quantite en tete de
+   ce bloc et on cherche cette meme sous-chaine dans le texte des etapes,
+   sans appel IA (l'ingredient est deja connu, inutile de re-demander a
+   Gemini de le retrouver). Remplace l'ancien appel Gemini dedie : evite un
+   aller-retour IA complet (cout + latence + risque de 429/troncature) pour
+   une tache de correspondance texte simple. Match manque = degradation
+   gracieuse (etape non reperee), comme avant. ---- */
+const LEADING_QUANTITY_WITH_CONNECTOR_RE = /^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(?:de\s+|d')(.+)$/;
+const LEADING_QUANTITY_UNIT_AND_NAME_RE = /^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(.+)$/;
 
-Ingrédients :
-${JSON.stringify(ingredients)}
-
-Étapes :
-${JSON.stringify(steps)}`;
+function escapeRegExp(str){
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-async function tagStepQuantities(ingredients, steps){
-  const result = await callGeminiForJson({
-    contents: [{ parts: [{ text: buildStepTaggingPrompt(ingredients, steps) }] }],
-    generationConfig: { response_mime_type: "application/json" }
-  }, "import-recipe-url (repérage étapes JSON-LD)");
-  if (!Array.isArray(result?.steps) || result.steps.length !== steps.length || !result.steps.every(s => typeof s === "string")) {
-    throw new Error("réponse de repérage invalide (forme inattendue)");
-  }
-  return result.steps;
+/* Ne garde que les cas avec une unite textuelle a cote du nombre (ex. "400 g",
+   "2 cuillères à soupe") — un nombre seul (ex. ingredient "3 oeufs") serait
+   trop ambigu a chercher tel quel dans une etape (risque de confondre avec
+   un temps de cuisson ou une temperature). */
+function extractLeadingQuantityPhrase(rawName){
+  const text = String(rawName ?? "").trim();
+  const withConnector = text.match(LEADING_QUANTITY_WITH_CONNECTOR_RE);
+  if (withConnector) return `${withConnector[1]} ${withConnector[2]}`;
+  const unitAndName = text.match(LEADING_QUANTITY_UNIT_AND_NAME_RE);
+  if (unitAndName) return `${unitAndName[1]} ${unitAndName[2]}`;
+  return null;
+}
+
+function tagStepQuantitiesLocally(ingredients, steps){
+  const taggableIngredients = ingredients
+    .map(([rawName]) => ({ rawName, phrase: extractLeadingQuantityPhrase(rawName) }))
+    .filter(({ phrase }) => phrase);
+
+  return steps.map(step => {
+    let tagged = step;
+    for (const { rawName, phrase } of taggableIngredients) {
+      const marker = `{{qty:${rawName}}}`;
+      if (tagged.includes(marker)) continue;
+      tagged = tagged.replace(new RegExp(escapeRegExp(phrase), "i"), marker);
+    }
+    return tagged;
+  });
 }
 
 /* ---- téléchargement au mieux de l'image principale ---- */
@@ -417,12 +437,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (extracted && GEMINI_API_KEY && extracted.ingredients?.length && extracted.steps?.length) {
-      try {
-        extracted = { ...extracted, steps: await tagStepQuantities(extracted.ingredients, extracted.steps) };
-      } catch (err) {
-        console.error("import-recipe-url (repérage étapes JSON-LD, ignoré) :", err);
-      }
+    if (extracted && extracted.ingredients?.length && extracted.steps?.length) {
+      extracted = { ...extracted, steps: tagStepQuantitiesLocally(extracted.ingredients, extracted.steps) };
     }
 
     if (!extracted) {

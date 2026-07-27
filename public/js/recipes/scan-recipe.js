@@ -1,9 +1,9 @@
-import { scanView, scanScroll } from "./dom.js";
-import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
-import { supabase, SUPABASE_URL } from "./supabase-client.js";
-import { CATEGORY_ICON, ALLERGENS } from "./recipes-data.js";
+import { scanView, scanScroll } from "../core/dom.js";
+import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "../core/ui.js";
+import { supabase, SUPABASE_URL } from "../auth/supabase-client.js";
+import { CATEGORY_ICON, ALLERGENS } from "../data/recipes-data.js";
 import { openAddForm } from "./add-form.js";
-import { openPhotoEditor } from "./photo-editor.js";
+import { openPhotoEditor } from "../photos/photo-editor.js";
 import { normalizeIngredientPair } from "./quantity.js";
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_ICON));

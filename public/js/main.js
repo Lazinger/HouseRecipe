@@ -12,23 +12,23 @@ import {
   detailView, addView, panierView, profileView, scanView, importUrlView, mealPlanView, seasonView, sheetBackdrop,
   addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, mealPlanCloseBtn, seasonCloseBtn, brandHomeBtn,
   allergenFilterToggle, allergenFilterPanel
-} from "./dom.js";
-import { render, renderAllergenFilterPanel } from "./grid.js";
-import { closeDetail } from "./detail.js";
-import { openAddForm, closeAddForm } from "./add-form.js";
-import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./cart.js";
-import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes-store.js";
-import { initPhotosSync } from "./photos.js";
-import { closeScanRecipe } from "./scan-recipe.js";
-import { closeImportUrl } from "./import-url.js";
-import { closeMealPlan } from "./meal-plan.js";
-import { closeSeason } from "./season.js";
-import { closePhotoEditor } from "./photo-editor.js";
-import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, goToScanRecipe, goToImportUrl, goToMealPlan, goToSeason, showToast, requestCloseSheet, resetSheetHistory } from "./ui.js";
-import { initAuth, logout } from "./auth.js";
-import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./profile.js";
-import { flush, onPermanentFailure } from "./write-queue.js";
-import "./timer.js";
+} from "./core/dom.js";
+import { render, renderAllergenFilterPanel } from "./recipes/grid.js";
+import { closeDetail } from "./recipes/detail.js";
+import { openAddForm, closeAddForm } from "./recipes/add-form.js";
+import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./planning/cart.js";
+import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes/recipes-store.js";
+import { initPhotosSync } from "./photos/photos.js";
+import { closeScanRecipe } from "./recipes/scan-recipe.js";
+import { closeImportUrl } from "./recipes/import-url.js";
+import { closeMealPlan } from "./planning/meal-plan.js";
+import { closeSeason } from "./season/season.js";
+import { closePhotoEditor } from "./photos/photo-editor.js";
+import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, goToScanRecipe, goToImportUrl, goToMealPlan, goToSeason, showToast, requestCloseSheet, resetSheetHistory } from "./core/ui.js";
+import { initAuth, logout } from "./auth/auth.js";
+import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./auth/profile.js";
+import { flush, onPermanentFailure } from "./core/write-queue.js";
+import "./recipes/timer.js";
 
 /* ---- service worker : active le mode hors-ligne ---- */
 if ("serviceWorker" in navigator) {

@@ -1,6 +1,6 @@
-import { escapeAttr } from "./utils.js";
-import { openPhotoEditor } from "./photo-editor.js";
-import { getStepPhoto } from "./photos.js";
+import { escapeAttr } from "../core/utils.js";
+import { openPhotoEditor } from "../photos/photo-editor.js";
+import { getStepPhoto } from "../photos/photos.js";
 
 /* ---- lignes dynamiques du formulaire d'ajout (ingrédients / ustensiles / étapes) ---- */
 

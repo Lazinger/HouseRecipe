@@ -203,3 +203,38 @@ create policy "Users manage their own meal plan"
   on public.meal_plan for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
+
+-- ===== Migration : limite globale de tentatives sur check_invite_code =====
+-- Cette fonction est appelable sans authentification (avant connexion), donc
+-- sans lien avec un utilisateur ou une IP pour limiter par appelant — plafond
+-- global de tentatives par minute pour freiner un brute-force du code (8
+-- caractères hex, mais sans aucune limite jusqu'ici).
+create table if not exists public.invite_code_attempts (
+  id boolean primary key default true check (id),
+  window_start timestamptz not null default now(),
+  attempts integer not null default 0
+);
+insert into public.invite_code_attempts (id) values (true) on conflict (id) do nothing;
+
+create or replace function public.check_invite_code(input_code text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_attempts integer;
+begin
+  update public.invite_code_attempts
+    set attempts = case when now() - window_start > interval '1 minute' then 1 else attempts + 1 end,
+        window_start = case when now() - window_start > interval '1 minute' then now() else window_start end
+    where id = true
+    returning attempts into current_attempts;
+
+  if current_attempts > 30 then
+    raise exception 'Trop de tentatives, réessaie dans une minute.';
+  end if;
+
+  return exists(select 1 from public.invite_codes where code = input_code and used_by is null);
+end;
+$$;

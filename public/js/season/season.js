@@ -1,8 +1,8 @@
-import { seasonView, seasonScroll } from "./dom.js";
-import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, goToSeasonalRecipes } from "./ui.js";
-import { ALL_RECIPES } from "./recipes-store.js";
-import { SEASONAL_PRODUCE, seasonalProduceForMonth, produceMatchesRecipe } from "./season-data.js";
-import { MONTH_NAMES } from "./meal-plan.js";
+import { seasonView, seasonScroll } from "../core/dom.js";
+import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, goToSeasonalRecipes } from "../core/ui.js";
+import { ALL_RECIPES } from "../recipes/recipes-store.js";
+import { SEASONAL_PRODUCE, seasonalProduceForMonth, produceMatchesRecipe } from "../data/season-data.js";
+import { MONTH_NAMES } from "../planning/meal-plan.js";
 
 /* ---- vue plein écran : liste des fruits/légumes du mois affiché ---- */
 let currentMonth = new Date().getMonth() + 1; // 1=janvier..12=décembre

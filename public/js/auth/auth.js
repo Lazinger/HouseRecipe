@@ -1,5 +1,5 @@
 import { supabase } from "./supabase-client.js";
-import { showToast } from "./ui.js";
+import { showToast } from "../core/ui.js";
 
 const authView = document.getElementById("authView");
 const authScroll = document.getElementById("authScroll");

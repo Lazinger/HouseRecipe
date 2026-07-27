@@ -1,5 +1,5 @@
-import { timerBadge, timerBadgeValue, detailView, detailScroll } from "./dom.js";
-import { showToast } from "./ui.js";
+import { timerBadge, timerBadgeValue, detailView, detailScroll } from "../core/dom.js";
+import { showToast } from "../core/ui.js";
 import { currentOpenRecipe, openDetail } from "./detail.js";
 
 /* ---- minuteur de cuisine (compte à rebours, un seul actif, persiste en arrière-plan) ---- */

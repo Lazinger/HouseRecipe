@@ -1,5 +1,5 @@
-import { supabase } from "./supabase-client.js";
-import { enqueue, registerHandler } from "./write-queue.js";
+import { supabase } from "../auth/supabase-client.js";
+import { enqueue, registerHandler } from "../core/write-queue.js";
 
 /* ---- photos de recettes (Supabase Storage, avec cache IndexedDB pour l'usage hors-ligne) ---- */
 const PHOTO_DB_NAME = "carnet-photos";

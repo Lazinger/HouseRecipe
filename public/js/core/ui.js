@@ -1,14 +1,14 @@
 import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView, mealPlanView, seasonView } from "./dom.js";
-import { closeDetail } from "./detail.js";
-import { closeAddForm, openAddForm } from "./add-form.js";
-import { closePanier, openPanier } from "./cart.js";
-import { closeProfile } from "./profile.js";
-import { closeScanRecipe, openScanRecipe } from "./scan-recipe.js";
-import { closeImportUrl, openImportUrl } from "./import-url.js";
-import { closePhotoEditor } from "./photo-editor.js";
-import { closeMealPlan, openMealPlan } from "./meal-plan.js";
-import { closeSeason, openSeason } from "./season.js";
-import { render } from "./grid.js";
+import { closeDetail } from "../recipes/detail.js";
+import { closeAddForm, openAddForm } from "../recipes/add-form.js";
+import { closePanier, openPanier } from "../planning/cart.js";
+import { closeProfile } from "../auth/profile.js";
+import { closeScanRecipe, openScanRecipe } from "../recipes/scan-recipe.js";
+import { closeImportUrl, openImportUrl } from "../recipes/import-url.js";
+import { closePhotoEditor } from "../photos/photo-editor.js";
+import { closeMealPlan, openMealPlan } from "../planning/meal-plan.js";
+import { closeSeason, openSeason } from "../season/season.js";
+import { render } from "../recipes/grid.js";
 
 /* ---- toast ---- */
 let toastTimer = null;

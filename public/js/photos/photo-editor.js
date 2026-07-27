@@ -1,5 +1,5 @@
-import { photoEditorView, photoEditorScroll, photoEditorCloseBtn } from "./dom.js";
-import { syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "./ui.js";
+import { photoEditorView, photoEditorScroll, photoEditorCloseBtn } from "../core/dom.js";
+import { syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop } from "../core/ui.js";
 
 /* ---- éditeur de photo : cadre de recadrage à poignées + rotation + amélioration avant sauvegarde ---- */
 let pendingResolve = null;

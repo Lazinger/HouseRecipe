@@ -1,10 +1,10 @@
-import { CATEGORY_LABELS, ALLERGENS } from "./recipes-data.js";
-import { ICONS } from "./icons.js";
-import { escapeHtml } from "./utils.js";
-import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList, seasonalFilterChip } from "./dom.js";
-import { produceMatchesRecipe } from "./season-data.js";
+import { CATEGORY_LABELS, ALLERGENS } from "../data/recipes-data.js";
+import { ICONS } from "../core/icons.js";
+import { escapeHtml } from "../core/utils.js";
+import { heroSlot, grid, emptyState, resultTitle, resultCount, state, allergenFilterBadge, allergenFilterList, seasonalFilterChip } from "../core/dom.js";
+import { produceMatchesRecipe } from "../data/season-data.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
-import { applyCardPhoto } from "./photos.js";
+import { applyCardPhoto } from "../photos/photos.js";
 import { openDetail } from "./detail.js";
 
 /* ---- rendu du héros (recette mise en avant, tirage stable sur la journée) ---- */

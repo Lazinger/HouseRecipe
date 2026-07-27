@@ -1,6 +1,6 @@
-import { importUrlView, importUrlScroll } from "./dom.js";
-import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "./ui.js";
-import { supabase, SUPABASE_URL } from "./supabase-client.js";
+import { importUrlView, importUrlScroll } from "../core/dom.js";
+import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "../core/ui.js";
+import { supabase, SUPABASE_URL } from "../auth/supabase-client.js";
 import { openAddForm } from "./add-form.js";
 import { sanitizeExtractedRecipe } from "./scan-recipe.js";
 
