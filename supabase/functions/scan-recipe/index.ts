@@ -1,15 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.8";
 import { callGeminiForJson, geminiFailureMessage, geminiFailureStatus } from "../_shared/gemini.ts";
 import { stripHtmlTags } from "../_shared/sanitize.ts";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 const EXTRACTION_PROMPT = `Tu regardes une ou plusieurs photos d'une carte de recette (probablement HelloFresh : recto avec photo du plat, verso avec ingrédients/ustensiles/étapes). Extrais son contenu et réponds UNIQUEMENT avec un objet JSON valide, sans aucun texte autour, avec exactement ces champs :
 
@@ -38,6 +34,8 @@ Règles :
 - Dans "steps", quand une phrase mentionne la quantité d'un ingrédient qui figure dans "ingredients", remplace cette quantité dans le texte par {{qty:NomExactDeLIngredient}} en reprenant le nom exactement comme il apparaît dans "ingredients" (ex. si ingredients contient ["Farine", "400 g"], écris "Ajoutez {{qty:Farine}} de farine" au lieu de "Ajoutez 400 g de farine"). Ne fais JAMAIS ça pour un temps de cuisson, une température, une taille de plat/moule, ou toute quantité qui ne correspond à aucun ingrédient de la liste — ces nombres restent en texte normal.`;
 
 Deno.serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

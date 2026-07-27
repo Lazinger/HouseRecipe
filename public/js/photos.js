@@ -49,6 +49,33 @@ function stepPhotoKey(recipeId, index){
   return `${recipeId}::step::${index}`;
 }
 
+/* ---- redimensionnement avant stockage/upload : les photos viennent souvent
+   directement de l'appareil photo (plusieurs Mo), alors qu'elles ne sont
+   jamais affichées au-delà d'une grande vignette — les réduire ici économise
+   du stockage Supabase et du volume/temps de synchro. ---- */
+const PHOTO_MAX_DIMENSION = 1200;
+const PHOTO_JPEG_QUALITY = 0.82;
+
+async function resizeImageForUpload(file, maxDim = PHOTO_MAX_DIMENSION, quality = PHOTO_JPEG_QUALITY){
+  if (!file?.type?.startsWith("image/")) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    if (scale === 1) { bitmap.close?.(); return file; }
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
+    bitmap.close?.();
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+    return blob || file;
+  } catch {
+    return file;
+  }
+}
+
 /* ---- synchro Supabase Storage ---- */
 function markPhotoSynced(key){
   const synced = new Set(JSON.parse(localStorage.getItem(SYNCED_KEY) || "[]"));
@@ -120,9 +147,10 @@ export async function initPhotosSync(){
 
 /* ---- API publique ---- */
 export async function savePhoto(recipeId, file){
-  await cachePhotoLocally(recipeId, file);
+  const blob = await resizeImageForUpload(file);
+  await cachePhotoLocally(recipeId, blob);
   confirmedMissing.delete(recipeId);
-  await photoWriteHandler({ op: "upload", key: recipeId, blob: file }).catch(() => enqueue("photo", recipeId, { op: "upload", key: recipeId, blob: file }));
+  await photoWriteHandler({ op: "upload", key: recipeId, blob }).catch(() => enqueue("photo", recipeId, { op: "upload", key: recipeId, blob }));
 }
 
 export async function getMainPhoto(recipeId){
@@ -137,9 +165,10 @@ export async function removePhoto(recipeId){
 
 export async function saveStepPhoto(recipeId, index, file){
   const key = stepPhotoKey(recipeId, index);
-  await cachePhotoLocally(key, file);
+  const blob = await resizeImageForUpload(file);
+  await cachePhotoLocally(key, blob);
   confirmedMissing.delete(key);
-  await photoWriteHandler({ op: "upload", key, blob: file }).catch(() => enqueue("photo", key, { op: "upload", key, blob: file }));
+  await photoWriteHandler({ op: "upload", key, blob }).catch(() => enqueue("photo", key, { op: "upload", key, blob }));
 }
 
 export async function removeStepPhoto(recipeId, index){

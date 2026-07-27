@@ -71,9 +71,11 @@ seasonCloseBtn.addEventListener("click", requestCloseSheet);
 brandHomeBtn.addEventListener("click", goToAllRecipes);
 
 /* ---- écouteurs ---- */
+let searchDebounceTimer = null;
 searchInput.addEventListener("input", (e) => {
   state.query = e.target.value;
-  render();
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(render, 200);
 });
 
 chips.forEach(chip => {
