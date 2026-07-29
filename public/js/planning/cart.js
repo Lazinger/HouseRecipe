@@ -1,5 +1,5 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
-import { parseQuantity, formatScaledNumber } from "../recipes/quantity.js";
+import { parseQuantity, formatScaledNumber, mergeQuantityParts } from "../recipes/quantity.js";
 import { cartBadge, panierView, panierScroll } from "../core/dom.js";
 import { escapeAttr, escapeHtml } from "../core/utils.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
@@ -87,19 +87,6 @@ export async function initCartSync(){
   } catch {
     /* hors-ligne ou erreur réseau : on garde le panier déjà en cache localStorage */
   }
-}
-
-function mergeQuantityParts(parts){
-  const parsed = parts.map(parseQuantity);
-  if (parsed.every(Boolean)) {
-    const unit = parsed[0].unit.toLowerCase();
-    if (parsed.every(p => p.unit.toLowerCase() === unit)) {
-      const sum = parsed.reduce((acc, p) => acc + p.value, 0);
-      const formatted = formatScaledNumber(sum);
-      return parsed[0].unit ? `${formatted} ${parsed[0].unit}` : formatted;
-    }
-  }
-  return [...new Set(parts.map(p => p.trim()))].join(" + ");
 }
 
 function mergeIngredientsForShopping(){

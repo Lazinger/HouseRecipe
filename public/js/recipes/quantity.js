@@ -114,3 +114,37 @@ export function resolveStepQuantities(step, ingredients){
     return found ? found[1] : match;
   });
 }
+
+/* ---- soustraction d'un stock (frigo) au besoin d'une recette : utilisee
+   par le panier pour n'afficher dans "a acheter" que ce qui manque
+   reellement. Si l'une des deux quantites ne se parse pas, ou si les
+   unites different, retourne le besoin inchange (repli sur : pas de
+   deduction plutot qu'un calcul faux). ---- */
+export function subtractQuantity(need, stock){
+  const parsedNeed = parseQuantity(need);
+  const parsedStock = parseQuantity(stock);
+  if (!parsedNeed || !parsedStock) return need;
+  if (parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) return need;
+  const remaining = Math.max(0, parsedNeed.value - parsedStock.value);
+  const formatted = formatScaledNumber(remaining);
+  return parsedNeed.unit ? `${formatted} ${parsedNeed.unit}` : formatted;
+}
+
+/* ---- fusion de plusieurs quantites du meme ingredient (ex. la meme
+   recette ajoutee deux fois, ou plusieurs recettes demandant le meme
+   ingredient) : additionne si toutes les unites correspondent, sinon
+   concatene les valeurs distinctes. Partagee entre le panier (fusion des
+   ingredients a acheter) et le frigo (reapprovisionnement au clic sur
+   "Valide"). ---- */
+export function mergeQuantityParts(parts){
+  const parsed = parts.map(parseQuantity);
+  if (parsed.every(Boolean)) {
+    const unit = parsed[0].unit.toLowerCase();
+    if (parsed.every(p => p.unit.toLowerCase() === unit)) {
+      const sum = parsed.reduce((acc, p) => acc + p.value, 0);
+      const formatted = formatScaledNumber(sum);
+      return parsed[0].unit ? `${formatted} ${parsed[0].unit}` : formatted;
+    }
+  }
+  return [...new Set(parts.map(p => p.trim()))].join(" + ");
+}

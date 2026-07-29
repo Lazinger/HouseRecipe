@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -81,3 +81,29 @@ if (stepFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${stepCases.length} cas resolveStepQuantities passes.`);
+
+const subtractCases = [
+  { input: ["400 g", "150 g"], expected: "250 g" },
+  { input: ["150 g", "400 g"], expected: "0 g" },
+  { input: ["3", "2"], expected: "1" },
+  { input: ["400 g", "1 boîte"], expected: "400 g" },
+  { input: ["selon les goûts", "1 pinc."], expected: "selon les goûts" },
+  { input: ["400 g", "selon les goûts"], expected: "400 g" }
+];
+
+let subtractFailures = 0;
+for (const { input, expected } of subtractCases) {
+  const result = subtractQuantity(...input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    subtractFailures++;
+    console.error(`FAIL: subtractQuantity(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (subtractFailures > 0) {
+  console.error(`${subtractFailures}/${subtractCases.length} cas subtractQuantity en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${subtractCases.length} cas subtractQuantity passes.`);
