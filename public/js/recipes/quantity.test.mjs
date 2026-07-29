@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -107,3 +107,43 @@ if (subtractFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${subtractCases.length} cas subtractQuantity passes.`);
+
+const fridgeCases = [
+  {
+    merged: [{ key: "farine", name: "Farine", qty: "400 g" }, { key: "sel", name: "Sel", qty: "1 pinc." }],
+    fridge: [["Farine", "150 g"]],
+    expected: [{ key: "farine", name: "Farine", qty: "250 g" }, { key: "sel", name: "Sel", qty: "1 pinc." }]
+  },
+  {
+    merged: [{ key: "farine", name: "Farine", qty: "400 g" }],
+    fridge: [["Farine", "400 g"]],
+    expected: []
+  },
+  {
+    merged: [{ key: "farine", name: "Farine", qty: "400 g" }],
+    fridge: [["Farine", "1 boîte"]],
+    expected: [{ key: "farine", name: "Farine", qty: "400 g" }]
+  },
+  {
+    merged: [{ key: "farine", name: "Farine", qty: "400 g" }],
+    fridge: [],
+    expected: [{ key: "farine", name: "Farine", qty: "400 g" }]
+  }
+];
+
+let fridgeFailures = 0;
+for (const { merged, fridge, expected } of fridgeCases) {
+  const result = applyFridgeStock(merged, fridge);
+  try {
+    assert.deepStrictEqual(result, expected);
+  } catch {
+    fridgeFailures++;
+    console.error(`FAIL: applyFridgeStock(${JSON.stringify(merged)}, ${JSON.stringify(fridge)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (fridgeFailures > 0) {
+  console.error(`${fridgeFailures}/${fridgeCases.length} cas applyFridgeStock en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${fridgeCases.length} cas applyFridgeStock passes.`);

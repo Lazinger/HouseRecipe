@@ -148,3 +148,21 @@ export function mergeQuantityParts(parts){
   }
   return [...new Set(parts.map(p => p.trim()))].join(" + ");
 }
+
+/* ---- deduit le stock du frigo du besoin fusionne du panier : un
+   ingredient dont le besoin tombe a zero est retire de la liste "a
+   acheter". Correspondance par nom normalise (meme regle que la fusion
+   du panier), pas de correspondance -> besoin brut inchange (repli sur). ---- */
+export function applyFridgeStock(merged, fridgeItems){
+  const fridgeMap = new Map(fridgeItems.map(([name, qty]) => [name.trim().toLowerCase(), qty]));
+  return merged
+    .map(item => {
+      const stock = fridgeMap.get(item.key);
+      if (!stock) return item;
+      return { ...item, qty: subtractQuantity(item.qty, stock) };
+    })
+    .filter(item => {
+      const parsed = parseQuantity(item.qty);
+      return !(parsed && parsed.value === 0);
+    });
+}
