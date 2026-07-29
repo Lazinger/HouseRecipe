@@ -181,7 +181,14 @@ function renderSignupForm(){
 
       const { error } = await supabase.auth.signUp({
         email, password,
-        options: { data: { first_name, last_name, pending_invite_code } }
+        options: {
+          data: { first_name, last_name, pending_invite_code },
+          /* sans ceci, le lien de confirmation retombe sur le Site URL
+             configure dans le dashboard Supabase, qui ne connait pas le
+             sous-chemin /HouseRecipe/ (project page GitHub Pages) — force
+             la redirection vers la page reellement servie. */
+          emailRedirectTo: window.location.origin + window.location.pathname
+        }
       });
       if (error) {
         errorEl.textContent = "Inscription impossible. Vérifie tes informations.";
