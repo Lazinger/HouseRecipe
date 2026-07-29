@@ -238,3 +238,19 @@ begin
   return exists(select 1 from public.invite_codes where code = input_code and used_by is null);
 end;
 $$;
+
+-- ===== fridge_items : inventaire personnel du frigo (Mon Frigo) =====
+create table public.fridge_items (
+  user_id uuid not null references auth.users(id),
+  name text not null,
+  qty text not null default '',
+  updated_at timestamptz not null default now(),
+  primary key (user_id, name)
+);
+
+alter table public.fridge_items enable row level security;
+
+create policy "Users manage their own fridge items"
+  on public.fridge_items for all
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
