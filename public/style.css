@@ -972,3 +972,14 @@ body.auth-locked #addFab{ display:none; }
   .detail-sub{ -webkit-line-clamp:unset; overflow:visible; }
   .detail-body{ grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   FICHE RECETTE — verification frigo
+   ========================================================= */
+.fridge-actions{ display:flex; gap:10px; margin-top:14px; }
+.fridge-actions .btn-secondary{ flex:1; padding:10px 14px; font-size:.82rem; text-align:center; }
+
+.ingredient-list li.ing-ok .ing-icon{ background: var(--emerald-tint); color: var(--emerald-dark); }
+.ingredient-list li.ing-manque .ing-icon{ background: var(--terracotta-tint); color: var(--terracotta-dark); }
+.ingredient-list li.ing-a-verifier .ing-icon{ background: var(--line); color: var(--ink-soft); }
+.ing-missing{ display:block; color: var(--terracotta-dark); font-weight:700; font-size:.68rem; }

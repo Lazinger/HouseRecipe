@@ -1,10 +1,11 @@
 import { ING_ICON } from "../core/icons.js";
 import { ALLERGENS } from "../data/recipes-data.js";
-import { escapeHtml } from "../core/utils.js";
+import { escapeHtml, escapeAttr } from "../core/utils.js";
 import { state, detailView, detailScroll } from "../core/dom.js";
 import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "./recipes-store.js";
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "../planning/cart.js";
-import { scaleQuantity, resolveStepQuantities } from "./quantity.js";
+import { scaleQuantity, resolveStepQuantities, checkFridgeAvailability } from "./quantity.js";
+import { fridgeItems } from "../planning/fridge.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "../photos/photos.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "../core/ui.js";
 import { renderTimerPanel } from "./timer.js";
@@ -13,7 +14,7 @@ import { openAddForm } from "./add-form.js";
 
 /* ---- vue détail ---- */
 function ingredientRowHtml(name, qty){
-  return `<li><span class="ing-icon">${ING_ICON}</span><span class="ing-text"><span class="ing-name">${escapeHtml(name)}</span><span class="ing-qty">${escapeHtml(qty)}</span></span></li>`;
+  return `<li data-ing-name="${escapeAttr(name)}"><span class="ing-icon">${ING_ICON}</span><span class="ing-text"><span class="ing-name">${escapeHtml(name)}</span><span class="ing-qty">${escapeHtml(qty)}</span></span></li>`;
 }
 
 function stepRowHtml(step, index, ingredients){
@@ -90,6 +91,10 @@ export function openDetail(id){
         <ul class="ingredient-list" id="ingredientList">
           ${r.ingredients.map(([name, qty]) => ingredientRowHtml(name, qty)).join("")}
         </ul>
+        <div class="fridge-actions">
+          <button type="button" class="btn-secondary" id="checkFridgeBtn">Vérifier mon frigo</button>
+          <button type="button" class="btn-secondary" id="cookedRecipeBtn">J'ai fait la recette</button>
+        </div>
         <button class="add-to-cart-btn" id="addToCartBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8V6a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           Ajouter au panier
@@ -179,6 +184,24 @@ export function openDetail(id){
     minusBtn.disabled = currentServings <= 1;
     renderScaledIngredients();
     renderScaledSteps();
+  });
+  detailScroll.querySelector("#checkFridgeBtn").addEventListener("click", () => {
+    const results = checkFridgeAvailability(currentIngredients(), fridgeItems);
+    const resultByName = new Map(results.map(res => [res.name, res]));
+    [...ingredientListEl.children].forEach(li => {
+      li.classList.remove("ing-ok", "ing-manque", "ing-a-verifier");
+      const oldMissing = li.querySelector(".ing-missing");
+      if (oldMissing) oldMissing.remove();
+      const result = resultByName.get(li.dataset.ingName);
+      if (!result) return;
+      li.classList.add(`ing-${result.status}`);
+      if (result.status === "manque" && result.missing) {
+        const span = document.createElement("span");
+        span.className = "ing-missing";
+        span.textContent = `manque ${result.missing}`;
+        li.querySelector(".ing-text").appendChild(span);
+      }
+    });
   });
   detailScroll.querySelector("#addToCartBtn").addEventListener("click", () => {
     addRecipeToCart(r, currentServings, currentIngredients());
