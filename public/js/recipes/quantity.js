@@ -1,6 +1,22 @@
-/* ---- mise à l'échelle des quantités selon le nombre de personnes ---- */
+/* ---- mise à l'échelle des quantités selon le nombre de personnes ----
+   Les quantites extraites par IA (scan photo / import URL) utilisent parfois
+   des fractions unicode ("½ citron", "1½ CS", "⅔ sachet(s)") plutot qu'un
+   nombre decimal — sans cette reconnaissance, ces quantites ne se parsent
+   jamais (retour null), ce qui bloque silencieusement et indefiniment toute
+   comparaison frigo/panier pour cet ingredient. ---- */
+const FRACTION_VALUES = { "¼": 0.25, "½": 0.5, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3 };
+const FRACTION_CHARS = Object.keys(FRACTION_VALUES).join("");
+const FRACTION_RE = new RegExp(`^(\\d+)?([${FRACTION_CHARS}])\\s*(.*)$`);
+
 export function parseQuantity(qty){
-  const m = String(qty).trim().match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
+  const str = String(qty).trim();
+  const fractionMatch = str.match(FRACTION_RE);
+  if (fractionMatch) {
+    const [, whole, frac, rest] = fractionMatch;
+    const value = (whole ? parseInt(whole, 10) : 0) + FRACTION_VALUES[frac];
+    return { value, unit: rest.trim() };
+  }
+  const m = str.match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
   if (!m) return null;
   return { value: parseFloat(m[1].replace(",", ".")), unit: m[2].trim() };
 }
@@ -48,10 +64,21 @@ export function formatScaledNumber(n){
   const rounded = Math.round(n * 2) / 2;
   return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(".", ",");
 }
+
+/* ---- "pièce(s)" designe un objet entier non divisible a l'achat (un
+   citron, un oeuf...) : contrairement a g/ml/CS/etc. (des mesures
+   continues), on ne peut jamais acheter une fraction d'unite, donc on
+   arrondit toujours au nombre entier superieur plutot que d'appliquer
+   l'arrondi au 0,5 pres utilise pour les autres unites. ---- */
+export function formatQuantityValue(value, unit){
+  if (String(unit ?? "").toLowerCase() === "pièce(s)") return String(Math.ceil(value));
+  return formatScaledNumber(value);
+}
+
 export function scaleQuantity(qty, ratio){
   const parsed = parseQuantity(qty);
   if (!parsed) return qty;
-  const scaled = formatScaledNumber(parsed.value * ratio);
+  const scaled = formatQuantityValue(parsed.value * ratio, parsed.unit);
   return parsed.unit ? `${scaled} ${parsed.unit}` : scaled;
 }
 
@@ -143,7 +170,7 @@ export function subtractQuantity(need, stock){
   if (!parsedNeed || !parsedStock) return need;
   if (parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) return need;
   const remaining = Math.max(0, parsedNeed.value - parsedStock.value);
-  const formatted = formatScaledNumber(remaining);
+  const formatted = formatQuantityValue(remaining, parsedNeed.unit);
   return parsedNeed.unit ? `${formatted} ${parsedNeed.unit}` : formatted;
 }
 
@@ -159,7 +186,7 @@ export function mergeQuantityParts(parts){
     const unit = parsed[0].unit.toLowerCase();
     if (parsed.every(p => p.unit.toLowerCase() === unit)) {
       const sum = parsed.reduce((acc, p) => acc + p.value, 0);
-      const formatted = formatScaledNumber(sum);
+      const formatted = formatQuantityValue(sum, parsed[0].unit);
       return parsed[0].unit ? `${formatted} ${parsed[0].unit}` : formatted;
     }
   }
@@ -208,7 +235,7 @@ export function checkFridgeAvailability(ingredients, fridgeItems){
 
     if (parsedStock.value >= parsedNeed.value) return { name, qty, status: "ok" };
 
-    const missingValue = formatScaledNumber(parsedNeed.value - parsedStock.value);
+    const missingValue = formatQuantityValue(parsedNeed.value - parsedStock.value, parsedNeed.unit);
     const missing = parsedNeed.unit ? `${missingValue} ${parsedNeed.unit}` : missingValue;
     return { name, qty, status: "manque", missing };
   });

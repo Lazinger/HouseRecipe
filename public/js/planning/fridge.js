@@ -1,6 +1,6 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
-import { mergeQuantityParts, normalizeQuantity, formatScaledNumber, parseQuantity } from "../recipes/quantity.js";
+import { mergeQuantityParts, normalizeQuantity, formatQuantityValue, parseQuantity } from "../recipes/quantity.js";
 import { fridgeView, fridgeScroll } from "../core/dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
 import { escapeAttr } from "../core/utils.js";
@@ -110,7 +110,7 @@ export function decrementFridgeItems(ingredients){
     if (remaining === 0) {
       removeFridgeItem(existingName);
     } else {
-      const formatted = formatScaledNumber(remaining);
+      const formatted = formatQuantityValue(remaining, parsedStock.unit);
       saveFridgeItem(existingName, parsedStock.unit ? `${formatted} ${parsedStock.unit}` : formatted);
     }
   });
@@ -125,7 +125,7 @@ function populateIngredientDatalist(){
   datalist.innerHTML = [...names].sort().map(n => `<option value="${escapeAttr(n)}"></option>`).join("");
 }
 
-const FRIDGE_UNITS = ["g", "kg", "ml", "L", "pièce(s)"];
+const FRIDGE_UNITS = ["g", "kg", "ml", "L", "pièce(s)", "feuille(s)"];
 
 function splitFridgeQty(qty){
   const parsed = parseQuantity(qty);

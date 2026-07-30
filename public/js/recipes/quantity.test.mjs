@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability, formatQuantityValue, scaleQuantity, parseQuantity } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -257,3 +257,103 @@ if (checkFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${checkCases.length} cas checkFridgeAvailability passes.`);
+
+const formatQuantityCases = [
+  { input: [0.5, "pièce(s)"], expected: "1" },
+  { input: [0.8, "pièce(s)"], expected: "1" },
+  { input: [2, "pièce(s)"], expected: "2" },
+  { input: [2.1, "pièce(s)"], expected: "3" },
+  { input: [0, "pièce(s)"], expected: "0" },
+  { input: [2.3, "g"], expected: "2,5" },
+  { input: [3, "CS"], expected: "3" }
+];
+
+let formatQuantityFailures = 0;
+for (const { input, expected } of formatQuantityCases) {
+  const result = formatQuantityValue(...input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    formatQuantityFailures++;
+    console.error(`FAIL: formatQuantityValue(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (formatQuantityFailures > 0) {
+  console.error(`${formatQuantityFailures}/${formatQuantityCases.length} cas formatQuantityValue en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${formatQuantityCases.length} cas formatQuantityValue passes.`);
+
+const scaleCeilCases = [
+  { input: ["0,5 pièce(s)", 1], expected: "1 pièce(s)" },
+  { input: ["1 pièce(s)", 1.5], expected: "2 pièce(s)" },
+  { input: ["1 pièce(s)", 2], expected: "2 pièce(s)" },
+  { input: ["100 g", 1.5], expected: "150 g" }
+];
+
+let scaleCeilFailures = 0;
+for (const { input, expected } of scaleCeilCases) {
+  const result = scaleQuantity(...input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    scaleCeilFailures++;
+    console.error(`FAIL: scaleQuantity(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (scaleCeilFailures > 0) {
+  console.error(`${scaleCeilFailures}/${scaleCeilCases.length} cas scaleQuantity (arrondi piece(s)) en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${scaleCeilCases.length} cas scaleQuantity (arrondi piece(s)) passes.`);
+
+const fractionCases = [
+  { input: "½ pièce(s)", expected: { value: 0.5, unit: "pièce(s)" } },
+  { input: "⅓ sachet(s)", expected: { value: 1 / 3, unit: "sachet(s)" } },
+  { input: "⅔ pot(s)", expected: { value: 2 / 3, unit: "pot(s)" } },
+  { input: "1½ CS", expected: { value: 1.5, unit: "CS" } },
+  { input: "¾ L", expected: { value: 0.75, unit: "L" } },
+  { input: "400 g", expected: { value: 400, unit: "g" } },
+  { input: "0,5 pièce(s)", expected: { value: 0.5, unit: "pièce(s)" } }
+];
+
+let fractionFailures = 0;
+for (const { input, expected } of fractionCases) {
+  const result = parseQuantity(input);
+  try {
+    assert.deepStrictEqual(result, expected);
+  } catch {
+    fractionFailures++;
+    console.error(`FAIL: parseQuantity(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (fractionFailures > 0) {
+  console.error(`${fractionFailures}/${fractionCases.length} cas parseQuantity (fractions unicode) en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${fractionCases.length} cas parseQuantity (fractions unicode) passes.`);
+
+const fractionCeilCases = [
+  { input: ["½ pièce(s)", 1], expected: "1 pièce(s)" },
+  { input: ["⅓ sachet(s)", 1], expected: "0,5 sachet(s)" }
+];
+
+let fractionCeilFailures = 0;
+for (const { input, expected } of fractionCeilCases) {
+  const result = scaleQuantity(...input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    fractionCeilFailures++;
+    console.error(`FAIL: scaleQuantity(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (fractionCeilFailures > 0) {
+  console.error(`${fractionCeilFailures}/${fractionCeilCases.length} cas scaleQuantity (fractions -> affichage) en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${fractionCeilCases.length} cas scaleQuantity (fractions -> affichage) passes.`);

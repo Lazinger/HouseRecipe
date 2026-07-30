@@ -30,6 +30,13 @@ export function openDetail(id){
 
   detailView.className = `detail-view hf-theme cat-${r.category}`;
 
+  /* ---- affichage initial (avant toute interaction avec le stepper de
+     personnes) : passe par scaleQuantity(qty, 1) pour beneficier des memes
+     regles d'affichage que la vue mise a l'echelle (ex. arrondi a l'unite
+     superieure pour "pièce(s)"), plutot que d'afficher la quantite brute
+     de la recette telle quelle. ---- */
+  const initialIngredients = r.ingredients.map(([name, qty]) => [name, scaleQuantity(qty, 1)]);
+
   detailScroll.innerHTML = `
     <div class="detail-hero" id="detailHero">
       <div class="detail-topbar">
@@ -89,7 +96,7 @@ export function openDetail(id){
       <div>
         <h3 class="panel-title">Ingrédients</h3>
         <ul class="ingredient-list" id="ingredientList">
-          ${r.ingredients.map(([name, qty]) => ingredientRowHtml(name, qty)).join("")}
+          ${initialIngredients.map(([name, qty]) => ingredientRowHtml(name, qty)).join("")}
         </ul>
         <div class="fridge-actions">
           <button type="button" class="btn-secondary" id="checkFridgeBtn">Vérifier mon frigo</button>
@@ -104,7 +111,7 @@ export function openDetail(id){
       <div>
         <h3 class="panel-title">Préparation</h3>
         <ol class="step-list" id="stepList">
-          ${r.steps.map((s, i) => stepRowHtml(s, i, r.ingredients)).join("")}
+          ${r.steps.map((s, i) => stepRowHtml(s, i, initialIngredients)).join("")}
         </ol>
       </div>
       <div class="timer-panel" id="timerPanel"></div>
