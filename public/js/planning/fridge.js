@@ -36,8 +36,15 @@ export async function initFridgeSync(){
     if (!userId) return;
     const { data, error } = await supabase.from("fridge_items").select("name, qty").eq("user_id", userId);
     if (error) throw error;
-    fridgeItems.splice(0, fridgeItems.length, ...(data || []).map(row => [row.name, row.qty]));
-    saveFridgeLocal();
+    if ((data || []).length > 0) {
+      fridgeItems.splice(0, fridgeItems.length, ...data.map(row => [row.name, row.qty]));
+      saveFridgeLocal();
+    } else if (fridgeItems.length > 0) {
+      fridgeItems.forEach(([name, qty]) => {
+        const payload = { op: "upsert", name, qty };
+        fridgeWriteHandler(payload).catch(() => enqueue("fridge", name.trim().toLowerCase(), payload));
+      });
+    }
   } catch {
     /* hors-ligne ou erreur réseau : on garde le frigo déjà en cache localStorage */
   }
@@ -53,7 +60,7 @@ export function saveFridgeItem(name, qty){
   if (idx >= 0) fridgeItems[idx] = [name, qty]; else fridgeItems.push([name, qty]);
   saveFridgeLocal();
   const payload = { op: "upsert", name, qty };
-  fridgeWriteHandler(payload).catch(() => enqueue("fridge", `upsert:${name.trim().toLowerCase()}`, payload));
+  fridgeWriteHandler(payload).catch(() => enqueue("fridge", name.trim().toLowerCase(), payload));
 }
 
 export function removeFridgeItem(name){
@@ -61,7 +68,7 @@ export function removeFridgeItem(name){
   if (idx >= 0) fridgeItems.splice(idx, 1);
   saveFridgeLocal();
   const payload = { op: "delete", name };
-  fridgeWriteHandler(payload).catch(() => enqueue("fridge", `delete:${name.trim().toLowerCase()}`, payload));
+  fridgeWriteHandler(payload).catch(() => enqueue("fridge", name.trim().toLowerCase(), payload));
 }
 
 /* ---- reapprovisionnement au clic sur "Valide" dans le panier : items est
