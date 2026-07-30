@@ -187,12 +187,11 @@ export function openDetail(id){
   });
   detailScroll.querySelector("#checkFridgeBtn").addEventListener("click", () => {
     const results = checkFridgeAvailability(currentIngredients(), fridgeItems);
-    const resultByName = new Map(results.map(res => [res.name, res]));
-    [...ingredientListEl.children].forEach(li => {
+    [...ingredientListEl.children].forEach((li, index) => {
       li.classList.remove("ing-ok", "ing-manque", "ing-a-verifier");
       const oldMissing = li.querySelector(".ing-missing");
       if (oldMissing) oldMissing.remove();
-      const result = resultByName.get(li.dataset.ingName);
+      const result = results[index];
       if (!result) return;
       li.classList.add(`ing-${result.status}`);
       if (result.status === "manque" && result.missing) {
