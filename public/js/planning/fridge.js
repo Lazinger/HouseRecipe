@@ -1,4 +1,4 @@
-﻿import { supabase, currentUserId } from "../auth/supabase-client.js";
+import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
 import { mergeQuantityParts } from "../recipes/quantity.js";
 import { fridgeView, fridgeScroll } from "../core/dom.js";
