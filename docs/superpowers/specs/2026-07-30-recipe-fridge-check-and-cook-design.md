@@ -14,7 +14,7 @@ Ces deux actions ont mis en évidence une limite de Mon Frigo v1 : la quantité 
 - **kg↔g et L↔ml sont convertis automatiquement** partout où une comparaison de quantité a lieu (déduction panier existante, nouvelle vérification frigo, nouveau décrément) — pas seulement dans les deux nouvelles fonctionnalités.
 - Les unités de recette non quantifiables (CS, CC, pincée, sachet(s), tranche(s), "selon le goût"...) restent, elles, non comparables : un ingrédient de recette dans une telle unité tombera toujours dans l'état "à vérifier" (voir plus bas), quelle que soit la quantité au frigo.
 - **"Vérifier mon frigo"** : annote chaque ligne d'ingrédient de la fiche recette (pas de popup séparée) avec un des 3 états : *ok* (vert), *manque* (rouge, avec la quantité manquante), *à vérifier* (gris, unité non comparable ou ingrédient absent du frigo dans une unité comparable — mais présent dans une unité incomparable serait aussi "à vérifier"; absent purement et simplement du frigo = *manque*, montré plus bas). Recalcul à la demande uniquement (bouton), pas automatique à l'ouverture de la fiche. Les annotations sont invalidées (retirées) si le nombre de personnes change, pour ne jamais afficher un résultat périmé.
-- **"J'ai fait la recette"** : décrémente le frigo des quantités de la recette (mises à l'échelle selon le nombre de personnes courant). Popup de confirmation avant d'appliquer (action peu réversible). Ingrédients absents du frigo ou dans une unité incomparable : ignorés silencieusement (aucune erreur), comme le reste de la logique de quantités dans l'app.
+- **"J'ai fait la recette"** : décrémente le frigo des quantités de la recette (mises à l'échelle selon le nombre de personnes courant). **Popup de confirmation personnalisée** avant d'appliquer (pas la boîte `confirm()` native du navigateur, dont les boutons ne sont pas personnalisables) : message explicite ("Valider retirera les ingrédients de cette recette de ton frigo. Continuer ?") avec deux boutons **Oui** / **Non**. "Non" (ou fermeture de la popup) annule sans rien modifier ; "Oui" applique le décrément. Ingrédients absents du frigo ou dans une unité incomparable : ignorés silencieusement (aucune erreur), comme le reste de la logique de quantités dans l'app.
 - Les deux boutons vivent dans le panneau Ingrédients de la fiche recette, juste au-dessus du bouton existant "Ajouter au panier".
 
 ## Flux utilisateur
@@ -22,7 +22,7 @@ Ces deux actions ont mis en évidence une limite de Mon Frigo v1 : la quantité 
 1. Dans "Mon Frigo", chaque ligne a maintenant : nom (texte + autocomplétion, inchangé), un champ nombre, et un menu déroulant d'unité (g / kg / ml / L / pièce(s), "g" par défaut sur une nouvelle ligne). La sauvegarde au fil de l'eau est inchangée (déclenchée au `change` de n'importe lequel des 3 champs).
 2. Sur une fiche recette, deux nouveaux boutons secondaires apparaissent au-dessus de "Ajouter au panier" : **"Vérifier mon frigo"** et **"J'ai fait la recette"**.
 3. Clic sur "Vérifier mon frigo" : chaque ligne d'ingrédient de la liste affichée se colore/s'annote selon son état (ok / manque X / à vérifier). Un nouveau clic sur "Vérifier mon frigo" (ou sur le stepper de personnes, qui invalide silencieusement l'annotation) relance le calcul.
-4. Clic sur "J'ai fait la recette" : popup de confirmation ("Décrémenter le frigo des ingrédients de cette recette ?"). Si confirmé, chaque ingrédient trouvé dans le frigo (unité comparable) voit sa quantité diminuée (jusqu'à 0, puis la ligne est supprimée du frigo) ; toast de confirmation ensuite.
+4. Clic sur "J'ai fait la recette" : popup personnalisée ("Valider retirera les ingrédients de cette recette de ton frigo. Continuer ?", boutons **Oui** / **Non**). Sur "Oui", chaque ingrédient trouvé dans le frigo (unité comparable) voit sa quantité diminuée (jusqu'à 0, puis la ligne est supprimée du frigo) ; toast de confirmation ensuite. Sur "Non" (ou fermeture) : rien ne se passe.
 
 ## État et données
 
@@ -46,14 +46,17 @@ Aucune nouvelle table. `fridge_items.qty` continue de stocker une chaîne libre 
   - `addFridgeRow` / le rendu de `renderFridge` : le second `<input>` texte libre est remplacé par un `<input type="number" min="0" step="any">` + un `<select>` d'unités (g/kg/ml/L/pièce(s)). Ne touche pas à `createIngredientRow` dans `dyn-rows.js` (partagé avec le formulaire d'ajout de recette, qui doit garder la quantité en texte libre) — Mon Frigo construit sa propre ligne, pas via `createIngredientRow`.
   - La logique de commit (sauvegarde au `change`) combine `${valeur} ${unité}` en une seule chaîne avant d'appeler `saveFridgeItem`, comme aujourd'hui.
 
+- **`public/js/core/ui.js`** :
+  - Nouvelle fonction réutilisable `confirmModal(message, { confirmLabel = "Oui", cancelLabel = "Non" } = {})` → `Promise<boolean>`. Construit une petite popup (backdrop + boîte centrée, même famille visuelle que le reste de l'app) avec le message et deux boutons ; se résout à `true`/`false` puis se détruit. Remplace la boîte `confirm()` native partout où on veut des libellés de bouton personnalisés — utilisée ici par "J'ai fait la recette", réutilisable telle quelle pour un futur besoin similaire (ex. `deleteRecipe` dans `detail.js` utilise aujourd'hui `confirm()` natif ; pas touché par ce chantier, mais pourrait migrer plus tard).
+
 - **`public/js/recipes/detail.js`** :
   - Deux nouveaux boutons secondaires (`#checkFridgeBtn` "Vérifier mon frigo", `#cookedRecipeBtn` "J'ai fait la recette") au-dessus de `#addToCartBtn`.
   - `ingredientRowHtml` : ajoute `data-ing-name="${escapeAttr(name)}"` sur le `<li>` pour permettre l'annotation post-rendu sans dupliquer le template de rendu.
   - `#checkFridgeBtn` : appelle `checkFridgeAvailability(currentIngredients(), fridgeItems)`, puis pour chaque résultat retrouve le `<li>` correspondant par `data-ing-name` et y ajoute une classe (`ing-ok` / `ing-manque` / `ing-a-verifier`) plus, si `status === "manque"`, un petit texte "manque {missing}".
-  - `#cookedRecipeBtn` : `confirm(...)` puis `decrementFridgeItems(currentIngredients())` (import depuis `fridge.js`, déjà importé ailleurs dans le module) + `showToast(...)`.
+  - `#cookedRecipeBtn` : `await confirmModal("Valider retirera les ingrédients de cette recette de ton frigo. Continuer ?")` ; si `true`, `decrementFridgeItems(currentIngredients())` (import depuis `fridge.js`, déjà importé ailleurs dans le module) + `showToast(...)`.
   - Les gestionnaires `minusBtn`/`plusBtn` (stepper personnes) : après `renderScaledIngredients()`, s'assurent que les classes d'annotation précédentes sont bien reparties (elles le sont de fait puisque `renderScaledIngredients` regénère le HTML des `<li>` depuis `ingredientRowHtml`, sans les classes d'état) — aucun code supplémentaire nécessaire, comportement hérité de la régénération du HTML.
 
-- **CSS** (`public/style.css` ou équivalent) : classes `.ing-ok` / `.ing-manque` / `.ing-a-verifier` (couleur du texte/icône), styles des deux nouveaux boutons secondaires, mise en page de la nouvelle ligne Mon Frigo à 3 champs + croix.
+- **CSS** (`public/style.css` ou équivalent) : classes `.ing-ok` / `.ing-manque` / `.ing-a-verifier` (couleur du texte/icône), styles des deux nouveaux boutons secondaires, mise en page de la nouvelle ligne Mon Frigo à 3 champs + croix, et le backdrop/boîte de `confirmModal`.
 
 ## Logique de quantités (détail)
 
@@ -77,6 +80,7 @@ sinon → { value: parsed.value, unit }
 - **Ingrédient jamais renseigné au frigo** : `status: "manque"` avec la quantité complète en `missing` (pas "a-verifier" — l'absence pure et simple est un vrai manque, pas une ambiguïté).
 - **Frigo vide** : "Vérifier mon frigo" marque tout en "manque" ; "J'ai fait la recette" ne fait rien nulle part (aucune ligne à décrémenter), toast de confirmation quand même affiché.
 - **"J'ai fait la recette" avec quantités partiellement suffisantes** : chaque ingrédient est traité indépendamment ; certains peuvent atteindre 0 (et disparaître du frigo) pendant que d'autres restent avec un reliquat positif.
+- **Fermeture de la popup `confirmModal` sans cliquer un bouton** (clic sur le fond, touche Échap) : équivaut à "Non", aucune modification du frigo.
 - **Changement du nombre de personnes après un "Vérifier"** : les classes d'état sont perdues (regénération du HTML), aucun affichage trompeur ; l'utilisateur doit recliquer "Vérifier mon frigo" pour un résultat à jour à la nouvelle quantité.
 - **Anciennes lignes Mon Frigo déjà en base avec une unité libre non standard** (ne devrait plus arriver après ce changement, mais possible via une synchro d'un autre appareil pas encore mis à jour, ou des données antérieures) : `parseQuantity`/`normalizeQuantity` les traitent comme n'importe quelle chaîne "nombre + unité" — pas de crash, juste `status: "a-verifier"` si l'unité ne correspond à rien de connu. Aucune migration nécessaire.
 
