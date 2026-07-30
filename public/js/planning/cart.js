@@ -142,8 +142,22 @@ function clearCart(){
 
 function validateCart(){
   const merged = mergeIngredientsForShopping();
-  incrementFridgeItems(merged);
-  clearCart();
+  const toValidate = merged.filter(m => checkedItems.has(m.key));
+  if (toValidate.length === 0) {
+    showToast("Coche les ingrédients achetés avant de valider");
+    return;
+  }
+  incrementFridgeItems(toValidate);
+
+  if (mergeIngredientsForShopping().length === 0) {
+    clearCart();
+    return;
+  }
+  checkedItems.clear();
+  saveCheckedItems();
+  syncCartRemote();
+  renderPanier();
+  showToast("Ingrédients cochés ajoutés au frigo");
 }
 
 export function updateCartBadge(){
