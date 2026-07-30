@@ -5,9 +5,9 @@ import { state, detailView, detailScroll } from "../core/dom.js";
 import { ALL_RECIPES, toggleFavorite, saveFavorites, deleteRecipeRemote } from "./recipes-store.js";
 import { cart, addRecipeToCart, removeRecipeFromCart, openPanier } from "../planning/cart.js";
 import { scaleQuantity, resolveStepQuantities, checkFridgeAvailability } from "./quantity.js";
-import { fridgeItems } from "../planning/fridge.js";
+import { fridgeItems, decrementFridgeItems } from "../planning/fridge.js";
 import { applyDetailPhoto, getStepPhoto, deleteAllPhotosForRecipe } from "../photos/photos.js";
-import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet } from "../core/ui.js";
+import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry, requestCloseSheet, confirmModal } from "../core/ui.js";
 import { renderTimerPanel } from "./timer.js";
 import { render } from "./grid.js";
 import { openAddForm } from "./add-form.js";
@@ -205,6 +205,12 @@ export function openDetail(id){
   detailScroll.querySelector("#addToCartBtn").addEventListener("click", () => {
     addRecipeToCart(r, currentServings, currentIngredients());
     showToast("Ajouté au panier");
+  });
+  detailScroll.querySelector("#cookedRecipeBtn").addEventListener("click", async () => {
+    const confirmed = await confirmModal("Valider retirera les ingrédients de cette recette de ton frigo. Continuer ?");
+    if (!confirmed) return;
+    decrementFridgeItems(currentIngredients());
+    showToast("Frigo mis à jour");
   });
 
   detailView.classList.add("is-open");
