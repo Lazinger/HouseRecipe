@@ -1,6 +1,11 @@
 ﻿import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
 import { mergeQuantityParts } from "../recipes/quantity.js";
+import { fridgeView, fridgeScroll } from "../core/dom.js";
+import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
+import { escapeAttr } from "../core/utils.js";
+import { ALL_RECIPES } from "../recipes/recipes-store.js";
+import { createIngredientRow, updateRemoveButtons } from "../recipes/dyn-rows.js";
 
 /* ---- frigo personnel (persisté, une ligne par ingrédient et par compte) ---- */
 const FRIDGE_KEY = "carnet-frigo";
@@ -85,4 +90,92 @@ export function incrementFridgeItems(items){
       saveFridgeItem(name, qty);
     }
   });
+}
+
+/* ---- autocompletion : tous les noms d'ingredients deja vus dans les recettes ---- */
+function populateIngredientDatalist(){
+  const names = new Set();
+  ALL_RECIPES.forEach(r => r.ingredients.forEach(([name]) => names.add(name.trim())));
+  const datalist = document.getElementById("ingredientNamesList");
+  if (!datalist) return;
+  datalist.innerHTML = [...names].sort().map(n => `<option value="${escapeAttr(n)}"></option>`).join("");
+}
+
+function addFridgeRow(container, name, qty){
+  const row = createIngredientRow(container, name, qty);
+  row.querySelector(".ing-name-input").setAttribute("list", "ingredientNamesList");
+  row.dataset.savedName = name;
+
+  const commit = () => {
+    const newName = row.querySelector(".ing-name-input").value.trim();
+    const newQty = row.querySelector(".ing-qty-input").value.trim();
+    const oldName = row.dataset.savedName || "";
+    if (oldName && oldName.toLowerCase() !== newName.toLowerCase()) removeFridgeItem(oldName);
+    if (newName) {
+      saveFridgeItem(newName, newQty);
+      row.dataset.savedName = newName;
+    } else {
+      row.dataset.savedName = "";
+    }
+  };
+  row.querySelector(".ing-name-input").addEventListener("change", commit);
+  row.querySelector(".ing-qty-input").addEventListener("change", commit);
+
+  row.querySelector(".dyn-remove").addEventListener("click", () => {
+    if (row.dataset.savedName) removeFridgeItem(row.dataset.savedName);
+  });
+
+  container.appendChild(row);
+  return row;
+}
+
+function renderFridge(){
+  fridgeScroll.innerHTML = `
+    <div class="add-topbar">
+      <div class="add-topbar-left">
+        <button class="menu-btn" id="fridgeMenuBtn" type="button" aria-label="Ouvrir le menu">
+          <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <h2>Mon Frigo</h2>
+    </div>
+    <div class="add-form">
+      <div id="fridgeRows" class="dyn-rows"></div>
+      <button type="button" class="dyn-add" id="fridgeAddRowBtn">+ Ajouter un ingrédient</button>
+    </div>
+  `;
+
+  const rowsContainer = fridgeScroll.querySelector("#fridgeRows");
+  if (fridgeItems.length) {
+    fridgeItems.forEach(([name, qty]) => addFridgeRow(rowsContainer, name, qty));
+  } else {
+    addFridgeRow(rowsContainer, "", "");
+  }
+  updateRemoveButtons(rowsContainer);
+
+  fridgeScroll.querySelector("#fridgeMenuBtn").addEventListener("click", openDrawer);
+  fridgeScroll.querySelector("#fridgeAddRowBtn").addEventListener("click", () => {
+    const row = addFridgeRow(rowsContainer, "", "");
+    updateRemoveButtons(rowsContainer);
+    row.querySelector(".ing-name-input").focus();
+  });
+}
+
+export function openFridge(){
+  populateIngredientDatalist();
+  renderFridge();
+  fridgeView.classList.add("is-open");
+  fridgeView.setAttribute("aria-hidden", "false");
+  fridgeScroll.scrollTop = 0;
+  openSheetBackdrop();
+  ensureSheetHistoryEntry();
+  syncBodyScrollLock();
+}
+
+export function closeFridge(){
+  if (!fridgeView.classList.contains("is-open")) return;
+  fridgeView.classList.remove("is-open");
+  fridgeView.setAttribute("aria-hidden", "true");
+  syncBodyScrollLock();
+  closeSheetBackdrop();
 }

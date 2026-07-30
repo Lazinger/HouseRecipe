@@ -1,4 +1,4 @@
-import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView, mealPlanView, seasonView } from "./dom.js";
+import { toast, detailView, addView, panierView, drawer, drawerOverlay, sheetBackdrop, chips, favToggleHeader, state, searchInput, scanView, photoEditorView, importUrlView, mealPlanView, seasonView, fridgeView } from "./dom.js";
 import { closeDetail } from "../recipes/detail.js";
 import { closeAddForm, openAddForm } from "../recipes/add-form.js";
 import { closePanier, openPanier } from "../planning/cart.js";
@@ -9,6 +9,7 @@ import { closePhotoEditor } from "../photos/photo-editor.js";
 import { closeMealPlan, openMealPlan } from "../planning/meal-plan.js";
 import { closeSeason, openSeason } from "../season/season.js";
 import { render } from "../recipes/grid.js";
+import { openFridge, closeFridge } from "../planning/fridge.js";
 
 /* ---- toast ---- */
 let toastTimer = null;
@@ -28,6 +29,7 @@ export function syncBodyScrollLock(){
     || importUrlView.classList.contains("is-open")
     || mealPlanView.classList.contains("is-open")
     || seasonView.classList.contains("is-open")
+    || fridgeView.classList.contains("is-open")
     || photoEditorView.classList.contains("is-open")
     || drawer.classList.contains("is-open");
   document.body.style.overflow = anyOpen ? "hidden" : "";
@@ -89,6 +91,7 @@ function closeAllOverlays(){
   closeImportUrl();
   closeMealPlan();
   closeSeason();
+  closeFridge();
   closePhotoEditor();
 }
 
@@ -144,6 +147,11 @@ export function goToSeason(){
   closeAllOverlays();
   closeDrawer();
   openSeason();
+}
+export function goToFridge(){
+  closeAllOverlays();
+  closeDrawer();
+  openFridge();
 }
 export function goToSeasonalRecipes(produce){
   closeAllOverlays();

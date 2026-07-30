@@ -1,6 +1,6 @@
 /* service worker : met le carnet en cache pour un fonctionnement hors-ligne.
    Incrémenter CACHE_NAME force le renouvellement du cache au prochain déploiement. */
-const CACHE_NAME = "carnet-cache-v82";
+const CACHE_NAME = "carnet-cache-v83";
 const SUPABASE_ORIGIN = "https://bmotbwubruvsrflaufis.supabase.co";
 const APP_SHELL = [
   "./",
@@ -13,6 +13,7 @@ const APP_SHELL = [
   "./js/data/recipes-data.js",
   "./js/recipes/recipes-store.js",
   "./js/planning/cart.js",
+  "./js/planning/fridge.js",
   "./js/recipes/timer.js",
   "./js/recipes/grid.js",
   "./js/recipes/detail.js",

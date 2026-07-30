@@ -7,10 +7,10 @@
 import {
   state, searchInput, chips, favToggleHeader, addFab, cartToggle,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
-  navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn, navImportUrlBtn, navMealPlanBtn, navSeasonBtn,
+  navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn, navImportUrlBtn, navMealPlanBtn, navSeasonBtn, navFridgeBtn,
   navLogoutBtn, accountToggle,
-  detailView, addView, panierView, profileView, scanView, importUrlView, mealPlanView, seasonView, sheetBackdrop,
-  addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, mealPlanCloseBtn, seasonCloseBtn, brandHomeBtn,
+  detailView, addView, panierView, profileView, scanView, importUrlView, mealPlanView, seasonView, fridgeView, sheetBackdrop,
+  addCloseBtn, panierCloseBtn, profileCloseBtn, scanCloseBtn, importUrlCloseBtn, mealPlanCloseBtn, seasonCloseBtn, fridgeCloseBtn, brandHomeBtn,
   allergenFilterToggle, allergenFilterPanel
 } from "./core/dom.js";
 import { render, renderAllergenFilterPanel } from "./recipes/grid.js";
@@ -23,8 +23,9 @@ import { closeScanRecipe } from "./recipes/scan-recipe.js";
 import { closeImportUrl } from "./recipes/import-url.js";
 import { closeMealPlan } from "./planning/meal-plan.js";
 import { closeSeason } from "./season/season.js";
+import { closeFridge, initFridgeSync } from "./planning/fridge.js";
 import { closePhotoEditor } from "./photos/photo-editor.js";
-import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, goToScanRecipe, goToImportUrl, goToMealPlan, goToSeason, showToast, requestCloseSheet, resetSheetHistory } from "./core/ui.js";
+import { openDrawer, closeDrawer, goToAllRecipes, goToFavoris, goToPanier, goToAddRecipe, goToScanRecipe, goToImportUrl, goToMealPlan, goToSeason, goToFridge, showToast, requestCloseSheet, resetSheetHistory } from "./core/ui.js";
 import { initAuth, logout } from "./auth/auth.js";
 import { openProfile, closeProfile, updateAccountBadge, initSyncBadge } from "./auth/profile.js";
 import { flush, onPermanentFailure } from "./core/write-queue.js";
@@ -51,6 +52,7 @@ function closeAnyOpenSheet(){
   if (importUrlView.classList.contains("is-open")) closeImportUrl();
   if (mealPlanView.classList.contains("is-open")) closeMealPlan();
   if (seasonView.classList.contains("is-open")) closeSeason();
+  if (fridgeView.classList.contains("is-open")) closeFridge();
   closePhotoEditor();
 }
 
@@ -68,6 +70,7 @@ scanCloseBtn.addEventListener("click", requestCloseSheet);
 importUrlCloseBtn.addEventListener("click", requestCloseSheet);
 mealPlanCloseBtn.addEventListener("click", requestCloseSheet);
 seasonCloseBtn.addEventListener("click", requestCloseSheet);
+fridgeCloseBtn.addEventListener("click", requestCloseSheet);
 brandHomeBtn.addEventListener("click", goToAllRecipes);
 
 /* ---- écouteurs ---- */
@@ -115,6 +118,7 @@ navScanBtn.addEventListener("click", goToScanRecipe);
 navImportUrlBtn.addEventListener("click", goToImportUrl);
 navMealPlanBtn.addEventListener("click", goToMealPlan);
 navSeasonBtn.addEventListener("click", goToSeason);
+navFridgeBtn.addEventListener("click", goToFridge);
 
 favToggleHeader.addEventListener("click", () => {
   const chipFav = document.querySelector('.chip[data-filter="favoris"]');
@@ -139,6 +143,7 @@ initAuth(async () => {
   initRecipesSync();
   initFavoritesSync();
   initCartSync();
+  initFridgeSync();
   initPhotosSync();
   initSyncBadge();
   updateCartBadge();
