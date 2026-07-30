@@ -164,3 +164,42 @@ export function goToSeasonalRecipes(produce){
   state.seasonalFilter = produce;
   render();
 }
+
+/* ---- popup de confirmation generique : contrairement a confirm() natif,
+   les libelles des boutons sont personnalisables. Creee/detruite
+   dynamiquement (pas d'element statique dans index.html), resout
+   true (bouton de confirmation) ou false (annulation, Echap, ou clic
+   hors de la boite). ---- */
+export function confirmModal(message, { confirmLabel = "Oui", cancelLabel = "Non" } = {}){
+  return new Promise(resolve => {
+    const backdrop = document.createElement("div");
+    backdrop.className = "confirm-modal-backdrop";
+    backdrop.innerHTML = `
+      <div class="confirm-modal" role="alertdialog" aria-modal="true">
+        <p>${message}</p>
+        <div class="confirm-modal-actions">
+          <button type="button" class="btn-secondary" data-action="cancel">${cancelLabel}</button>
+          <button type="button" class="btn-primary" data-action="confirm">${confirmLabel}</button>
+        </div>
+      </div>
+    `;
+
+    function close(result){
+      backdrop.remove();
+      document.removeEventListener("keydown", onKeydown);
+      resolve(result);
+    }
+    function onKeydown(e){
+      if (e.key === "Escape") close(false);
+    }
+
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) close(false);
+    });
+    backdrop.querySelector('[data-action="cancel"]').addEventListener("click", () => close(false));
+    backdrop.querySelector('[data-action="confirm"]').addEventListener("click", () => close(true));
+    document.addEventListener("keydown", onKeydown);
+
+    document.body.appendChild(backdrop);
+  });
+}
