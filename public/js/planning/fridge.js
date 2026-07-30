@@ -1,11 +1,11 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
-import { mergeQuantityParts, normalizeQuantity, formatScaledNumber } from "../recipes/quantity.js";
+import { mergeQuantityParts, normalizeQuantity, formatScaledNumber, parseQuantity } from "../recipes/quantity.js";
 import { fridgeView, fridgeScroll } from "../core/dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
 import { escapeAttr } from "../core/utils.js";
 import { ALL_RECIPES } from "../recipes/recipes-store.js";
-import { createIngredientRow, updateRemoveButtons } from "../recipes/dyn-rows.js";
+import { updateRemoveButtons } from "../recipes/dyn-rows.js";
 
 /* ---- frigo personnel (persisté, une ligne par ingrédient et par compte) ---- */
 const FRIDGE_KEY = "carnet-frigo";
@@ -125,28 +125,51 @@ function populateIngredientDatalist(){
   datalist.innerHTML = [...names].sort().map(n => `<option value="${escapeAttr(n)}"></option>`).join("");
 }
 
+const FRIDGE_UNITS = ["g", "kg", "ml", "L", "pièce(s)"];
+
+function splitFridgeQty(qty){
+  const parsed = parseQuantity(qty);
+  if (!parsed || !FRIDGE_UNITS.includes(parsed.unit)) return { value: "", unit: FRIDGE_UNITS[0] };
+  return { value: String(parsed.value), unit: parsed.unit };
+}
+
+function fridgeUnitOptionsHtml(selected){
+  return FRIDGE_UNITS.map(u => `<option value="${u}"${u === selected ? " selected" : ""}>${u}</option>`).join("");
+}
+
 function addFridgeRow(container, name, qty){
-  const row = createIngredientRow(container, name, qty);
-  row.querySelector(".ing-name-input").setAttribute("list", "ingredientNamesList");
+  const { value, unit } = splitFridgeQty(qty);
+  const row = document.createElement("div");
+  row.className = "dyn-row fridge-row";
+  row.innerHTML = `
+    <input type="text" class="ing-name-input" placeholder="Nom" value="${escapeAttr(name)}" list="ingredientNamesList">
+    <input type="number" class="fridge-qty-input" placeholder="Quantité" min="0" step="any" value="${escapeAttr(value)}">
+    <select class="fridge-unit-select">${fridgeUnitOptionsHtml(unit)}</select>
+    <button type="button" class="dyn-remove" aria-label="Supprimer cet ingrédient">✕</button>
+  `;
   row.dataset.savedName = name;
 
   const commit = () => {
     const newName = row.querySelector(".ing-name-input").value.trim();
-    const newQty = row.querySelector(".ing-qty-input").value.trim();
+    const newValue = row.querySelector(".fridge-qty-input").value.trim();
+    const newUnit = row.querySelector(".fridge-unit-select").value;
     const oldName = row.dataset.savedName || "";
     if (oldName && oldName.toLowerCase() !== newName.toLowerCase()) removeFridgeItem(oldName);
-    if (newName) {
-      saveFridgeItem(newName, newQty);
+    if (newName && newValue) {
+      saveFridgeItem(newName, `${newValue} ${newUnit}`);
       row.dataset.savedName = newName;
     } else {
       row.dataset.savedName = "";
     }
   };
   row.querySelector(".ing-name-input").addEventListener("change", commit);
-  row.querySelector(".ing-qty-input").addEventListener("change", commit);
+  row.querySelector(".fridge-qty-input").addEventListener("change", commit);
+  row.querySelector(".fridge-unit-select").addEventListener("change", commit);
 
   row.querySelector(".dyn-remove").addEventListener("click", () => {
     if (row.dataset.savedName) removeFridgeItem(row.dataset.savedName);
+    row.remove();
+    updateRemoveButtons(container);
   });
 
   container.appendChild(row);
