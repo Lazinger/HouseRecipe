@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -111,6 +111,31 @@ if (subtractFailures > 0) {
 }
 console.log(`OK: ${subtractCases.length} cas subtractQuantity passes.`);
 
+const mergeCases = [
+  { input: [["200 g", "300 g"]], expected: "500 g" },
+  { input: [["1 CS", "2 CS"]], expected: "3 CS" },
+  { input: [["400 g", "1 boîte"]], expected: "400 g + 1 boîte" },
+  { input: [["1 kg", "500 g"]], expected: "1500 g" },
+  { input: [["1 L", "250 ml", "250 ml"]], expected: "1500 ml" }
+];
+
+let mergeFailures = 0;
+for (const { input, expected } of mergeCases) {
+  const result = mergeQuantityParts(...input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    mergeFailures++;
+    console.error(`FAIL: mergeQuantityParts(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (mergeFailures > 0) {
+  console.error(`${mergeFailures}/${mergeCases.length} cas mergeQuantityParts en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${mergeCases.length} cas mergeQuantityParts passes.`);
+
 const fridgeCases = [
   {
     merged: [{ key: "farine", name: "Farine", qty: "400 g" }, { key: "sel", name: "Sel", qty: "1 pinc." }],
@@ -131,6 +156,11 @@ const fridgeCases = [
     merged: [{ key: "farine", name: "Farine", qty: "400 g" }],
     fridge: [],
     expected: [{ key: "farine", name: "Farine", qty: "400 g" }]
+  },
+  {
+    merged: [{ key: "lait", name: "Lait", qty: "1 L" }],
+    fridge: [["Lait", "500 ml"]],
+    expected: [{ key: "lait", name: "Lait", qty: "500 ml" }]
   }
 ];
 

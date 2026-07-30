@@ -154,7 +154,7 @@ export function subtractQuantity(need, stock){
    ingredients a acheter) et le frigo (reapprovisionnement au clic sur
    "Valide"). ---- */
 export function mergeQuantityParts(parts){
-  const parsed = parts.map(parseQuantity);
+  const parsed = parts.map(normalizeQuantity);
   if (parsed.every(Boolean)) {
     const unit = parsed[0].unit.toLowerCase();
     if (parsed.every(p => p.unit.toLowerCase() === unit)) {
