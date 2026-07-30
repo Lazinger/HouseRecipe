@@ -1,6 +1,6 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
-import { mergeQuantityParts } from "../recipes/quantity.js";
+import { mergeQuantityParts, normalizeQuantity, formatScaledNumber } from "../recipes/quantity.js";
 import { fridgeView, fridgeScroll } from "../core/dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
 import { escapeAttr } from "../core/utils.js";
@@ -88,6 +88,30 @@ export function incrementFridgeItems(items){
       saveFridgeItem(existingName, mergeQuantityParts([existingQty, qty]));
     } else {
       saveFridgeItem(name, qty);
+    }
+  });
+}
+
+/* ---- decrement au clic sur "J'ai fait la recette" (fiche recette) :
+   ingredients est la liste de la recette, quantites deja mises a
+   l'echelle par l'appelant selon le nombre de personnes. Un ingredient
+   absent du frigo, ou dans une unite non comparable, n'est pas touche —
+   repli sur : pas de modification plutot qu'un calcul faux, meme regle
+   que subtractQuantity/checkFridgeAvailability. ---- */
+export function decrementFridgeItems(ingredients){
+  ingredients.forEach(([name, qty]) => {
+    const idx = findFridgeIndex(name);
+    if (idx < 0) return;
+    const [existingName, existingQty] = fridgeItems[idx];
+    const parsedNeed = normalizeQuantity(qty);
+    const parsedStock = normalizeQuantity(existingQty);
+    if (!parsedNeed || !parsedStock || parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) return;
+    const remaining = Math.max(0, parsedStock.value - parsedNeed.value);
+    if (remaining === 0) {
+      removeFridgeItem(existingName);
+    } else {
+      const formatted = formatScaledNumber(remaining);
+      saveFridgeItem(existingName, parsedStock.unit ? `${formatted} ${parsedStock.unit}` : formatted);
     }
   });
 }
