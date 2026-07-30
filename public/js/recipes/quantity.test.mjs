@@ -88,7 +88,10 @@ const subtractCases = [
   { input: ["3", "2"], expected: "1" },
   { input: ["400 g", "1 boîte"], expected: "400 g" },
   { input: ["selon les goûts", "1 pinc."], expected: "selon les goûts" },
-  { input: ["400 g", "selon les goûts"], expected: "400 g" }
+  { input: ["400 g", "selon les goûts"], expected: "400 g" },
+  { input: ["1 kg", "500 g"], expected: "500 g" },
+  { input: ["500 g", "1 kg"], expected: "0 g" },
+  { input: ["2 L", "500 ml"], expected: "1500 ml" }
 ];
 
 let subtractFailures = 0;

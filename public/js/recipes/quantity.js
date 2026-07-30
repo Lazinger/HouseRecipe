@@ -138,8 +138,8 @@ export function resolveStepQuantities(step, ingredients){
    unites different, retourne le besoin inchange (repli sur : pas de
    deduction plutot qu'un calcul faux). ---- */
 export function subtractQuantity(need, stock){
-  const parsedNeed = parseQuantity(need);
-  const parsedStock = parseQuantity(stock);
+  const parsedNeed = normalizeQuantity(need);
+  const parsedStock = normalizeQuantity(stock);
   if (!parsedNeed || !parsedStock) return need;
   if (parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) return need;
   const remaining = Math.max(0, parsedNeed.value - parsedStock.value);
