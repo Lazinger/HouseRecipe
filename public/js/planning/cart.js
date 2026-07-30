@@ -1,5 +1,6 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
-import { parseQuantity, formatScaledNumber, mergeQuantityParts } from "../recipes/quantity.js";
+import { parseQuantity, formatScaledNumber, mergeQuantityParts, applyFridgeStock } from "../recipes/quantity.js";
+import { fridgeItems, incrementFridgeItems } from "./fridge.js";
 import { cartBadge, panierView, panierScroll } from "../core/dom.js";
 import { escapeAttr, escapeHtml } from "../core/utils.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
@@ -98,7 +99,8 @@ function mergeIngredientsForShopping(){
       groups.get(key).parts.push(qty);
     });
   });
-  return [...groups.values()].map(g => ({ key: g.key, name: g.name, qty: mergeQuantityParts(g.parts) }));
+  const merged = [...groups.values()].map(g => ({ key: g.key, name: g.name, qty: mergeQuantityParts(g.parts) }));
+  return applyFridgeStock(merged, fridgeItems);
 }
 
 export function addRecipeToCart(recipe, servings, ingredients){
@@ -136,6 +138,12 @@ function clearCart(){
   syncCartRemote();
   renderPanier();
   showToast("Panier vidé");
+}
+
+function validateCart(){
+  const merged = mergeIngredientsForShopping();
+  incrementFridgeItems(merged);
+  clearCart();
 }
 
 export function updateCartBadge(){
@@ -185,6 +193,7 @@ function renderPanier(){
         `).join("")}
       </div>
       <button class="clear-btn" id="clearCartBtn" type="button">Vider le panier</button>
+      <button class="btn-primary" id="validateCartBtn" type="button">Validé</button>
     `;
 
   panierScroll.innerHTML = `
@@ -222,6 +231,8 @@ function renderPanier(){
   });
   const clearBtn = panierScroll.querySelector("#clearCartBtn");
   if (clearBtn) clearBtn.addEventListener("click", clearCart);
+  const validateBtn = panierScroll.querySelector("#validateCartBtn");
+  if (validateBtn) validateBtn.addEventListener("click", validateCart);
 }
 
 export function openPanier(){
