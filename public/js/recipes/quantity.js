@@ -183,3 +183,33 @@ export function applyFridgeStock(merged, fridgeItems){
       return !(parsed && parsed.value === 0);
     });
 }
+
+/* ---- verifie si le frigo couvre le besoin d'une recette, ingredient par
+   ingredient (quantites deja mises a l'echelle par l'appelant selon le
+   nombre de personnes). Trois etats :
+   - "ok" : le frigo a au moins la quantite demandee.
+   - "manque" : le frigo n'a rien pour cet ingredient, ou pas assez ; la
+     quantite manquante est fournie dans `missing`.
+   - "a-verifier" : comparaison impossible (unite non quantifiable cote
+     recette, absente du frigo dans une unite comparable, ou incoherente).
+   Meme regle de correspondance de nom que le reste de l'app
+   (trim().toLowerCase()). ---- */
+export function checkFridgeAvailability(ingredients, fridgeItems){
+  const fridgeMap = new Map(fridgeItems.map(([name, qty]) => [name.trim().toLowerCase(), qty]));
+  return ingredients.map(([name, qty]) => {
+    const stockQty = fridgeMap.get(name.trim().toLowerCase());
+    if (!stockQty) return { name, qty, status: "manque", missing: qty };
+
+    const parsedNeed = normalizeQuantity(qty);
+    const parsedStock = normalizeQuantity(stockQty);
+    if (!parsedNeed || !parsedStock || parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) {
+      return { name, qty, status: "a-verifier" };
+    }
+
+    if (parsedStock.value >= parsedNeed.value) return { name, qty, status: "ok" };
+
+    const missingValue = formatScaledNumber(parsedNeed.value - parsedStock.value);
+    const missing = parsedNeed.unit ? `${missingValue} ${parsedNeed.unit}` : missingValue;
+    return { name, qty, status: "manque", missing };
+  });
+}

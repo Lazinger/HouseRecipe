@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -207,3 +207,53 @@ if (normalizeFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${normalizeCases.length} cas normalizeQuantity passes.`);
+
+const checkCases = [
+  {
+    ingredients: [["Farine", "200 g"]],
+    fridge: [["Farine", "500 g"]],
+    expected: [{ name: "Farine", qty: "200 g", status: "ok" }]
+  },
+  {
+    ingredients: [["Farine", "400 g"]],
+    fridge: [["Farine", "150 g"]],
+    expected: [{ name: "Farine", qty: "400 g", status: "manque", missing: "250 g" }]
+  },
+  {
+    ingredients: [["Farine", "400 g"]],
+    fridge: [],
+    expected: [{ name: "Farine", qty: "400 g", status: "manque", missing: "400 g" }]
+  },
+  {
+    ingredients: [["Farine", "400 g"]],
+    fridge: [["Farine", "1 boîte"]],
+    expected: [{ name: "Farine", qty: "400 g", status: "a-verifier" }]
+  },
+  {
+    ingredients: [["Beurre", "1 CS"]],
+    fridge: [["Beurre", "30 g"]],
+    expected: [{ name: "Beurre", qty: "1 CS", status: "a-verifier" }]
+  },
+  {
+    ingredients: [["Farine", "500 g"]],
+    fridge: [["Farine", "1 kg"]],
+    expected: [{ name: "Farine", qty: "500 g", status: "ok" }]
+  }
+];
+
+let checkFailures = 0;
+for (const { ingredients, fridge, expected } of checkCases) {
+  const result = checkFridgeAvailability(ingredients, fridge);
+  try {
+    assert.deepStrictEqual(result, expected);
+  } catch {
+    checkFailures++;
+    console.error(`FAIL: checkFridgeAvailability(${JSON.stringify(ingredients)}, ${JSON.stringify(fridge)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (checkFailures > 0) {
+  console.error(`${checkFailures}/${checkCases.length} cas checkFridgeAvailability en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${checkCases.length} cas checkFridgeAvailability passes.`);
