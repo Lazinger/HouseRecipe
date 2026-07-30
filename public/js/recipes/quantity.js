@@ -5,6 +5,23 @@ export function parseQuantity(qty){
   return { value: parseFloat(m[1].replace(",", ".")), unit: m[2].trim() };
 }
 
+/* ---- conversion vers l'unite de base utilisee par les recettes (g/ml),
+   pour que le frigo (qui peut stocker en kg/L pour les grosses quantites)
+   reste comparable. Ne touche a aucune autre unite (CS, CC, pinc.,
+   piece(s)...), qui restent non convertibles telles quelles. ---- */
+const BASE_UNIT_CONVERSIONS = {
+  kg: { unit: "g", factor: 1000 },
+  l: { unit: "ml", factor: 1000 }
+};
+
+export function normalizeQuantity(qty){
+  const parsed = parseQuantity(qty);
+  if (!parsed) return null;
+  const conversion = BASE_UNIT_CONVERSIONS[parsed.unit.toLowerCase()];
+  if (!conversion) return parsed;
+  return { value: parsed.value * conversion.factor, unit: conversion.unit };
+}
+
 /* ---- extraction d'une quantité collée en tête du nom d'un ingrédient.
    Trois formes reelles rencontrees a l'import, essayees de la plus specifique
    a la plus generale :

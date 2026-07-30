@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -147,3 +147,30 @@ if (fridgeFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${fridgeCases.length} cas applyFridgeStock passes.`);
+
+const normalizeCases = [
+  { input: "1 kg", expected: { value: 1000, unit: "g" } },
+  { input: "2.5 L", expected: { value: 2500, unit: "ml" } },
+  { input: "1 l", expected: { value: 1000, unit: "ml" } },
+  { input: "500 g", expected: { value: 500, unit: "g" } },
+  { input: "1 CS", expected: { value: 1, unit: "CS" } },
+  { input: "1 pièce(s)", expected: { value: 1, unit: "pièce(s)" } },
+  { input: "selon le goût", expected: null }
+];
+
+let normalizeFailures = 0;
+for (const { input, expected } of normalizeCases) {
+  const result = normalizeQuantity(input);
+  try {
+    assert.deepStrictEqual(result, expected);
+  } catch {
+    normalizeFailures++;
+    console.error(`FAIL: normalizeQuantity(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (normalizeFailures > 0) {
+  console.error(`${normalizeFailures}/${normalizeCases.length} cas normalizeQuantity en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${normalizeCases.length} cas normalizeQuantity passes.`);
