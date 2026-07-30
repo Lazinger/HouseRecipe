@@ -10,6 +10,7 @@ import { closeMealPlan, openMealPlan } from "../planning/meal-plan.js";
 import { closeSeason, openSeason } from "../season/season.js";
 import { render } from "../recipes/grid.js";
 import { openFridge, closeFridge } from "../planning/fridge.js";
+import { escapeHtml } from "./utils.js";
 
 /* ---- toast ---- */
 let toastTimer = null;
@@ -176,7 +177,7 @@ export function confirmModal(message, { confirmLabel = "Oui", cancelLabel = "Non
     backdrop.className = "confirm-modal-backdrop";
     backdrop.innerHTML = `
       <div class="confirm-modal" role="alertdialog" aria-modal="true">
-        <p>${message}</p>
+        <p>${escapeHtml(message)}</p>
         <div class="confirm-modal-actions">
           <button type="button" class="btn-secondary" data-action="cancel">${cancelLabel}</button>
           <button type="button" class="btn-primary" data-action="confirm">${confirmLabel}</button>
