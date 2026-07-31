@@ -188,6 +188,24 @@ export function subtractQuantity(need, stock){
   return parsedNeed.unit ? `${formatted} ${parsedNeed.unit}` : formatted;
 }
 
+/* ---- ingredients "de placard" que tout le monde a en permanence chez
+   soi (sel, poivre, seuls ou combines : "Sel", "Poivre", "Sel et poivre",
+   "Poivre et sel", "Sel, poivre"...) : jamais a verifier au frigo, jamais
+   a ajouter au panier de courses. Volontairement restreint a ces deux
+   mots pour rester simple — une variante specifique ("Poivre noir",
+   "Fleur de sel") n'est pas consideree illimitee. ---- */
+const PANTRY_STAPLE_WORDS = new Set(["sel", "poivre"]);
+const PANTRY_STAPLE_IGNORED_WORDS = new Set(["et", "de", "d"]);
+
+export function isPantryStaple(name){
+  const words = String(name ?? "")
+    .toLowerCase()
+    .split(/[^a-zàâäéèêëîïôöùûüç]+/i)
+    .filter(Boolean)
+    .filter(w => !PANTRY_STAPLE_IGNORED_WORDS.has(w));
+  return words.length > 0 && words.every(w => PANTRY_STAPLE_WORDS.has(w));
+}
+
 /* ---- fusion de plusieurs quantites du meme ingredient (ex. la meme
    recette ajoutee deux fois, ou plusieurs recettes demandant le meme
    ingredient) : additionne si toutes les unites correspondent, sinon
@@ -266,11 +284,14 @@ export function reduceQuantityStock(stock, need){
      quantite manquante est fournie dans `missing`.
    - "a-verifier" : comparaison impossible (unite non quantifiable cote
      recette, absente du frigo dans une unite comparable, ou incoherente).
+   Sel et poivre sont toujours "ok" (voir isPantryStaple) : tout le monde
+   en a en permanence, inutile de les faire verifier.
    Meme regle de correspondance de nom que le reste de l'app
    (trim().toLowerCase()). ---- */
 export function checkFridgeAvailability(ingredients, fridgeItems){
   const fridgeMap = new Map(fridgeItems.map(([name, qty]) => [name.trim().toLowerCase(), qty]));
   return ingredients.map(([name, qty]) => {
+    if (isPantryStaple(name)) return { name, qty, status: "ok" };
     const stockQty = fridgeMap.get(name.trim().toLowerCase());
     if (!stockQty) return { name, qty, status: "manque", missing: qty };
 

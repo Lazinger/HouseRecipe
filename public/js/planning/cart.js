@@ -1,5 +1,5 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
-import { parseQuantity, formatScaledNumber, mergeQuantityParts, applyFridgeStock } from "../recipes/quantity.js";
+import { parseQuantity, formatScaledNumber, mergeQuantityParts, applyFridgeStock, isPantryStaple } from "../recipes/quantity.js";
 import { fridgeItems, incrementFridgeItems } from "./fridge.js";
 import { cartBadge, panierView, panierScroll } from "../core/dom.js";
 import { escapeAttr, escapeHtml } from "../core/utils.js";
@@ -94,6 +94,7 @@ function mergeIngredientsForShopping(){
   const groups = new Map();
   cart.forEach(entry => {
     entry.ingredients.forEach(([name, qty]) => {
+      if (isPantryStaple(name)) return;
       const key = name.trim().toLowerCase();
       if (!groups.has(key)) groups.set(key, { key, name: name.trim(), parts: [] });
       groups.get(key).parts.push(qty);

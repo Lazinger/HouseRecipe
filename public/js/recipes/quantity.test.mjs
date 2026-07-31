@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability, formatQuantityValue, scaleQuantity, parseQuantity, reduceQuantityStock } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability, formatQuantityValue, scaleQuantity, parseQuantity, reduceQuantityStock, isPantryStaple } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -245,6 +245,16 @@ const checkCases = [
     ingredients: [["Beurre", "60 g"]],
     fridge: [["Beurre", "1 CS + 30 g + 60 g"]],
     expected: [{ name: "Beurre", qty: "60 g", status: "ok" }]
+  },
+  {
+    ingredients: [["Poivre et sel", "selon le goût"]],
+    fridge: [],
+    expected: [{ name: "Poivre et sel", qty: "selon le goût", status: "ok" }]
+  },
+  {
+    ingredients: [["Sel", "1 pinc."]],
+    fridge: [],
+    expected: [{ name: "Sel", qty: "1 pinc.", status: "ok" }]
   }
 ];
 
@@ -289,6 +299,34 @@ if (reduceStockFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${reduceStockCases.length} cas reduceQuantityStock passes.`);
+
+const pantryStapleCases = [
+  { input: "Sel", expected: true },
+  { input: "Poivre", expected: true },
+  { input: "Sel et poivre", expected: true },
+  { input: "Poivre et sel", expected: true },
+  { input: "Sel, poivre", expected: true },
+  { input: "Poivre noir", expected: false },
+  { input: "Fleur de sel", expected: false },
+  { input: "Farine", expected: false }
+];
+
+let pantryStapleFailures = 0;
+for (const { input, expected } of pantryStapleCases) {
+  const result = isPantryStaple(input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    pantryStapleFailures++;
+    console.error(`FAIL: isPantryStaple(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (pantryStapleFailures > 0) {
+  console.error(`${pantryStapleFailures}/${pantryStapleCases.length} cas isPantryStaple en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${pantryStapleCases.length} cas isPantryStaple passes.`);
 
 const formatQuantityCases = [
   { input: [0.5, "pièce(s)"], expected: "1" },
