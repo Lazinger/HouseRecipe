@@ -5,7 +5,7 @@
    ========================================================= */
 
 import {
-  state, searchInput, chips, favToggleHeader, addFab, cartToggle,
+  state, searchInput, chips, favToggleHeader, addFab, fabMenu, fabMenuAddBtn, fabMenuScanBtn, fabMenuImportBtn, cartToggle,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn, navImportUrlBtn, navMealPlanBtn, navSeasonBtn, navFridgeBtn,
   navLogoutBtn, accountToggle,
@@ -15,7 +15,7 @@ import {
 } from "./core/dom.js";
 import { render, renderAllergenFilterPanel } from "./recipes/grid.js";
 import { closeDetail } from "./recipes/detail.js";
-import { openAddForm, closeAddForm } from "./recipes/add-form.js";
+import { closeAddForm } from "./recipes/add-form.js";
 import { openPanier, closePanier, updateCartBadge, initCartSync, clearCartLocal } from "./planning/cart.js";
 import { initRecipesSync, initFavoritesSync, clearFavoritesLocal } from "./recipes/recipes-store.js";
 import { initPhotosSync } from "./photos/photos.js";
@@ -104,7 +104,30 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !allergenFilterPanel.hidden) allergenFilterPanel.hidden = true;
 });
 
-addFab.addEventListener("click", () => openAddForm());
+addFab.addEventListener("click", (e) => {
+  e.stopPropagation();
+  fabMenu.hidden = !fabMenu.hidden;
+});
+document.addEventListener("click", (e) => {
+  if (fabMenu.hidden) return;
+  if (fabMenu.contains(e.target) || addFab.contains(e.target)) return;
+  fabMenu.hidden = true;
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !fabMenu.hidden) fabMenu.hidden = true;
+});
+fabMenuAddBtn.addEventListener("click", () => {
+  fabMenu.hidden = true;
+  goToAddRecipe();
+});
+fabMenuScanBtn.addEventListener("click", () => {
+  fabMenu.hidden = true;
+  goToScanRecipe();
+});
+fabMenuImportBtn.addEventListener("click", () => {
+  fabMenu.hidden = true;
+  goToImportUrl();
+});
 cartToggle.addEventListener("click", openPanier);
 
 menuToggle.addEventListener("click", openDrawer);
