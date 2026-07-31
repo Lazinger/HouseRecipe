@@ -671,6 +671,30 @@ input{ font-family: inherit; }
 .fab:hover{ transform: translateY(-2px); background: var(--emerald-dark); }
 .fab:active{ transform: scale(.94); }
 
+.fab-menu{
+  position: fixed; right: 20px; bottom: 90px; z-index: 40;
+  background: var(--surface); border:1px solid var(--line); border-radius:12px;
+  box-shadow: var(--shadow-raised); padding:8px; width:220px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.fab-menu[hidden]{ display:none; }
+.fab-menu-item{
+  display:flex; align-items:center; gap:12px;
+  border:none; background:transparent; color: var(--ink);
+  padding: 10px 10px; border-radius:8px; font-size:.86rem; font-weight:600;
+  text-align:left; transition: background .15s ease;
+}
+.fab-menu-item:hover{ background: var(--bg); }
+.fab-menu-item-icon{
+  flex:none; width:30px; height:30px; border-radius:8px;
+  background: var(--emerald-tint); color: var(--emerald-dark);
+  display:flex; align-items:center; justify-content:center;
+}
+
+@media (min-width: 768px){
+  .fab, .fab-menu{ display:none; }
+}
+
 /* =========================================================
    VUE AJOUT — formulaire plein écran
    ========================================================= */
