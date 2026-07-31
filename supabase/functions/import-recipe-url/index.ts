@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.8";
 import { callGeminiForJson, geminiFailureMessage, geminiFailureStatus } from "../_shared/gemini.ts";
 import { stripHtmlTags } from "../_shared/sanitize.ts";
 import { buildCorsHeaders } from "../_shared/cors.ts";
+import { detectAllergens } from "../_shared/allergens.ts";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -460,6 +461,8 @@ Deno.serve(async (req) => {
         });
       }
     }
+
+    extracted.allergens = [...new Set([...(extracted.allergens ?? []), ...detectAllergens(extracted.ingredients)])];
 
     const photo = await downloadImageAsBase64(extracted.imageUrl);
 
