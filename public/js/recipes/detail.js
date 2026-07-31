@@ -1,4 +1,4 @@
-import { ING_ICON } from "../core/icons.js";
+import { ING_ICON, ING_CHECK_ICON } from "../core/icons.js";
 import { ALLERGENS } from "../data/recipes-data.js";
 import { escapeHtml, escapeAttr } from "../core/utils.js";
 import { state, detailView, detailScroll } from "../core/dom.js";
@@ -198,9 +198,11 @@ export function openDetail(id){
       li.classList.remove("ing-ok", "ing-manque", "ing-a-verifier");
       const oldMissing = li.querySelector(".ing-missing");
       if (oldMissing) oldMissing.remove();
+      const iconEl = li.querySelector(".ing-icon");
       const result = results[index];
-      if (!result) return;
+      if (!result) { iconEl.innerHTML = ING_ICON; return; }
       li.classList.add(`ing-${result.status}`);
+      iconEl.innerHTML = result.status === "ok" ? ING_CHECK_ICON : ING_ICON;
       if (result.status === "manque" && result.missing) {
         const span = document.createElement("span");
         span.className = "ing-missing";

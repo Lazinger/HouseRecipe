@@ -9,3 +9,9 @@ export const ICONS = {
 };
 
 export const ING_ICON = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 21c-4.5 0-8-3.5-8-8 0-6 8-11 8-11s8 5 8 11c0 4.5-3.5 8-8 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 21V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+
+/* ---- coche affichee sur un ingredient une fois confirme present au
+   frigo (bouton "Verifier mon frigo"), pour distinguer visuellement ce
+   statut du simple icone par defaut (les deux partagent la meme teinte
+   verte). ---- */
+export const ING_CHECK_ICON = `<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l5 5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
