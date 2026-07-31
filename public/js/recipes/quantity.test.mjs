@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability, formatQuantityValue, scaleQuantity, parseQuantity } from "./quantity.js";
+import { normalizeIngredientPair, resolveStepQuantities, subtractQuantity, applyFridgeStock, normalizeQuantity, mergeQuantityParts, checkFridgeAvailability, formatQuantityValue, scaleQuantity, parseQuantity, reduceQuantityStock } from "./quantity.js";
 
 const cases = [
   { input: ["1 cuillère à soupe d'huile d'olive", ""], expected: ["Huile d'olive", "1 CS"] },
@@ -91,7 +91,9 @@ const subtractCases = [
   { input: ["400 g", "selon les goûts"], expected: "400 g" },
   { input: ["1 kg", "500 g"], expected: "500 g" },
   { input: ["500 g", "1 kg"], expected: "0 g" },
-  { input: ["2 L", "500 ml"], expected: "1500 ml" }
+  { input: ["2 L", "500 ml"], expected: "1500 ml" },
+  { input: ["60 g", "1 CS + 30 g + 60 g"], expected: "0 g" },
+  { input: ["100 g", "1 CS + 30 g"], expected: "70 g" }
 ];
 
 let subtractFailures = 0;
@@ -238,6 +240,11 @@ const checkCases = [
     ingredients: [["Farine", "500 g"]],
     fridge: [["Farine", "1 kg"]],
     expected: [{ name: "Farine", qty: "500 g", status: "ok" }]
+  },
+  {
+    ingredients: [["Beurre", "60 g"]],
+    fridge: [["Beurre", "1 CS + 30 g + 60 g"]],
+    expected: [{ name: "Beurre", qty: "60 g", status: "ok" }]
   }
 ];
 
@@ -257,6 +264,31 @@ if (checkFailures > 0) {
   process.exit(1);
 }
 console.log(`OK: ${checkCases.length} cas checkFridgeAvailability passes.`);
+
+const reduceStockCases = [
+  { input: ["400 g", "150 g"], expected: "250 g" },
+  { input: ["150 g", "400 g"], expected: null },
+  { input: ["1 CS + 30 g + 60 g", "60 g"], expected: "1 CS + 30 g" },
+  { input: ["1 CS", "30 g"], expected: "1 CS" },
+  { input: ["1 kg", "500 g"], expected: "500 g" }
+];
+
+let reduceStockFailures = 0;
+for (const { input, expected } of reduceStockCases) {
+  const result = reduceQuantityStock(...input);
+  try {
+    assert.equal(result, expected);
+  } catch {
+    reduceStockFailures++;
+    console.error(`FAIL: reduceQuantityStock(${JSON.stringify(input)}) => ${JSON.stringify(result)}, attendu ${JSON.stringify(expected)}`);
+  }
+}
+
+if (reduceStockFailures > 0) {
+  console.error(`${reduceStockFailures}/${reduceStockCases.length} cas reduceQuantityStock en echec.`);
+  process.exit(1);
+}
+console.log(`OK: ${reduceStockCases.length} cas reduceQuantityStock passes.`);
 
 const formatQuantityCases = [
   { input: [0.5, "pièce(s)"], expected: "1" },

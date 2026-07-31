@@ -159,17 +159,31 @@ export function resolveStepQuantities(step, ingredients){
   });
 }
 
+/* ---- decompose une quantite de stock potentiellement composee
+   ("1 CS + 30 g + 60 g", issue du repli de mergeQuantityParts sur des
+   unites incompatibles) en parties normalisees {value, unit}. Les segments
+   non parsables sont ignores plutot que de faire echouer toute la
+   comparaison. ---- */
+function parseQuantityParts(qty){
+  return String(qty ?? "")
+    .split("+")
+    .map(part => normalizeQuantity(part))
+    .filter(Boolean);
+}
+
 /* ---- soustraction d'un stock (frigo) au besoin d'une recette : utilisee
    par le panier pour n'afficher dans "a acheter" que ce qui manque
-   reellement. Si l'une des deux quantites ne se parse pas, ou si les
-   unites different, retourne le besoin inchange (repli sur : pas de
-   deduction plutot qu'un calcul faux). ---- */
+   reellement. Le stock peut etre une quantite composee (voir
+   parseQuantityParts) : on additionne les parties dont l'unite correspond
+   au besoin. Si aucune partie ne correspond, retourne le besoin inchange
+   (repli sur : pas de deduction plutot qu'un calcul faux). ---- */
 export function subtractQuantity(need, stock){
   const parsedNeed = normalizeQuantity(need);
-  const parsedStock = normalizeQuantity(stock);
-  if (!parsedNeed || !parsedStock) return need;
-  if (parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) return need;
-  const remaining = Math.max(0, parsedNeed.value - parsedStock.value);
+  if (!parsedNeed) return need;
+  const matching = parseQuantityParts(stock).filter(p => p.unit.toLowerCase() === parsedNeed.unit.toLowerCase());
+  if (matching.length === 0) return need;
+  const stockValue = matching.reduce((sum, p) => sum + p.value, 0);
+  const remaining = Math.max(0, parsedNeed.value - stockValue);
   const formatted = formatQuantityValue(remaining, parsedNeed.unit);
   return parsedNeed.unit ? `${formatted} ${parsedNeed.unit}` : formatted;
 }
@@ -211,6 +225,39 @@ export function applyFridgeStock(merged, fridgeItems){
     });
 }
 
+/* ---- reduit un stock (potentiellement compose, voir parseQuantityParts)
+   d'une quantite besoin : chaque partie dont l'unite correspond est
+   diminuee (dans l'ordre des parties), les autres restent inchangees.
+   Retourne null si le stock est entierement consomme, ou le stock
+   inchange si aucune partie ne correspond a l'unite du besoin (repli sur :
+   pas de deduction plutot qu'un calcul faux). Utilisee par le frigo au
+   clic sur "J'ai fait la recette". ---- */
+export function reduceQuantityStock(stock, need){
+  const parsedNeed = normalizeQuantity(need);
+  if (!parsedNeed) return stock;
+
+  const rawParts = String(stock ?? "").split("+").map(p => p.trim());
+  const parsedParts = rawParts.map(raw => normalizeQuantity(raw));
+  const hasMatch = parsedParts.some(p => p && p.unit.toLowerCase() === parsedNeed.unit.toLowerCase());
+  if (!hasMatch) return stock;
+
+  let remaining = parsedNeed.value;
+  const newParts = rawParts
+    .map((raw, i) => {
+      const parsed = parsedParts[i];
+      if (remaining <= 0 || !parsed || parsed.unit.toLowerCase() !== parsedNeed.unit.toLowerCase()) return raw;
+      const take = Math.min(parsed.value, remaining);
+      remaining -= take;
+      const left = parsed.value - take;
+      if (left === 0) return null;
+      const formatted = formatQuantityValue(left, parsed.unit);
+      return parsed.unit ? `${formatted} ${parsed.unit}` : formatted;
+    })
+    .filter(part => part !== null);
+
+  return newParts.length === 0 ? null : newParts.join(" + ");
+}
+
 /* ---- verifie si le frigo couvre le besoin d'une recette, ingredient par
    ingredient (quantites deja mises a l'echelle par l'appelant selon le
    nombre de personnes). Trois etats :
@@ -228,14 +275,14 @@ export function checkFridgeAvailability(ingredients, fridgeItems){
     if (!stockQty) return { name, qty, status: "manque", missing: qty };
 
     const parsedNeed = normalizeQuantity(qty);
-    const parsedStock = normalizeQuantity(stockQty);
-    if (!parsedNeed || !parsedStock || parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) {
-      return { name, qty, status: "a-verifier" };
-    }
+    if (!parsedNeed) return { name, qty, status: "a-verifier" };
+    const matching = parseQuantityParts(stockQty).filter(p => p.unit.toLowerCase() === parsedNeed.unit.toLowerCase());
+    if (matching.length === 0) return { name, qty, status: "a-verifier" };
+    const stockValue = matching.reduce((sum, p) => sum + p.value, 0);
 
-    if (parsedStock.value >= parsedNeed.value) return { name, qty, status: "ok" };
+    if (stockValue >= parsedNeed.value) return { name, qty, status: "ok" };
 
-    const missingValue = formatQuantityValue(parsedNeed.value - parsedStock.value, parsedNeed.unit);
+    const missingValue = formatQuantityValue(parsedNeed.value - stockValue, parsedNeed.unit);
     const missing = parsedNeed.unit ? `${missingValue} ${parsedNeed.unit}` : missingValue;
     return { name, qty, status: "manque", missing };
   });

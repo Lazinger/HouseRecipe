@@ -1,6 +1,6 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
-import { mergeQuantityParts, normalizeQuantity, formatQuantityValue, parseQuantity } from "../recipes/quantity.js";
+import { mergeQuantityParts, reduceQuantityStock, parseQuantity } from "../recipes/quantity.js";
 import { fridgeView, fridgeScroll } from "../core/dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
 import { escapeAttr } from "../core/utils.js";
@@ -103,15 +103,12 @@ export function decrementFridgeItems(ingredients){
     const idx = findFridgeIndex(name);
     if (idx < 0) return;
     const [existingName, existingQty] = fridgeItems[idx];
-    const parsedNeed = normalizeQuantity(qty);
-    const parsedStock = normalizeQuantity(existingQty);
-    if (!parsedNeed || !parsedStock || parsedNeed.unit.toLowerCase() !== parsedStock.unit.toLowerCase()) return;
-    const remaining = Math.max(0, parsedStock.value - parsedNeed.value);
-    if (remaining === 0) {
+    const reduced = reduceQuantityStock(existingQty, qty);
+    if (reduced === existingQty) return;
+    if (reduced === null) {
       removeFridgeItem(existingName);
     } else {
-      const formatted = formatQuantityValue(remaining, parsedStock.unit);
-      saveFridgeItem(existingName, parsedStock.unit ? `${formatted} ${parsedStock.unit}` : formatted);
+      saveFridgeItem(existingName, reduced);
     }
   });
 }
