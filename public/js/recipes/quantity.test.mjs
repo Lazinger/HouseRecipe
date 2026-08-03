@@ -25,7 +25,10 @@ const cases = [
   { input: ["3 oeufs", ""], expected: ["Oeufs", "3"] },
   { input: ["12 tomates séchées", ""], expected: ["Tomates séchées", "12"] },
   { input: ["4 sauce soja", ""], expected: ["Sauce soja", "4"] },
-  { input: ["1 huile d'olive", ""], expected: ["Huile d'olive", "1"] }
+  { input: ["1 huile d'olive", ""], expected: ["Huile d'olive", "1"] },
+  { input: ["1 noix de coco", ""], expected: ["Noix de coco", "1"] },
+  { input: ["1 noix de muscade", ""], expected: ["Noix de muscade", "1"] },
+  { input: ["1 noix de beurre", ""], expected: ["Noix de beurre", "1"] }
 ];
 
 let failures = 0;
@@ -316,7 +319,11 @@ const pantryStapleCases = [
   { input: "poivre du Pérou", expected: true },
   { input: "pincée de poivre", expected: true },
   { input: "Poivron", expected: false },
-  { input: "Céleri", expected: false }
+  { input: "Céleri", expected: false },
+  { input: "Beurre demi-sel", expected: false },
+  { input: "Sauce au poivre", expected: false },
+  { input: "Cornichons au poivre vert", expected: false },
+  { input: "Steak au poivre", expected: false }
 ];
 
 let pantryStapleFailures = 0;

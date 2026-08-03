@@ -45,10 +45,14 @@ export function normalizeQuantity(qty){
    quantite avaient ete inverses). Couvre a la fois la forme "avec
    parenthese" que l'app utilise en interne (ex. "pièce(s)") et les formes
    brutes singulier/pluriel telles qu'elles apparaissent dans un texte
-   scrape. ---- */
+   scrape. "noix" est volontairement ABSENT malgre "1 noix de beurre" (qui
+   se degrade sans casse en nom "Noix de beurre") : le garder matchait
+   aussi a tort "noix de coco/cajou/muscade/Saint-Jacques", qui sont des
+   noms d'ingredients a part entiere, pas une quantite (trouve par revue
+   le 2026-08-03). ---- */
 const KNOWN_QUANTITY_UNITS = new Set([
-  "g", "kg", "ml", "cl", "l", "cs", "cc",
-  "pinc.", "pincée", "pincées",
+  "g", "kg", "mg", "gr", "ml", "cl", "l", "dl", "cs", "cc",
+  "pinc.", "pincée", "pincées", "pincée(s)",
   "pièce", "pièces", "pièce(s)",
   "sachet", "sachets", "sachet(s)",
   "tranche", "tranches", "tranche(s)",
@@ -56,7 +60,7 @@ const KNOWN_QUANTITY_UNITS = new Set([
   "botte", "bottes", "botte(s)",
   "paquet", "paquets", "paquet(s)",
   "filet", "filets", "filet(s)",
-  "noix", "cm",
+  "cm",
   "pavé", "pavés", "pavé(s)",
   "gousse", "gousses", "gousse(s)",
   "feuille", "feuilles", "feuille(s)",
@@ -227,12 +231,19 @@ export function subtractQuantity(need, stock){
    "Sel", "Poivre", "Sel et poivre", "Fleur de sel", "morceau de sel",
    "Poivre noir", "poivre du Perou", etc. Comparaison par mot entier (pas
    sous-chaine) : "Poivron" (poivron != poivre) et "Celeri" restent des
-   ingredients normaux a acheter/verifier. ---- */
+   ingredients normaux a acheter/verifier.
+   Exclusion : "sel"/"poivre" qualifiant un AUTRE aliment ("Beurre
+   demi-sel", "Sauce au poivre", "Steak au poivre") ne rend pas cet
+   aliment illimite — sans ca, du vrai beurre ou une vraie sauce
+   disparaissait silencieusement du panier et de la verification frigo
+   (confirme par revue le 2026-08-03). ---- */
 const PANTRY_STAPLE_WORDS = new Set(["sel", "poivre"]);
+const PANTRY_STAPLE_QUALIFIER_RE = /\bdemi[-\s]sel\b|\bau(?:x)?\s+poivres?\b/;
 
 export function isPantryStaple(name){
-  const words = String(name ?? "")
-    .toLowerCase()
+  const normalized = String(name ?? "").toLowerCase();
+  if (PANTRY_STAPLE_QUALIFIER_RE.test(normalized)) return false;
+  const words = normalized
     .split(/[^a-zàâäéèêëîïôöùûüç]+/i)
     .filter(Boolean);
   return words.some(w => PANTRY_STAPLE_WORDS.has(w));
