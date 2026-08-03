@@ -278,6 +278,7 @@ input{ font-family: inherit; }
 .chip[data-filter="plat"].is-active{ background: var(--terracotta); color: #fff; border-color: var(--terracotta); }
 .chip[data-filter="dessert"].is-active{ background: var(--mustard-dark); color: #fff; border-color: var(--mustard); }
 .chip-fav.is-active{ background: var(--emerald); color: #fff; border-color: var(--emerald); }
+.chip-fridge.is-active{ background: var(--emerald); color: #fff; border-color: var(--emerald); }
 
 @media (max-width: 480px){
   .site-header{ padding: 14px 16px 12px; }
@@ -390,6 +391,14 @@ input{ font-family: inherit; }
 }
 .card-fav[aria-pressed="true"]{ color: var(--terracotta-dark); }
 .card-fav svg{ width:16px; height:16px; }
+
+.card-fridge-badge{
+  position:absolute; top:10px; left:10px; z-index:1;
+  padding: 4px 9px; border-radius: 999px;
+  font-size:.68rem; font-weight:700;
+  background: var(--terracotta-tint); color: var(--terracotta-dark);
+}
+.card-fridge-badge.is-ok{ background: var(--emerald-tint); color: var(--emerald-dark); }
 
 .card-body{ display:flex; flex-direction:column; gap:12px; padding:14px 16px 16px; }
 

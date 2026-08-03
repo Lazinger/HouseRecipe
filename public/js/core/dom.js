@@ -5,7 +5,7 @@ export const emptyState = document.getElementById("emptyState");
 export const resultTitle = document.getElementById("resultTitle");
 export const resultCount = document.getElementById("resultCount");
 export const searchInput = document.getElementById("searchInput");
-export const chips = document.querySelectorAll(".chip");
+export const chips = document.querySelectorAll(".chip[data-filter]");
 export const favToggleHeader = document.getElementById("favToggle");
 export const detailView = document.getElementById("detailView");
 export const detailScroll = document.getElementById("detailScroll");
@@ -70,6 +70,7 @@ export const allergenFilterBadge = document.getElementById("allergenFilterBadge"
 export const allergenFilterPanel = document.getElementById("allergenFilterPanel");
 export const allergenFilterList = document.getElementById("allergenFilterList");
 export const seasonalFilterChip = document.getElementById("seasonalFilterChip");
+export const fridgeReadyChip = document.getElementById("fridgeReadyChip");
 
 /* ---- état de l'application ---- */
 export const state = {
@@ -77,5 +78,6 @@ export const state = {
   filter: "tout",
   favorites: new Set(JSON.parse(localStorage.getItem("carnet-favoris") || "[]")),
   excludedAllergens: new Set(JSON.parse(localStorage.getItem("carnet-allergenes-exclus") || "[]")),
-  seasonalFilter: null
+  seasonalFilter: null,
+  fridgeReadyToggle: false
 };
