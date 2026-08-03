@@ -205,7 +205,7 @@ function renderPanier(){
         ${merged.slice().sort((a, b) => (checkedItems.has(a.key) ? 1 : 0) - (checkedItems.has(b.key) ? 1 : 0)).map(m => `
           <label class="check-line ${checkedItems.has(m.key) ? "done" : ""}">
             <span class="checkbox ${checkedItems.has(m.key) ? "checked" : ""}" data-key="${escapeAttr(m.key)}">${checkedItems.has(m.key) ? "✓" : ""}</span>
-            ${escapeHtml(m.name)} — ${escapeHtml(m.qty)}
+            ${escapeHtml(m.name)}${m.qty ? ` — ${escapeHtml(m.qty)}` : ""}
           </label>
         `).join("")}
       </div>
