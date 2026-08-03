@@ -22,7 +22,10 @@ const cases = [
   { input: ["150 g de pistaches", ""], expected: ["Pistaches", "150 g"] },
   { input: ["140 g de beurre fondu", ""], expected: ["Beurre fondu", "140 g"] },
   { input: ["120 g d'eau", ""], expected: ["Eau", "120 g"] },
-  { input: ["3 oeufs", ""], expected: ["Oeufs", "3"] }
+  { input: ["3 oeufs", ""], expected: ["Oeufs", "3"] },
+  { input: ["12 tomates séchées", ""], expected: ["Tomates séchées", "12"] },
+  { input: ["4 sauce soja", ""], expected: ["Sauce soja", "4"] },
+  { input: ["1 huile d'olive", ""], expected: ["Huile d'olive", "1"] }
 ];
 
 let failures = 0;

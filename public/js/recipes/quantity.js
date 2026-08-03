@@ -38,23 +38,56 @@ export function normalizeQuantity(qty){
   return { value: parsed.value * conversion.factor, unit: conversion.unit };
 }
 
+/* ---- unites reconnues pour la 1ere et la 2eme forme ci-dessous : sans
+   cette liste, splitLeadingQuantity acceptait n'importe quel mot comme
+   "l'unite" (ex. "12 tomates sechees" -> unite="tomates", nom="sechees",
+   confirme en base le 2026-08-03 sur 2 recettes scannees ou le nom et la
+   quantite avaient ete inverses). Couvre a la fois la forme "avec
+   parenthese" que l'app utilise en interne (ex. "pièce(s)") et les formes
+   brutes singulier/pluriel telles qu'elles apparaissent dans un texte
+   scrape. ---- */
+const KNOWN_QUANTITY_UNITS = new Set([
+  "g", "kg", "ml", "cl", "l", "cs", "cc",
+  "pinc.", "pincée", "pincées",
+  "pièce", "pièces", "pièce(s)",
+  "sachet", "sachets", "sachet(s)",
+  "tranche", "tranches", "tranche(s)",
+  "pot", "pots", "pot(s)",
+  "botte", "bottes", "botte(s)",
+  "paquet", "paquets", "paquet(s)",
+  "filet", "filets", "filet(s)",
+  "noix", "cm",
+  "pavé", "pavés", "pavé(s)",
+  "gousse", "gousses", "gousse(s)",
+  "feuille", "feuilles", "feuille(s)",
+  "boîte", "boîtes", "boite", "boites", "boîte(s)", "boite(s)"
+]);
+
 /* ---- extraction d'une quantité collée en tête du nom d'un ingrédient.
-   Trois formes reelles rencontrees a l'import, essayees de la plus specifique
+   Formes reelles rencontrees a l'import, essayees de la plus specifique
    a la plus generale :
-   1. "150 g de pistaches" / "120 g d'eau" -> unite + connecteur a retirer.
-   2. "1 pièce(s) Poireau" -> unite directement suivie du nom, sans connecteur.
-   3. "3 oeufs" -> pas d'unite separee, le mot final EST le nom. ---- */
+   1. "150 g de pistaches" / "120 g d'eau" -> unite reconnue + connecteur a retirer.
+   2. "1 pièce(s) Poireau" -> unite reconnue directement suivie du nom, sans connecteur.
+   3. "3 oeufs" / "4 sauce soja" -> aucune unite reconnue : le nombre est
+      separe mais tout le reste (un ou plusieurs mots) reste le nom, sans
+      unite invente. Repli volontairement conservateur : mieux vaut une
+      quantite incomplete (a corriger a la main) qu'un nom/quantite faux
+      avec un decoupage qui a l'air correct. ---- */
 export function splitLeadingQuantity(name){
   const text = String(name).trim();
 
   const withConnector = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(?:de\s+|d')(.+)$/);
-  if (withConnector) return { qty: `${withConnector[1]} ${withConnector[2]}`, name: withConnector[3].trim() };
+  if (withConnector && KNOWN_QUANTITY_UNITS.has(withConnector[2].toLowerCase())) {
+    return { qty: `${withConnector[1]} ${withConnector[2]}`, name: withConnector[3].trim() };
+  }
 
   const unitAndName = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)\s+(.+)$/);
-  if (unitAndName) return { qty: `${unitAndName[1]} ${unitAndName[2]}`, name: unitAndName[3].trim() };
+  if (unitAndName && KNOWN_QUANTITY_UNITS.has(unitAndName[2].toLowerCase())) {
+    return { qty: `${unitAndName[1]} ${unitAndName[2]}`, name: unitAndName[3].trim() };
+  }
 
-  const countOnly = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(\S+)$/);
-  if (countOnly) return { qty: countOnly[1], name: countOnly[2].trim() };
+  const noUnit = text.match(/^([\d½¼¾⅓⅔]+(?:[.,]\d+)?)\s+(.+)$/);
+  if (noUnit) return { qty: noUnit[1], name: noUnit[2].trim() };
 
   const toTaste = text.match(/^(selon (?:le|votre|vos) goûts?)\s+(.+)$/i);
   if (toTaste) return { qty: toTaste[1], name: toTaste[2].trim() };
