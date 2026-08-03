@@ -1,11 +1,12 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
 import { mergeQuantityParts, reduceQuantityStock, parseQuantity } from "../recipes/quantity.js";
-import { fridgeView, fridgeScroll } from "../core/dom.js";
+import { fridgeView, fridgeScroll, state } from "../core/dom.js";
 import { openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
 import { escapeAttr } from "../core/utils.js";
 import { ALL_RECIPES } from "../recipes/recipes-store.js";
 import { updateRemoveButtons } from "../recipes/dyn-rows.js";
+import { render } from "../recipes/grid.js";
 
 /* ---- frigo personnel (persisté, une ligne par ingrédient et par compte) ---- */
 const FRIDGE_KEY = "carnet-frigo";
@@ -222,4 +223,5 @@ export function closeFridge(){
   fridgeView.setAttribute("aria-hidden", "true");
   syncBodyScrollLock();
   closeSheetBackdrop();
+  if (state.fridgeReadyToggle) render();
 }

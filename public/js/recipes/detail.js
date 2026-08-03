@@ -219,6 +219,7 @@ export function openDetail(id){
     const confirmed = await confirmModal("Valider retirera les ingrédients de cette recette de ton frigo. Continuer ?");
     if (!confirmed) return;
     decrementFridgeItems(currentIngredients());
+    if (state.fridgeReadyToggle) render();
     showToast("Frigo mis à jour");
   });
 

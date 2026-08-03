@@ -1,10 +1,11 @@
 import { supabase, currentUserId } from "../auth/supabase-client.js";
 import { parseQuantity, formatScaledNumber, mergeQuantityParts, applyFridgeStock, isPantryStaple } from "../recipes/quantity.js";
 import { fridgeItems, incrementFridgeItems } from "./fridge.js";
-import { cartBadge, panierView, panierScroll } from "../core/dom.js";
+import { cartBadge, panierView, panierScroll, state } from "../core/dom.js";
 import { escapeAttr, escapeHtml } from "../core/utils.js";
 import { showToast, openDrawer, syncBodyScrollLock, openSheetBackdrop, closeSheetBackdrop, ensureSheetHistoryEntry } from "../core/ui.js";
 import { enqueue, registerHandler } from "../core/write-queue.js";
+import { render } from "../recipes/grid.js";
 
 /* ---- panier de courses (persisté) ---- */
 const CART_KEY = "carnet-panier";
@@ -149,6 +150,7 @@ function validateCart(){
     return;
   }
   incrementFridgeItems(toValidate);
+  if (state.fridgeReadyToggle) render();
 
   if (mergeIngredientsForShopping().length === 0) {
     clearCart();
