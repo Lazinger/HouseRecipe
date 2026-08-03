@@ -5,7 +5,7 @@
    ========================================================= */
 
 import {
-  state, searchInput, chips, favToggleHeader, addFab, fabMenu, fabMenuAddBtn, fabMenuScanBtn, fabMenuImportBtn, cartToggle,
+  state, searchInput, chips, favToggleHeader, addFab, fabMenu, fabMenuAddBtn, fabMenuScanBtn, fabMenuImportBtn, cartToggle, fridgeReadyChip,
   menuToggle, drawer, drawerOverlay, drawerCloseBtn,
   navAllBtn, navFavBtn, navPanierBtn, navAddBtn, navScanBtn, navImportUrlBtn, navMealPlanBtn, navSeasonBtn, navFridgeBtn,
   navLogoutBtn, accountToggle,
@@ -88,6 +88,13 @@ chips.forEach(chip => {
     state.filter = chip.dataset.filter;
     render();
   });
+});
+
+fridgeReadyChip.addEventListener("click", () => {
+  state.fridgeReadyToggle = !state.fridgeReadyToggle;
+  fridgeReadyChip.classList.toggle("is-active", state.fridgeReadyToggle);
+  fridgeReadyChip.setAttribute("aria-pressed", String(state.fridgeReadyToggle));
+  render();
 });
 
 renderAllergenFilterPanel();

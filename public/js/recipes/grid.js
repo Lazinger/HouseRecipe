@@ -6,6 +6,8 @@ import { produceMatchesRecipe } from "../data/season-data.js";
 import { ALL_RECIPES, toggleFavorite } from "./recipes-store.js";
 import { applyCardPhoto } from "../photos/photos.js";
 import { openDetail } from "./detail.js";
+import { checkFridgeAvailability } from "./quantity.js";
+import { fridgeItems } from "../planning/fridge.js";
 
 /* ---- rendu du héros (recette mise en avant, tirage stable sur la journée) ---- */
 function pickDailyFeatured(){
@@ -71,6 +73,20 @@ function renderSeasonalFilterChip(){
   });
 }
 
+/* ---- disponibilite au frigo : nombre d'ingredients "manque" par recette
+   (les "a-verifier" ne comptent pas — meme regle que "Verifier mon frigo"
+   sur la fiche recette, on ne penalise jamais un cas ambigu). Calcule une
+   seule fois par recette, reutilise a la fois pour le tri et le badge. ---- */
+function computeFridgeMissingCounts(list){
+  const counts = new Map();
+  list.forEach(r => {
+    const missing = checkFridgeAvailability(r.ingredients, fridgeItems)
+      .filter(item => item.status === "manque").length;
+    counts.set(r.id, missing);
+  });
+  return counts;
+}
+
 /* ---- panneau de filtre par allergène ---- */
 function updateAllergenFilterBadge(){
   const count = state.excludedAllergens.size;
@@ -105,6 +121,11 @@ function renderGrid(){
   resultCount.textContent = list.length + (list.length > 1 ? " recettes" : " recette");
   renderSeasonalFilterChip();
 
+  const fridgeMissingCounts = state.fridgeReadyToggle ? computeFridgeMissingCounts(list) : null;
+  if (fridgeMissingCounts) {
+    list.sort((a, b) => fridgeMissingCounts.get(a.id) - fridgeMissingCounts.get(b.id));
+  }
+
   grid.innerHTML = "";
   emptyState.hidden = list.length !== 0;
 
@@ -114,9 +135,14 @@ function renderGrid(){
     card.type = "button";
     card.dataset.id = r.id;
     const isFav = state.favorites.has(r.id);
+    const missing = fridgeMissingCounts?.get(r.id);
+    const fridgeBadgeHtml = missing === undefined ? "" : missing === 0
+      ? `<span class="card-fridge-badge is-ok">Tout y est</span>`
+      : `<span class="card-fridge-badge">${missing} manquant${missing > 1 ? "s" : ""}</span>`;
     card.innerHTML = `
       <div class="card-photo">
         <span class="card-icon">${ICONS[r.icon]}</span>
+        ${fridgeBadgeHtml}
         <button class="card-fav" type="button" aria-pressed="${isFav}" aria-label="Ajouter aux favoris" data-favid="${r.id}">
           <svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-10-9.4C.4 7.6 2 4 5.6 3.4 8 3 10.2 4.2 12 6.6 13.8 4.2 16 3 18.4 3.4 22 4 23.6 7.6 22 11.1c-2.5 4.8-10 9.4-10 9.4Z" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </button>
