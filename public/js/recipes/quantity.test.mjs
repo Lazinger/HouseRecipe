@@ -309,9 +309,14 @@ const pantryStapleCases = [
   { input: "Sel et poivre", expected: true },
   { input: "Poivre et sel", expected: true },
   { input: "Sel, poivre", expected: true },
-  { input: "Poivre noir", expected: false },
-  { input: "Fleur de sel", expected: false },
-  { input: "Farine", expected: false }
+  { input: "Poivre noir", expected: true },
+  { input: "Fleur de sel", expected: true },
+  { input: "Farine", expected: false },
+  { input: "morceau de sel", expected: true },
+  { input: "poivre du Pérou", expected: true },
+  { input: "pincée de poivre", expected: true },
+  { input: "Poivron", expected: false },
+  { input: "Céleri", expected: false }
 ];
 
 let pantryStapleFailures = 0;

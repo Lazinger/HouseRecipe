@@ -222,21 +222,20 @@ export function subtractQuantity(need, stock){
 }
 
 /* ---- ingredients "de placard" que tout le monde a en permanence chez
-   soi (sel, poivre, seuls ou combines : "Sel", "Poivre", "Sel et poivre",
-   "Poivre et sel", "Sel, poivre"...) : jamais a verifier au frigo, jamais
-   a ajouter au panier de courses. Volontairement restreint a ces deux
-   mots pour rester simple — une variante specifique ("Poivre noir",
-   "Fleur de sel") n'est pas consideree illimitee. ---- */
+   soi : jamais a verifier au frigo, jamais a ajouter au panier de
+   courses, des qu'un mot ENTIER du nom est "sel" ou "poivre" — couvre
+   "Sel", "Poivre", "Sel et poivre", "Fleur de sel", "morceau de sel",
+   "Poivre noir", "poivre du Perou", etc. Comparaison par mot entier (pas
+   sous-chaine) : "Poivron" (poivron != poivre) et "Celeri" restent des
+   ingredients normaux a acheter/verifier. ---- */
 const PANTRY_STAPLE_WORDS = new Set(["sel", "poivre"]);
-const PANTRY_STAPLE_IGNORED_WORDS = new Set(["et", "de", "d"]);
 
 export function isPantryStaple(name){
   const words = String(name ?? "")
     .toLowerCase()
     .split(/[^a-zàâäéèêëîïôöùûüç]+/i)
-    .filter(Boolean)
-    .filter(w => !PANTRY_STAPLE_IGNORED_WORDS.has(w));
-  return words.length > 0 && words.every(w => PANTRY_STAPLE_WORDS.has(w));
+    .filter(Boolean);
+  return words.some(w => PANTRY_STAPLE_WORDS.has(w));
 }
 
 /* ---- fusion de plusieurs quantites du meme ingredient (ex. la meme
